@@ -1,0 +1,37 @@
+[
+  {
+    "id": "q1",
+    "query": "How does Pixeltable handle automatic embedding and indexing?",
+    "expected_modality": "text",
+    "expected_sources": ["pixeltable-overview.txt"],
+    "description": "Should retrieve from Pixeltable overview doc about computed columns and embedding indexes"
+  },
+  {
+    "id": "q2",
+    "query": "What are the cost trade-offs between serverless and reserved GPU instances?",
+    "expected_modality": "text",
+    "expected_sources": ["modal-gpu-guide.txt"],
+    "description": "Should retrieve from GPU guide about scaling strategies and cost"
+  },
+  {
+    "id": "q3",
+    "query": "Best practices for chunking documents in a RAG pipeline",
+    "expected_modality": "text",
+    "expected_sources": ["rag-best-practices.txt"],
+    "description": "Should retrieve from RAG best practices about chunking strategy"
+  },
+  {
+    "id": "q4",
+    "query": "What does the architecture diagram show?",
+    "expected_modality": "image",
+    "expected_sources": ["architecture-diagram.png"],
+    "description": "Should retrieve the architecture diagram image via its generated description"
+  },
+  {
+    "id": "q5",
+    "query": "How do computed columns eliminate the need for orchestration?",
+    "expected_modality": "text",
+    "expected_sources": ["pixeltable-overview.txt", "rag-best-practices.txt"],
+    "description": "Cross-document query that should retrieve from both Pixeltable overview and RAG best practices"
+  }
+]

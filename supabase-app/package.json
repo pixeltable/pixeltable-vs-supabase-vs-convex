@@ -1,0 +1,17 @@
+{
+  "name": "platform-comparison-supabase",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "seed": "npx tsx scripts/seed.ts",
+    "test": "npx vitest run"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "vitest": "^3.0.0",
+    "dotenv": "^16.0.0"
+  }
+}

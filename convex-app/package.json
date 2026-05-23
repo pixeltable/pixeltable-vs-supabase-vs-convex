@@ -1,0 +1,18 @@
+{
+  "name": "platform-comparison-convex",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx convex dev",
+    "deploy": "npx convex deploy",
+    "test": "npx vitest run"
+  },
+  "dependencies": {
+    "convex": "^1.39.0",
+    "openai": "^4.0.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.0",
+    "dotenv": "^16.0.0"
+  }
+}

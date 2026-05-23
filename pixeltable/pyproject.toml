@@ -1,0 +1,16 @@
+[project]
+name = "platform-comparison-pixeltable"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "pixeltable>=0.6.0",
+    "fastapi",
+    "uvicorn[standard]",
+    "python-dotenv",
+    "python-multipart",
+    "openai",
+    "sentence-transformers",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "httpx"]

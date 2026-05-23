@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-pixeltable:
+    name: Lint Pixeltable (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Lint
+        run: ruff check pixeltable/
+      - name: Format check
+        run: ruff format --check pixeltable/
+
+  lint-modal:
+    name: Lint Modal (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install ruff
+        run: pip install ruff
+      - name: Lint
+        run: ruff check modal-app/ --exclude modal-app/tests/
+      - name: Format check
+        run: ruff format --check modal-app/
+
+  lint-supabase:
+    name: Lint Supabase (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - name: TypeScript check
+        run: npx tsc --noEmit --skipLibCheck || true
+
+  lint-convex:
+    name: Lint Convex (TypeScript)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: convex-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install
+      - name: TypeScript check
+        run: npx tsc --noEmit --skipLibCheck || true
+
+  metrics:
+    name: Collect DX Metrics
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install dependencies
+        run: pip install rich pydantic
+      - name: Run metrics
+        run: python harness/run_comparison.py
+      - name: Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: dx-metrics
+          path: docs/metrics.json

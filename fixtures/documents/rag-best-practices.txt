@@ -1,0 +1,69 @@
+Retrieval-Augmented Generation: Best Practices for Production Systems
+
+Retrieval-Augmented Generation (RAG) combines information retrieval with language model generation
+to produce grounded, factual responses. This document outlines key best practices for building
+production RAG systems.
+
+Document Processing Pipeline:
+
+Chunking Strategy: Split documents into chunks of 256-512 tokens with 50-token overlap. Smaller
+chunks improve retrieval precision but may lose context. Larger chunks preserve context but
+dilute relevance signals. Sentence-level splitting followed by grouping into semantic paragraphs
+provides a good balance.
+
+Metadata Enrichment: Attach source information (filename, page number, section heading) to each
+chunk. This enables filtering during retrieval and helps users verify the source of generated
+answers.
+
+Multi-modal Handling: For documents containing images, charts, or tables, extract visual elements
+separately and generate text descriptions using vision models. Index both the original text and
+the generated descriptions to enable cross-modal retrieval.
+
+Embedding Strategy:
+
+Model Selection: Use domain-appropriate embedding models. General-purpose models like
+text-embedding-3-small work well for most applications. Specialized models (e.g., PubMedBERT for
+medical text) improve retrieval quality in specific domains.
+
+Dimension Trade-offs: Higher-dimensional embeddings (1536d, 3072d) capture more nuance but
+require more storage and slower search. For most applications, 768-1536 dimensions provide a
+good balance of quality and performance.
+
+Index Maintenance: Keep embedding indexes synchronized with source data. Stale indexes containing
+deleted or modified documents degrade retrieval quality. Automated index maintenance — where
+the system tracks data changes and updates embeddings incrementally — prevents drift.
+
+Retrieval and Generation:
+
+Query Enhancement: Expand user queries with related terms or rephrase them for better retrieval.
+Techniques include HyDE (Hypothetical Document Embeddings), which generates a hypothetical
+answer and uses its embedding to retrieve similar actual documents.
+
+Re-ranking: Apply a cross-encoder re-ranker to the top-k retrieved documents to improve
+precision. This adds latency but significantly improves relevance for the final context window.
+
+Context Assembly: Concatenate retrieved chunks with clear delimiters and source attribution.
+Include document titles and section headings to help the language model understand the structure
+of the provided context.
+
+Prompt Engineering: Instruct the model to cite sources, acknowledge uncertainty when context is
+insufficient, and avoid hallucinating facts not present in the retrieved documents.
+
+Evaluation:
+
+Measure retrieval quality with metrics like Recall@k (percentage of relevant documents in top-k
+results) and MRR (Mean Reciprocal Rank). Measure generation quality with human evaluation and
+automated metrics like faithfulness (does the answer stay grounded in the context?).
+
+Build a golden test set of question-answer pairs with known relevant documents. Run this test set
+regularly to detect regressions in retrieval or generation quality.
+
+Agent Integration:
+
+RAG works well as a tool in agent architectures. The agent decides when to search the knowledge
+base versus using other tools (web search, calculations, API calls). This selective retrieval
+reduces unnecessary API calls and improves response relevance.
+
+Tool-calling agents can invoke multiple retrieval queries in sequence, refining their search based
+on initial results. This iterative retrieval pattern outperforms single-query approaches for
+complex questions that span multiple documents.
