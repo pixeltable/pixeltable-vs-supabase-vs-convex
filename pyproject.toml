@@ -3,6 +3,9 @@
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+# Ruff formats Python code blocks inside Markdown from 0.16 onward, which would
+# reflow the illustrative snippets in the READMEs. Lint and format Python only.
+include = ["*.py", "*.pyi"]
 
 [tool.ruff.format]
 quote-style = "single"

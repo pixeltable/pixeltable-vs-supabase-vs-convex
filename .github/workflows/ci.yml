@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install ruff
+      - run: pip install ruff==0.15.0   # pinned: formatting rules change between minors
       - run: ruff check pixeltable/ compute-service/ harness/
       - run: ruff format --check pixeltable/ compute-service/ harness/
 
