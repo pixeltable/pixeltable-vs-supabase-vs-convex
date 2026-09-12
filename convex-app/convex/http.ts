@@ -1,68 +1,55 @@
-import { httpRouter } from 'convex/server';
-import { httpAction } from './_generated/server';
-import { api, internal } from './_generated/api';
+// HTTP router. Five routes, each unwrapping a JSON body and re-wrapping the result.
+
+import { httpRouter } from "convex/server";
+import { httpAction } from "./_generated/server";
+import { api } from "./_generated/api";
 
 const http = httpRouter();
 
+const json = (body: unknown) =>
+  new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
+
 http.route({
-  path: '/upload',
-  method: 'POST',
-  handler: httpAction(async (ctx, request) => {
-    const body = await request.json();
-    const result = await ctx.runAction(api.upload.upload, {
-      content: body.content,
-      imageUrl: body.imageUrl,
-      source: body.source ?? 'api',
-      metadata: body.metadata,
-    });
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  path: "/videos",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    const body = await req.json();
+    return json(await ctx.runAction(api.ingest.ingestVideo, { videoUrl: body.video, title: body.title }));
   }),
 });
 
 http.route({
-  path: '/search',
-  method: 'POST',
-  handler: httpAction(async (ctx, request) => {
-    const body = await request.json();
-    const results = await ctx.runAction(api.search.search, {
-      query: body.query,
-      limit: body.limit,
-    });
-    return new Response(JSON.stringify({ results }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  path: "/videos",
+  method: "GET",
+  handler: httpAction(async (ctx) => json(await ctx.runQuery(api.videos.listVideos))),
+});
+
+http.route({
+  path: "/search/frames",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    const body = await req.json();
+    return json(await ctx.runAction(api.searchFrames.searchFrames, { query: body.query, limit: body.limit }));
   }),
 });
 
 http.route({
-  path: '/agent/query',
-  method: 'POST',
-  handler: httpAction(async (ctx, request) => {
-    const body = await request.json();
-    const result = await ctx.runAction(api.agent.queryAgent, {
-      message: body.message,
-      conversationId: body.conversationId,
-    });
-    return new Response(JSON.stringify(result), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  path: "/search/transcripts",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    const body = await req.json();
+    return json(
+      await ctx.runAction(api.searchTranscripts.searchTranscripts, { query: body.query, limit: body.limit }),
+    );
   }),
 });
 
 http.route({
-  path: '/documents',
-  method: 'GET',
-  handler: httpAction(async (ctx) => {
-    const docs = await ctx.runQuery(api.documents.getDocuments);
-    return new Response(JSON.stringify({ documents: docs }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  path: "/agent/query",
+  method: "POST",
+  handler: httpAction(async (ctx, req) => {
+    const body = await req.json();
+    return json(await ctx.runAction(api.agent.queryAgent, { question: body.question }));
   }),
 });
 

@@ -1,0 +1,159 @@
+{
+  "pixeltable": {
+    "name": "pixeltable",
+    "app_loc": 128,
+    "config_loc": 19,
+    "app_files": 1,
+    "languages": [
+      "Python"
+    ],
+    "env_vars": [],
+    "tables": 2,
+    "views": 2,
+    "vector_indexes": 2,
+    "foreign_keys": 0,
+    "db_triggers": 0,
+    "orchestration_hops": 0,
+    "http_routes_written_by_hand": 1,
+    "external_hosts": [],
+    "file_breakdown": {
+      "app.py": 128
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "Pixeltable (one process)"
+      ],
+      "needs_compute_service": false,
+      "work_runs_on_insert": true,
+      "incremental_column_add": true,
+      "data_versioning": true,
+      "account_required_to_typecheck": false
+    }
+  },
+  "supabase": {
+    "name": "supabase",
+    "app_loc": 473,
+    "config_loc": 39,
+    "app_files": 11,
+    "languages": [
+      "TypeScript",
+      "SQL"
+    ],
+    "env_vars": [
+      "COMPUTE_SERVICE_URL",
+      "SUPABASE_ANON_KEY",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "SUPABASE_URL"
+    ],
+    "tables": 5,
+    "views": 0,
+    "vector_indexes": 2,
+    "foreign_keys": 3,
+    "db_triggers": 2,
+    "orchestration_hops": 19,
+    "http_routes_written_by_hand": 7,
+    "external_hosts": [
+      "compute-service (self-operated)"
+    ],
+    "file_breakdown": {
+      "scripts/seed.ts": 31,
+      "supabase/functions/agent/index.ts": 47,
+      "supabase/functions/ingest/index.ts": 65,
+      "supabase/functions/list-videos/index.ts": 36,
+      "supabase/functions/process-audio/index.ts": 44,
+      "supabase/functions/process-frames/index.ts": 37,
+      "supabase/functions/search-frames/index.ts": 33,
+      "supabase/functions/search-transcripts/index.ts": 32,
+      "supabase/migrations/001_schema.sql": 41,
+      "supabase/migrations/002_search_functions.sql": 46,
+      "supabase/migrations/003_pipeline.sql": 61
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "Supabase (Postgres, Storage, Deno)",
+        "compute-service"
+      ],
+      "needs_compute_service": true,
+      "work_runs_on_insert": false,
+      "incremental_column_add": false,
+      "data_versioning": false,
+      "account_required_to_typecheck": false
+    }
+  },
+  "convex": {
+    "name": "convex",
+    "app_loc": 458,
+    "config_loc": 32,
+    "app_files": 9,
+    "languages": [
+      "TypeScript"
+    ],
+    "env_vars": [
+      "COMPUTE_SERVICE_URL",
+      "CONVEX_URL"
+    ],
+    "tables": 4,
+    "views": 0,
+    "vector_indexes": 2,
+    "foreign_keys": 0,
+    "db_triggers": 0,
+    "orchestration_hops": 17,
+    "http_routes_written_by_hand": 5,
+    "external_hosts": [
+      "compute-service (self-operated)"
+    ],
+    "file_breakdown": {
+      "convex/agent.ts": 35,
+      "convex/http.ts": 46,
+      "convex/ingest.ts": 53,
+      "convex/processAudio.ts": 51,
+      "convex/processFrames.ts": 52,
+      "convex/schema.ts": 45,
+      "convex/searchFrames.ts": 44,
+      "convex/searchTranscripts.ts": 44,
+      "convex/videos.ts": 88
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "Convex (database, actions, storage)",
+        "compute-service"
+      ],
+      "needs_compute_service": true,
+      "work_runs_on_insert": false,
+      "incremental_column_add": false,
+      "data_versioning": false,
+      "account_required_to_typecheck": true
+    }
+  },
+  "compute-service": {
+    "name": "compute-service",
+    "app_loc": 258,
+    "config_loc": 20,
+    "app_files": 1,
+    "languages": [
+      "Python"
+    ],
+    "env_vars": [],
+    "tables": 0,
+    "views": 0,
+    "vector_indexes": 0,
+    "foreign_keys": 0,
+    "db_triggers": 0,
+    "orchestration_hops": 0,
+    "http_routes_written_by_hand": 8,
+    "external_hosts": [],
+    "file_breakdown": {
+      "app.py": 258
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "compute-service"
+      ],
+      "needs_compute_service": false,
+      "work_runs_on_insert": false,
+      "incremental_column_add": false,
+      "data_versioning": false,
+      "account_required_to_typecheck": false
+    }
+  }
+}

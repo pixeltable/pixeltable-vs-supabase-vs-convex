@@ -1,0 +1,18 @@
+[project]
+name = "video-compute-service"
+version = "0.1.0"
+description = "Shared media-processing service that Supabase and Convex must call (Pixeltable does not need this)."
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]",
+    "Pillow",
+    "transformers",
+    "torch",
+    "openai-whisper",
+    "sentence-transformers",
+    "llama-cpp-python",
+]
+
+[project.optional-dependencies]
+dev = ["ruff", "pytest", "httpx"]

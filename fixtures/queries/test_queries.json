@@ -1,37 +1,37 @@
 [
   {
-    "id": "q1",
-    "query": "How does Pixeltable handle automatic embedding and indexing?",
-    "expected_modality": "text",
-    "expected_sources": ["pixeltable-overview.txt"],
-    "description": "Should retrieve from Pixeltable overview doc about computed columns and embedding indexes"
+    "id": "visual_whiteboard",
+    "type": "frames",
+    "query": "whiteboard with algorithm diagram",
+    "description": "Visual search for whiteboard content in frames",
+    "expected_video": "whiteboard_algorithms.mp4"
   },
   {
-    "id": "q2",
-    "query": "What are the cost trade-offs between serverless and reserved GPU instances?",
-    "expected_modality": "text",
-    "expected_sources": ["modal-gpu-guide.txt"],
-    "description": "Should retrieve from GPU guide about scaling strategies and cost"
+    "id": "visual_code",
+    "type": "frames",
+    "query": "code on screen with syntax highlighting",
+    "description": "Visual search for code review frames",
+    "expected_video": "code_review_session.mp4"
   },
   {
-    "id": "q3",
-    "query": "Best practices for chunking documents in a RAG pipeline",
-    "expected_modality": "text",
-    "expected_sources": ["rag-best-practices.txt"],
-    "description": "Should retrieve from RAG best practices about chunking strategy"
+    "id": "transcript_data_structures",
+    "type": "transcripts",
+    "query": "explains arrays and hash tables",
+    "description": "Semantic search in lecture transcript",
+    "expected_video": "lecture_data_structures.mp4"
   },
   {
-    "id": "q4",
-    "query": "What does the architecture diagram show?",
-    "expected_modality": "image",
-    "expected_sources": ["architecture-diagram.png"],
-    "description": "Should retrieve the architecture diagram image via its generated description"
+    "id": "transcript_quicksort",
+    "type": "transcripts",
+    "query": "quicksort pivot partition algorithm",
+    "description": "Semantic search for sorting algorithm explanation",
+    "expected_video": "whiteboard_algorithms.mp4"
   },
   {
-    "id": "q5",
-    "query": "How do computed columns eliminate the need for orchestration?",
-    "expected_modality": "text",
-    "expected_sources": ["pixeltable-overview.txt", "rag-best-practices.txt"],
-    "description": "Cross-document query that should retrieve from both Pixeltable overview and RAG best practices"
+    "id": "transcript_optimization",
+    "type": "transcripts",
+    "query": "performance optimization and profiling",
+    "description": "Semantic search for code performance discussion",
+    "expected_video": "code_review_session.mp4"
   }
 ]

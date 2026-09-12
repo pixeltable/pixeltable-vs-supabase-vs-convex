@@ -1,110 +1,107 @@
-# Pixeltable Implementation
+# Pixeltable: video intelligence pipeline
 
-> **368 lines of Python. 1 language. 1 external service. 1 env var.**
+One file. [`app.py`](app.py) holds the schema, the pipeline, the agent, and the HTTP
+API, and there is nothing else in this directory but a `pyproject.toml`.
 
-## Prerequisites
+Everything runs locally: CLIP for frames, sentence-transformers for transcripts,
+Whisper for speech, Qwen2.5-1.5B for the agent. No API key.
 
-- Python 3.10+
-- `OPENAI_API_KEY`
-
-No cloud account. No Docker. No browser.
-
-## Setup (3 steps)
+## Run it
 
 ```bash
-pip install -e ".[test]"       # 1. Install
-cp .env.example .env           # 2. Add OPENAI_API_KEY
-python main.py                 # 3. Run (schema auto-creates on startup)
+pip install -e .
+pxt init
+pxt schema update app.py media      # creates the tables; does not start HTTP
+pxt service update app.py media     # starts HTTP; does not create tables
+pxt service list                    # prints the assigned port
 ```
 
-## What Happens at Each Phase
-
-### Phase 1: Install
-
-`pip install pixeltable` -- embedded Postgres starts automatically on first import. No provisioning.
-
-### Phase 2: Schema
-
-`setup_pixeltable.py` creates the entire data model in ~20 lines:
-
-```python
-t = pxt.create_table('kb.documents', {
-    'text': pxt.String, 'source': pxt.String, 'modality': pxt.String,
-    'metadata': pxt.Json, 'image': pxt.Image,
-}, if_exists='ignore')
-```
-
-No SQL. No migration files. No dimensions to pre-declare.
-
-### Phase 3: Ingest
-
-```python
-t.insert([{'text': '...', 'source': 'doc.txt', 'modality': 'text'}])
-```
-
-One line. Computed columns fire automatically.
-
-### Phase 4: Embed
-
-Declared once as a computed column. Runs on every insert. Retries automatically. Per-cell error tracking.
-
-```python
-t.add_computed_column(embed_text=embeddings(input=t.text, model='text-embedding-3-small'))
-t.add_embedding_index('text', embedding=embeddings.using(model='text-embedding-3-small'))
-```
-
-### Phase 5: Search
-
-```python
-sim = docs.text.similarity(string=query)
-results = docs.order_by(sim, asc=False).limit(limit).select(docs.text, sim).collect()
-```
-
-Two lines. Query embedding handled internally.
-
-### Phase 6: Serve
-
-`pxt serve` for zero-code CLI, or `FastAPIRouter` for programmatic control. Auto-generated OpenAPI docs at `/docs`.
-
-### Phase 7: Dev Loop
-
-Just run Python. Schema changes via method calls. No Docker, no migration files, fully offline.
-
-## Architecture
-
-```
-main.py (FastAPI)
-  ├── routers/data.py      POST /upload, GET /documents
-  ├── routers/search.py    POST /search
-  └── routers/agent.py     POST /agent/query
-        │
-        └── setup_pixeltable.py (schema)
-              ├── kb.documents (table + computed columns + embedding index)
-              └── kb.conversations (chat history)
-```
-
-## File Map
-
-| File | Purpose | Lines |
-|------|---------|-------|
-| `setup_pixeltable.py` | Schema, computed columns, indexes | 62 |
-| `main.py` | FastAPI app with lifespan init | 17 |
-| `routers/data.py` | Upload + list endpoints | 30 |
-| `routers/search.py` | Semantic search endpoint | 26 |
-| `routers/agent.py` | Agent chat endpoint | 48 |
-| `functions.py` | web_search UDF + search query | 19 |
-| `config.py` | Env-driven configuration | 7 |
-
-## Run Tests
+Ingest and search:
 
 ```bash
-# Start the server first
-python main.py &
-pytest tests/ -v
+URL=$(pxt service list | awk '/^media/{print $2}')
+curl -X POST $URL/videos -H 'Content-Type: application/json' \
+  -d '{"video":"'$PWD'/../fixtures/videos/whiteboard_algorithms.mp4","title":"whiteboard_algorithms.mp4"}'
+curl -X POST $URL/search/transcripts -H 'Content-Type: application/json' \
+  -d '{"query":"quicksort pivot partition","limit":3}'
 ```
 
-## Known Limitations
+`POST /videos` returns a `job_url`; poll it until `status` is `done`.
 
-- No managed cloud deployment yet (roadmap Q2-Q3 2026)
-- No auto-scaling (single embedded Postgres)
-- Schema evolution requires drop + re-add for computed columns (roadmap: `alter_computed_column`)
+## Endpoints
+
+| Endpoint | Method | Declared as |
+|---|---|---|
+| `/videos` | POST | `add_insert_route(Videos, background=True)` |
+| `/videos` | GET | `add_query_route(query=list_videos)` |
+| `/search/frames` | POST | `add_query_route(query=search_frames)` |
+| `/search/transcripts` | POST | `add_query_route(query=search_transcripts)` |
+| `/agent/query` | POST | hand-written, see below |
+
+## Inspect it
+
+```bash
+pxt ls -l media
+pxt describe media/frames
+pxt errors media/chunks --col transcript
+pxt history media/videos
+```
+
+## Known limits, stated rather than hidden
+
+Found while building this. The version each was observed on is named, because
+"reproduces on the release" and "reproduces on my build" are different claims.
+
+**One route is written by hand** (reproduced on released 0.7.7). `add_insert_route`
+resolves its target model eagerly, so it fails on a model whose columns call a
+`@pxt.query`. That is why `/agent/query` could not be declared. Minimal repro:
+
+```python
+class Docs(TableModel, name='docs'):
+    body: pxt.String
+
+@pxt.query
+def find(q: str):
+    return Docs.where(Docs.body == q).select(body=Docs.body).limit(3)
+
+class Asks(TableModel, name='asks'):
+    question: pxt.String
+    hits = find(question)
+
+api.add_insert_route(Asks, path='/ask', inputs=[Asks.question], outputs=[Asks.hits])
+# pixeltable.exceptions.Error: A query over model `Docs` cannot be serialized;
+# bind it to a table first.
+```
+
+**`pxtf.json.len()` raises an internal `AssertionError`** (reproduced on released
+0.7.7), in a plain select as well as in a computed column. `scene_count` is a one-line
+UDF instead. Minimal repro:
+
+```python
+t = pxt.create_table('d.t', {'blob': pxt.Json})
+t.insert([{'blob': [1, 2, 3]}])
+t.select(t.blob).collect()                    # fine
+t.select(n=pxtf.json.len(t.blob)).collect()   # AssertionError: 0
+```
+
+**Changing a query's return shape is a FATAL schema difference** (released 0.7.7) for
+any column that calls it, so that table has to be dropped rather than updated. Adding
+the `still` column changed `search_frames`'s return type, which changed the inferred
+type of `Conversations.visual`.
+
+**After a destructive catalog reset, restart the service** (observed on 0.7.7.dev9).
+`pxt service update` reports "up to date" and keeps serving stale table handles, which
+then 500 with `TABLE_NOT_FOUND`. Run `pxt service stop media/api` first.
+
+## Swapping providers
+
+Each model is one expression. To go hosted, change the line:
+
+```python
+SEMANTIC = openai.embeddings.using(model='text-embedding-3-small')
+answer = openai.chat_completions(messages=..., model='gpt-4o-mini',
+                                 tools=pxt.tools(search_frames, search_transcripts))
+```
+
+The pipeline does not change, and existing rows keep the vectors they have until you
+rename the column and let it recompute.

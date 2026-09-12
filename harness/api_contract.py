@@ -1,8 +1,14 @@
-"""Shared API contract for all platform implementations.
+"""The contract every implementation serves.
 
-Every implementation (Pixeltable, Supabase, Convex, Modal) must expose HTTP
-endpoints that accept and return these models. The equivalence test harness
-validates all four against this contract.
+Five operations over one video pipeline. The response envelope is `{"rows": [...]}`
+because that is what a generic router emits when it returns rows of a query; see
+docs/METHODOLOGY.md, which states plainly that this choice suits Pixeltable's
+serving layer and costs the other two nothing, since they build their JSON by hand
+either way.
+
+Paths differ per platform (Supabase serves Edge Functions under /functions/v1),
+so the harness holds a per-implementation path map rather than pretending the URLs
+are identical.
 """
 
 from __future__ import annotations
@@ -12,86 +18,55 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-# -- Requests --
-
-
-class UploadRequest(BaseModel):
-    """Upload a text document or image to the knowledge base."""
-
-    content: str | None = Field(None, description='Text content of the document')
-    image_url: str | None = Field(None, description='URL of an image to index')
-    source: str = Field(..., description='Source filename or identifier')
-    metadata: dict = Field(default_factory=dict, description='Arbitrary metadata')
+class VideoIngestRequest(BaseModel):
+    video: str = Field(..., description='URL or local path to a video file')
+    title: str = Field(..., description='Human-readable title')
 
 
 class SearchRequest(BaseModel):
-    """Semantic search across the knowledge base."""
-
-    query: str = Field(..., description='Natural-language search query')
-    limit: int = Field(10, ge=1, le=100, description='Max results to return')
+    query: str = Field(..., description='Natural-language query')
+    limit: int = Field(10, ge=1, le=100)
 
 
 class AgentRequest(BaseModel):
-    """Send a message to the knowledge-base agent."""
-
-    message: str = Field(..., description='User message')
-    conversation_id: str | None = Field(None, description='Thread ID for multi-turn')
+    question: str = Field(..., description='Question to answer from the videos')
 
 
-# -- Responses --
+class VideoRow(BaseModel):
+    video_title: str
+    duration_sec: float
+    scene_count: int
+    status: Literal['processing', 'ready', 'error'] | None = None
 
 
-class DocumentInfo(BaseModel):
-    """Summary of an ingested document."""
-
-    id: str
-    source: str
-    modality: Literal['text', 'image']
-    created_at: str | None = None
+class FrameRow(BaseModel):
+    frame_url: str = Field(..., description='Servable URL for the extracted frame')
+    frame_idx: int
+    video_title: str
+    similarity: float = Field(..., ge=0, le=1)
 
 
-class SearchResult(BaseModel):
-    """A single search hit."""
-
-    content: str = Field(..., description='Matching text or image description')
-    source: str = Field(..., description='Source filename')
-    similarity: float = Field(..., ge=0, le=1, description='Cosine similarity score')
-    modality: Literal['text', 'image']
+class TranscriptRow(BaseModel):
+    transcript: str
+    video_title: str
+    start_sec: float = Field(..., description='Offset of this chunk within the video')
+    similarity: float = Field(..., ge=0, le=1)
 
 
-class SearchResponse(BaseModel):
-    """Response from the /search endpoint."""
-
-    results: list[SearchResult]
-    query: str
-
-
-class AgentResponse(BaseModel):
-    """Response from the /agent/query endpoint."""
-
+class AgentRow(BaseModel):
     answer: str
-    sources: list[str] = Field(default_factory=list, description='Source documents used')
-    conversation_id: str | None = None
+    visual: list[FrameRow] = Field(default_factory=list)
+    spoken: list[TranscriptRow] = Field(default_factory=list)
 
 
-class UploadResponse(BaseModel):
-    """Response from the /upload endpoint."""
+class Rows(BaseModel):
+    """Every endpoint returns this envelope."""
 
-    id: str
-    source: str
-    modality: Literal['text', 'image']
+    rows: list[dict]
 
 
-class DocumentsResponse(BaseModel):
-    """Response from GET /documents."""
-
-    documents: list[DocumentInfo]
-    total: int
-
-
-# -- Endpoint contract summary --
-#
-# POST /upload          UploadRequest   -> UploadResponse
-# POST /search          SearchRequest   -> SearchResponse
-# POST /agent/query     AgentRequest    -> AgentResponse
-# GET  /documents                       -> DocumentsResponse
+# POST /videos            VideoIngestRequest -> Rows[VideoRow]
+# GET  /videos                              -> Rows[VideoRow]
+# POST /search/frames     SearchRequest      -> Rows[FrameRow]
+# POST /search/transcripts SearchRequest     -> Rows[TranscriptRow]
+# POST /agent/query       AgentRequest       -> Rows[AgentRow]

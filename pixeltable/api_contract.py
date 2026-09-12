@@ -1,1 +1,0 @@
-../harness/api_contract.py

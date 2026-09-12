@@ -1,96 +1,69 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.0";
+// Multi-modal RAG agent. Two embedding models, two RPCs, one chat call, and the
+// prompt assembled by hand. The two searches are duplicated here rather than
+// reused, because an Edge Function cannot call another one cheaply.
+//
+// Compare, in pixeltable/app.py, the whole agent:
+//   class Conversations(TableModel, name='conversations'):
+//       question: pxt.String
+//       visual = search_frames(question, limit=4)
+//       spoken = search_transcripts(question, limit=4)
+//       answer = create_chat_completion(...)
+// Retrieval is a column there, so the evidence survives the request.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const COMPUTE_SERVICE_URL = Deno.env.get("COMPUTE_SERVICE_URL") || "http://localhost:9000";
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const post = async (path: string, body: unknown) => {
+  const resp = await fetch(`${COMPUTE_SERVICE_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!resp.ok) throw new Error(`${path} failed: ${resp.status}`);
+  return await resp.json();
 };
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+Deno.serve(async (req) => {
+  const { question } = await req.json();
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  try {
-    const { message, conversation_id } = await req.json();
+  const clip = await post("/embed-clip", { texts: [question] });
+  const { data: visual } = await supabase.rpc("search_frames", {
+    query_embedding: clip.embeddings[0],
+    match_count: 4,
+  });
 
-    const openaiKey = Deno.env.get("OPENAI_API_KEY")!;
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const text = await post("/embed-text", { texts: [question] });
+  const { data: spoken } = await supabase.rpc("search_transcripts", {
+    query_embedding: text.embeddings[0],
+    match_count: 4,
+  });
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const seen = (visual || []).map((r: any) => `- ${r.video_title}, frame ${r.frame_idx}`).join("\n") || "(nothing)";
+  const heard = (spoken || [])
+    .map((r: any) => `- [${r.video_title} @ ${Math.round(r.start_sec)}s] ${r.transcript}`)
+    .join("\n") || "(nothing)";
 
-    // Step 1: Embed the user's message for retrieval
-    const embeddingResponse = await fetch("https://api.openai.com/v1/embeddings", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openaiKey}`,
-        "Content-Type": "application/json",
+  const chat = await post("/chat", {
+    messages: [
+      {
+        role: "user",
+        content:
+          `Answer the question using only the retrieved context. Be brief.\n\n` +
+          `## Seen in the videos\n${seen}\n\n## Said in the videos\n${heard}\n\n## Question\n${question}`,
       },
-      body: JSON.stringify({
-        model: "text-embedding-3-small",
-        input: message,
-      }),
-    });
-    const embeddingData = await embeddingResponse.json();
-    const queryEmbedding = embeddingData.data[0].embedding;
+    ],
+  });
 
-    // Step 2: Retrieve top-5 relevant documents via pgvector RPC
-    const { data: context, error: searchError } = await supabase.rpc("search_documents", {
-      query_embedding: queryEmbedding,
-      match_count: 5,
-    });
-
-    if (searchError) throw searchError;
-
-    // Step 3: Format retrieved documents as context for the LLM
-    const contextText = context
-      .map((doc: any, i: number) => `[${i + 1}] (${doc.source}): ${doc.content}`)
-      .join("\n\n");
-
-    // Step 4: Call OpenAI Chat Completions with RAG context
-    const chatResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openaiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: `You are a helpful knowledge base assistant. Answer questions using ONLY the provided context. If the context doesn't contain relevant information, say so. Cite sources using [n] notation.
-
-Context:
-${contextText}`,
-          },
-          { role: "user", content: message },
-        ],
-        temperature: 0.3,
-        max_tokens: 1000,
-      }),
-    });
-    const chatData = await chatResponse.json();
-    const answer = chatData.choices[0].message.content;
-
-    // Step 5: Return the answer with source attribution
-    const sources = context.map((doc: any) => ({
-      source: doc.source,
-      modality: doc.modality,
-      similarity: doc.similarity,
-    }));
-
-    const resolvedConversationId = conversation_id || crypto.randomUUID();
-
-    return new Response(
-      JSON.stringify({ answer, sources, conversation_id: resolvedConversationId }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // Nothing is stored. The next request re-runs both searches from scratch and the
+  // evidence behind this answer is gone once the response is written.
+  return new Response(
+    JSON.stringify({
+      rows: [{ answer: chat.content, visual: visual || [], spoken: spoken || [] }],
+    }),
+    { headers: { "Content-Type": "application/json" } },
+  );
 });

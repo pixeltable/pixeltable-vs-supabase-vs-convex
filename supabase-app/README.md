@@ -1,104 +1,78 @@
-# Supabase Implementation
+# Supabase: video intelligence pipeline
 
-> **617 lines across TypeScript + SQL. 2 languages. 2 external services. 4 env vars.**
+Five tables (four for the data, one to hold the URL and key the triggers call back
+with), three foreign keys, two HNSW indexes, two SQL search functions, two database
+triggers, a Storage bucket, seven Edge Functions, and an external compute service.
+The whole of it does what `pixeltable/app.py` declares in one file.
 
-## Prerequisites
+## Why the compute service
 
-- Node.js 18+
-- Supabase CLI (`npm install -g supabase`)
-- Docker (for local Supabase)
-- Supabase account (supabase.com)
-- `OPENAI_API_KEY`
-
-## Setup (7 steps)
-
-```bash
-npm install                            # 1. Install deps
-supabase init                          # 2. Initialize project (if fresh)
-supabase start                         # 3. Start local Postgres (Docker)
-supabase db push                       # 4. Apply migrations (pgvector + HNSW)
-cp .env.example .env                   # 5. Add all 4 keys
-supabase functions deploy              # 6. Deploy Edge Functions
-npx tsx scripts/seed.ts                # 7. Seed data (manual embedding loop)
-```
-
-## What Happens at Each Phase
-
-### Phase 1: Install
-
-Create Supabase project in browser. Copy 3 API keys. Install supabase-js. Enable pgvector extension via SQL.
-
-### Phase 2: Schema
-
-Hand-write SQL migration:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-CREATE TABLE documents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  content TEXT, source TEXT, modality TEXT,
-  embedding VECTOR(1536), ...
-);
-CREATE INDEX ON documents USING hnsw (embedding vector_cosine_ops);
-```
-
-Must choose vector dimensions (1536) and index type (HNSW vs IVFFlat) upfront.
-
-### Phase 3: Ingest
-
-Insert row with embedding = NULL. Must backfill embeddings separately.
-
-### Phase 4: Embed
-
-Write an Edge Function that calls OpenAI, parses the response, and UPDATEs the row. Repeat for every document. Handle rate limits and retries manually.
-
-### Phase 5: Search
-
-Write a SQL RPC function (`002_search_function.sql`), then call it from another Edge Function that first embeds the query. Two languages for one search operation.
-
-### Phase 6: Serve
-
-Each endpoint is a separate Deno Edge Function with `Deno.serve()`. Deploy with `supabase functions deploy`.
-
-### Phase 7: Dev Loop
-
-`supabase start` requires Docker. Schema changes require SQL migration files. Must manually re-run embedding for schema changes.
+Edge Functions run on Deno. Deno cannot run ffmpeg, Whisper, CLIP, or a local chat
+model, so every media operation is an HTTP call to `../compute-service/`. That
+service is not part of Supabase and you operate it yourself.
 
 ## Architecture
 
 ```
-supabase/functions/
-  ├── upload/index.ts      POST /upload (embed + insert, ~87 lines)
-  ├── search/index.ts      POST /search (embed query + RPC, ~47 lines)
-  └── agent/index.ts       POST /agent/query (embed + search + chat, ~82 lines)
-
-supabase/migrations/
-  ├── 001_schema.sql       pgvector table + HNSW index
-  └── 002_search_function.sql  search_documents() RPC
+POST ingest
+  ├─ compute-service /extract-frames  ─> Storage upload ─> INSERT frames  ─┐
+  ├─ compute-service /extract-audio   ─> INSERT audio_chunks              ─┤ one trigger
+  └─ compute-service /detect-scenes   ─> INSERT scenes                     │ per row
+                                                                           v
+         trigger ─> process-frames ─> compute-service /embed-clip ─> UPDATE frames
+         trigger ─> process-audio  ─> compute-service /transcribe + /embed-text
+                                   ─> UPDATE audio_chunks
 ```
 
-## File Map
+A 15 second video at 1 FPS produces 15 frame rows, so ingesting it fires 15
+`process-frames` webhooks and 2 `process-audio` webhooks. Nothing retries a failed
+one: the row keeps a NULL embedding and silently drops out of search.
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `migrations/001_schema.sql` | pgvector table, HNSW index, RLS | 32 |
-| `migrations/002_search_function.sql` | Vector search RPC function | 32 |
-| `functions/upload/index.ts` | Embed + insert Edge Function | 87 |
-| `functions/search/index.ts` | Query embed + RPC Edge Function | 47 |
-| `functions/agent/index.ts` | RAG agent Edge Function | 82 |
-| `scripts/seed.ts` | Fixture seeder (manual embed loop) | 138 |
-
-## Run Tests
+## Setup
 
 ```bash
-supabase start                  # local Postgres + Edge Functions
-npm test                        # vitest
+npm install
+supabase start                  # local Docker, 12 containers
+supabase db push                # 001_schema, 002_search_functions, 003_pipeline
 ```
 
-## Known Limitations
+`supabase start` prints a `SERVICE_ROLE_KEY`. The triggers call the Edge Functions
+back with it, so store it:
 
-- Manual embedding on every insert (no computed columns)
-- Two languages required (SQL + TypeScript)
-- No per-cell error tracking
-- Re-embedding on model swap requires a manual backfill script
-- Docker required for local development
+```bash
+KEY=$(supabase status -o json | jq -r .SERVICE_ROLE_KEY)
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+  -c "UPDATE pipeline_config SET value='$KEY' WHERE key='service_role_key'"
+```
+
+Without this the triggers fire and are rejected, every embedding stays NULL, and every
+search returns nothing.
+
+Then deploy all seven functions:
+
+```bash
+for fn in ingest process-frames process-audio search-frames search-transcripts list-videos agent; do
+  supabase functions deploy "$fn"
+done
+```
+
+Also required: `../compute-service/` running on port 9000.
+
+## Endpoints
+
+| Contract endpoint | Edge Function |
+|---|---|
+| `POST /videos` | `/functions/v1/ingest` |
+| `GET /videos` | `/functions/v1/list-videos` |
+| `POST /search/frames` | `/functions/v1/search-frames` |
+| `POST /search/transcripts` | `/functions/v1/search-transcripts` |
+| `POST /agent/query` | `/functions/v1/agent` |
+
+## Known limits, stated rather than hidden
+
+- `videos.status` is written by the ingest function before any embedding exists, so
+  it cannot be trusted. `video_status()` in `003_pipeline.sql` derives the real one
+  by counting NULL embeddings.
+- Nothing enforces that a query vector came from the model that filled the column
+  it searches. The dimension check is the only guard, and 384 equals 384.
+- Adding a column later means a migration, a backfill script, and a re-run.

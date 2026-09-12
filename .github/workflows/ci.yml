@@ -4,83 +4,78 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
-  lint-pixeltable:
-    name: Lint Pixeltable (Python)
+  lint-python:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install ruff
-        run: pip install ruff
-      - name: Lint
-        run: ruff check pixeltable/
-      - name: Format check
-        run: ruff format --check pixeltable/
+          python-version: '3.11'
+      - run: pip install ruff
+      - run: ruff check pixeltable/ compute-service/ harness/
+      - run: ruff format --check pixeltable/ compute-service/ harness/
 
-  lint-modal:
-    name: Lint Modal (Python)
+  contract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install ruff
-        run: pip install ruff
-      - name: Lint
-        run: ruff check modal-app/ --exclude modal-app/tests/
-      - name: Format check
-        run: ruff format --check modal-app/
+          python-version: '3.11'
+      - run: pip install pydantic pytest httpx
+      - run: python -c "import harness.api_contract as c; print('contract OK:', len(c.__all__ if hasattr(c, '__all__') else dir(c)))"
+      - name: The equivalence suite must at least collect
+        run: python -m pytest harness/test_equivalence.py --collect-only -q
 
-  lint-supabase:
-    name: Lint Supabase (TypeScript)
+  typecheck-supabase:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: supabase-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Every Edge Function typechecks
+        run: |
+          for f in supabase-app/supabase/functions/*/index.ts; do
+            echo "checking $f"
+            deno check "$f"
+          done
+
+  typecheck-convex:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '22'
       - run: npm install
-      - name: TypeScript check
-        run: npx tsc --noEmit --skipLibCheck || true
-
-  lint-convex:
-    name: Lint Convex (TypeScript)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
         working-directory: convex-app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm install
-      - name: TypeScript check
-        run: npx tsc --noEmit --skipLibCheck || true
+      - name: Typecheck, minus the generated code a Convex account would provide
+        working-directory: convex-app
+        run: |
+          # convex/_generated/ needs an authenticated deployment, so every error that
+          # mentions it, and every implicit-any it causes, is expected here.
+          npx tsc --noEmit 2>&1 | tee /tmp/tsc.log || true
+          if grep -v '_generated' /tmp/tsc.log | grep -v "implicitly has an 'any' type" | grep -q 'error TS'; then
+            echo 'unexpected TypeScript errors:'
+            grep -v '_generated' /tmp/tsc.log | grep -v "implicitly has an 'any' type"
+            exit 1
+          fi
 
   metrics:
-    name: Collect DX Metrics
     runs-on: ubuntu-latest
+    needs: [lint-python]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install dependencies
-        run: pip install rich pydantic
-      - name: Run metrics
-        run: python harness/run_comparison.py
-      - name: Upload metrics
-        uses: actions/upload-artifact@v4
+          python-version: '3.11'
+      - run: python harness/run_comparison.py
+      - name: Measurements must match the committed docs/metrics.json
+        run: git diff --exit-code docs/metrics.json
+      - uses: actions/upload-artifact@v4
         with:
-          name: dx-metrics
+          name: metrics
           path: docs/metrics.json

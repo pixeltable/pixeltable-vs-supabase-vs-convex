@@ -4,8 +4,15 @@
 node_modules/
 package-lock.json
 uv.lock
+# Needs an authenticated Convex deployment to generate; see convex-app/README.md.
 convex-app/convex/_generated/
-docs/metrics.json
+deno.lock
+.pytest_cache/
+.ruff_cache/
+supabase-app/supabase/.branches/
+supabase-app/supabase/.temp/
+# docs/metrics.json is committed on purpose: every number in the docs comes from it,
+# and CI fails if a code change leaves it stale.
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

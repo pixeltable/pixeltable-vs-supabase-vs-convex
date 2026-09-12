@@ -1,70 +1,52 @@
-'use node';
+// Multi-modal RAG agent. Both searches are re-invoked as actions, the prompt is
+// assembled by hand, and the chat call goes to the external compute service
+// because the Convex runtime cannot host a model.
+//
+// Compare, in pixeltable/app.py, the whole agent:
+//   class Conversations(TableModel, name='conversations'):
+//       question: pxt.String
+//       visual = search_frames(question, limit=4)
+//       spoken = search_transcripts(question, limit=4)
+//       answer = create_chat_completion(...)
 
-import { action } from './_generated/server';
-import { internal } from './_generated/api';
-import { v } from 'convex/values';
-import OpenAI from 'openai';
+import { action } from "./_generated/server";
+import { v } from "convex/values";
+import { api } from "./_generated/api";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const COMPUTE_SERVICE_URL = process.env.COMPUTE_SERVICE_URL || "http://localhost:9000";
 
 export const queryAgent = action({
-  args: {
-    message: v.string(),
-    conversationId: v.optional(v.string()),
-  },
-  handler: async (ctx, { message, conversationId }) => {
-    const convId = conversationId ?? crypto.randomUUID();
-
-    // Step 1: Embed the user message
-    const embeddingResponse = await openai.embeddings.create({
-      model: 'text-embedding-3-small',
-      input: message,
-    });
-    const queryVector = embeddingResponse.data[0].embedding;
-
-    // Step 2: Vector search for relevant context (only available in actions)
-    const vectorResults = await ctx.vectorSearch('documents', 'by_embedding', {
-      vector: queryVector,
-      limit: 5,
+  args: { question: v.string() },
+  handler: async (ctx, args) => {
+    const visual = await ctx.runAction(api.searchFrames.searchFrames, { query: args.question, limit: 4 });
+    const spoken = await ctx.runAction(api.searchTranscripts.searchTranscripts, {
+      query: args.question,
+      limit: 4,
     });
 
-    // Step 3: Load full documents via separate internal query (two-step pattern)
-    let contextDocs: Array<{ content: string; source: string; modality: string }> = [];
-    if (vectorResults.length > 0) {
-      const ids = vectorResults.map((r) => r._id);
-      contextDocs = await ctx.runQuery(internal.documents.getByIds, { ids });
-    }
+    const seen = visual.rows.map((r) => `- ${r.video_title}, frame ${r.frame_idx}`).join("\n") || "(nothing)";
+    const heard =
+      spoken.rows.map((r) => `- [${r.video_title} @ ${Math.round(r.start_sec)}s] ${r.transcript}`).join("\n") ||
+      "(nothing)";
 
-    // Step 4: Build prompt with retrieved context
-    const contextBlock = contextDocs
-      .map((doc, i) => `[${i + 1}] (${doc.source}, ${doc.modality}): ${doc.content}`)
-      .join('\n\n');
-
-    const systemPrompt = `You are a helpful assistant with access to a knowledge base.
-Use the following context to answer the user's question. Cite sources by number.
-If the context doesn't contain relevant information, say so.
-
-Context:
-${contextBlock || 'No relevant documents found.'}`;
-
-    // Step 5: Call OpenAI chat completions
-    const chatResponse = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message },
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
+    const resp = await fetch(`${COMPUTE_SERVICE_URL}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "user",
+            content:
+              `Answer the question using only the retrieved context. Be brief.\n\n` +
+              `## Seen in the videos\n${seen}\n\n## Said in the videos\n${heard}\n\n` +
+              `## Question\n${args.question}`,
+          },
+        ],
+      }),
     });
+    const chat = await resp.json();
 
-    const answer = chatResponse.choices[0].message.content ?? '';
-    const sources = contextDocs.map((doc) => ({
-      source: doc.source,
-      modality: doc.modality,
-      content: doc.content.slice(0, 200),
-    }));
-
-    return { answer, sources, conversationId: convId };
+    // Nothing is stored. The evidence behind this answer is gone once it is sent.
+    return { rows: [{ answer: chat.content, visual: visual.rows, spoken: spoken.rows }] };
   },
 });

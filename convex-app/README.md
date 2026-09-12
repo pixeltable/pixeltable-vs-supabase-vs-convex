@@ -1,97 +1,63 @@
-# Convex Implementation
+# Convex: video intelligence pipeline
 
-> **434 lines of TypeScript. 1 language. 2 external services. 2 env vars.**
+Four tables, two vector indexes, three by_video indexes, nine TypeScript files, six
+actions, thirteen internal queries and mutations, two scheduled jobs, and an external
+compute service. The whole of it does what `pixeltable/app.py` declares in one file.
 
-## Prerequisites
+## Why the compute service
 
-- Node.js 18+
-- GitHub account (for Convex auth)
-- `OPENAI_API_KEY`
-
-## Setup (4 steps)
-
-```bash
-npm install                    # 1. Install deps
-npx convex dev                 # 2. Create project + sync schema (GitHub login)
-# Set OPENAI_API_KEY in Convex dashboard  # 3. Add env var
-npm test                       # 4. Run tests
-```
-
-## What Happens at Each Phase
-
-### Phase 1: Install
-
-`npx convex dev` handles project creation, schema sync, and code generation. Requires GitHub login and internet connection.
-
-### Phase 2: Schema
-
-TypeScript schema with vector index:
-
-```typescript
-documents: defineTable({
-  content: v.string(),
-  embedding: v.array(v.float64()),
-  ...
-}).vectorIndex('by_embedding', { vectorField: 'embedding', dimensions: 1536 })
-```
-
-Must declare dimensions upfront. Auto-syncs on file save.
-
-### Phase 3: Ingest
-
-Insert via mutation, but embedding requires a separate action (external API calls not allowed in mutations).
-
-### Phase 4: Embed
-
-Manual OpenAI call inside an action. Must schedule or trigger for each document.
-
-### Phase 5: Search
-
-Vector search only in actions (not queries/mutations). Two-step: `ctx.vectorSearch()` returns IDs, then `ctx.runQuery()` loads full docs. Hard 256-result limit.
-
-### Phase 6: Serve
-
-`convex/http.ts` maps HTTP routes to actions/queries. Deploy with `npx convex deploy`.
-
-### Phase 7: Dev Loop
-
-`npx convex dev` provides continuous sync. No offline mode -- always requires internet.
+The Convex runtime cannot run ffmpeg, Whisper, CLIP, or a local chat model, so every
+media operation is an HTTP call to `../compute-service/`. That service is not part of
+Convex and you operate it yourself.
 
 ## Architecture
 
 ```
-convex/
-  ├── schema.ts          defineTable + vectorIndex
-  ├── documents.ts       mutations + internal queries
-  ├── upload.ts          action: OpenAI embed + store
-  ├── search.ts          action: OpenAI embed + vectorSearch + load
-  ├── agent.ts           action: embed + search + OpenAI chat
-  └── http.ts            HTTP router (4 routes)
+ingestVideo action
+  ├─ compute-service /extract-frames ─> ctx.storage.store ─> insertFrame mutation
+  ├─ compute-service /extract-audio  ─> insertAudioChunk mutation
+  └─ compute-service /detect-scenes  ─> insertScene mutation
+        │
+        └─ scheduler.runAfter(0, ...)
+              ├─ embedAllFrames     ─> compute-service /embed-clip  ─> patch frames
+              └─ transcribeAndEmbed ─> compute-service /transcribe
+                                       + /embed-text                ─> patch audioChunks
 ```
 
-## File Map
+Every database write from an action is a `ctx.run*` hop into a mutation that restates
+its own argument schema. The two scheduled actions run after `ingestVideo` returns,
+and nothing tells it whether they succeeded.
 
-| File | Purpose | Lines |
-|------|---------|-------|
-| `convex/schema.ts` | Schema + vector index definition | 22 |
-| `convex/documents.ts` | CRUD mutations + internal queries | 56 |
-| `convex/upload.ts` | Upload action (embed + insert) | 66 |
-| `convex/search.ts` | Search action (embed + vectorSearch) | 37 |
-| `convex/agent.ts` | Agent action (RAG + chat) | 58 |
-| `convex/http.ts` | HTTP route mappings | 63 |
-
-## Run Tests
+## Setup
 
 ```bash
-npx convex dev              # must be running
-npm test                    # vitest
+npm install
+npx convex dev          # generates convex/_generated/ and deploys
+npx convex env set COMPUTE_SERVICE_URL http://localhost:9000
 ```
 
-## Known Limitations
+Also required: `../compute-service/` running on port 9000.
 
-- Vector search only in actions (not queries/mutations)
-- 256-result limit on vector search
-- No offline development
-- Manual embedding on every insert
-- No per-cell error tracking
-- Re-embedding on model swap requires a manual migration action
+Nothing in `convex/` typechecks until `npx convex dev` or `npx convex codegen` has
+written `convex/_generated/`, which is not committed.
+
+## Endpoints
+
+| Contract endpoint | Convex |
+|---|---|
+| `POST /videos` | `ingest.ingestVideo` |
+| `GET /videos` | `videos.listVideos` |
+| `POST /search/frames` | `searchFrames.searchFrames` |
+| `POST /search/transcripts` | `searchTranscripts.searchTranscripts` |
+| `POST /agent/query` | `agent.queryAgent` |
+
+## Known limits, stated rather than hidden
+
+- `vectorSearch` returns ids and scores only. Recovering the frame url and the video
+  title takes one extra query per hit, so a 10-result search is 11 round trips.
+- `vectorSearch` caps at 256 results per call.
+- `embedding` and `imageStorageId` have to be `v.optional()` because a later action
+  fills them in. A row is therefore valid while it is still unsearchable.
+- `videos.status` is written before the embedding work runs. `listVideos` derives the
+  real one by counting rows that still have no embedding.
+- Adding a field later means a schema edit and a migration action that walks the table.

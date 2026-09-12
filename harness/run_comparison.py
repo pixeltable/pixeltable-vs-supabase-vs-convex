@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Run the platform comparison and generate a report.
+"""Measure the implementations, and optionally test one that is running.
 
-Usage:
-    python harness/run_comparison.py              # Metrics only (no servers needed)
-    python harness/run_comparison.py --test-all    # Metrics + equivalence tests
+python harness/run_comparison.py
+python harness/run_comparison.py --test --impl pixeltable --base-url http://localhost:8123
 """
 
 from __future__ import annotations
@@ -18,41 +17,36 @@ from metrics import collect_all, export_json, print_comparison
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def run_metrics():
-    print('=' * 60)
-    print('PLATFORM COMPARISON: DX METRICS')
-    print('=' * 60)
-    results = collect_all()
-    print_comparison(results)
-    out = ROOT / 'docs' / 'metrics.json'
-    export_json(results, out)
-    print(f'\nExported to {out}')
-    return results
-
-
-def run_equivalence_tests(urls: list[str]):
-    print('\n' + '=' * 60)
-    print('PLATFORM COMPARISON: EQUIVALENCE TESTS')
-    print('=' * 60)
-    cmd = [sys.executable, '-m', 'pytest', 'harness/test_equivalence.py', '-v']
-    for url in urls:
-        cmd.extend(['--base-url', url])
-    result = subprocess.run(cmd, cwd=str(ROOT))
-    return result.returncode
-
-
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description='Platform comparison harness')
-    parser.add_argument('--test-all', action='store_true', help='Run equivalence tests')
-    parser.add_argument('--urls', nargs='*', default=[], help='Base URLs of running servers')
+    parser.add_argument('--test', action='store_true', help='Also run the equivalence suite')
+    parser.add_argument('--impl', default='pixeltable', help='Which implementation is running')
+    parser.add_argument('--base-url', default='http://localhost:8000')
+    parser.add_argument('--auth-token', default='')
     args = parser.parse_args()
 
-    run_metrics()
+    results = collect_all()
+    print_comparison(results)
+    export_json(results, ROOT / 'docs' / 'metrics.json')
 
-    if args.test_all:
-        urls = args.urls or ['http://localhost:8000']
-        sys.exit(run_equivalence_tests(urls))
+    if not args.test:
+        return 0
+
+    print(f'\ntesting {args.impl} at {args.base_url}\n')
+    cmd = [
+        sys.executable,
+        '-m',
+        'pytest',
+        str(ROOT / 'harness' / 'test_equivalence.py'),
+        f'--base-url={args.base_url}',
+        f'--impl={args.impl}',
+        '-v',
+    ]
+    if args.auth_token:
+        cmd.append(f'--auth-token={args.auth_token}')
+    # The previous version dropped this return code, so --test-all exited 0 on failure.
+    return subprocess.run(cmd).returncode
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

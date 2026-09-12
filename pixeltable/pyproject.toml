@@ -1,16 +1,20 @@
 [project]
 name = "platform-comparison-pixeltable"
 version = "0.1.0"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "pixeltable>=0.6.0",
-    "fastapi",
-    "uvicorn[standard]",
-    "python-dotenv",
-    "python-multipart",
-    "openai",
-    "sentence-transformers",
+    # Everything the app needs. No vector database, no queue, no compute service.
+    "pixeltable[serve]>=0.7.7",
+    "openai-whisper",      # whisper.transcribe
+    "sentence-transformers",  # sentence_transformer embeddings
+    "transformers",        # clip
+    "torch",
+    "scenedetect",         # video.scene_detect_content
+    "llama-cpp-python",    # the agent's local chat model
 ]
 
-[project.optional-dependencies]
-test = ["pytest", "httpx"]
+[[tool.pixeltable.database]]
+# The local database. vars and secrets bind the config vars of a schema; a hosted database is
+# a second entry, named by its uri.
+# vars.media_dest = 's3://bucket/prefix'
+# secrets.openai_api_key = '...'

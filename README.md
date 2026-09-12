@@ -1,241 +1,191 @@
-# Platform Comparison: Multimodal AI Knowledge Base
+# Pixeltable vs Supabase vs Convex
 
-> **How does building the same multimodal AI app compare across Pixeltable, Supabase, Convex, and Modal?**
+Three implementations of one application: a video intelligence pipeline that extracts
+frames, transcribes speech, embeds both, detects scenes, and answers questions about
+what it saw and heard.
 
-This repo contains four implementations of the **same application** -- a multimodal knowledge base with semantic search and an AI agent -- built with four different platforms. Each implementation exposes identical HTTP endpoints, accepts the same inputs, and returns the same response shapes.
+Same contract, same fixtures, same models, all running locally with no API key. Every
+number below is produced by `harness/run_comparison.py` reading the source, not typed
+in by hand. `Services to operate` is the one exception: it is a judgment call, and it
+lives with the other judgment calls in `CLASSIFIED` in `harness/metrics.py`.
 
-The goal: a living, runnable benchmark that measures developer experience, code complexity, and architectural trade-offs -- not runtime performance.
+| | **Pixeltable** | Supabase | Convex |
+|---|---|---|---|
+| App LOC | **128** | 473 | 458 |
+| App files | **1** | 11 | 9 |
+| Plus the shared compute service | **0** | 258 | 258 |
+| **Total you maintain** | **128** | **731** | **716** |
+| Tables / views | 2 / 2 | 5 / 0 | 4 / 0 |
+| Foreign keys | 0 | 3 | 0 |
+| Database triggers | 0 | 2 | 0 |
+| Orchestration hops | **0** | 19 | 17 |
+| HTTP routes written by hand | 1 | 7 | 5 |
+| Services to operate (hand-classified) | **1** | 2 | 2 |
+| Environment variables | **0** | 4 | 2 |
 
-## The App
+`compute-service/` is a FastAPI service providing ffmpeg, Whisper, CLIP, sentence
+embeddings, and a local chat model over HTTP. Supabase and Convex both need it.
+Supabase Edge Functions run on Deno with no subprocess, so ffmpeg is out of reach
+entirely. Convex can run a Node action with `"use node"`, but it still has no ffmpeg
+binary and no place to keep model weights, so in practice the work leaves the platform
+either way. Pixeltable does not need the service: its seven operations are seven
+expressions in `pixeltable/app.py` (`frame_iterator`, `extract_audio`,
+`audio_splitter` plus `transcribe`, `clip`, `sentence_transformer`,
+`scene_detect_content`, `create_chat_completion`).
 
-All four implementations build the same thing:
+## The whole Pixeltable pipeline
 
-```
-User uploads text docs + images
-  -> auto-chunk, describe (vision LLM), embed (OpenAI)
-  -> store in vector index
-  -> semantic search across both modalities
-  -> agent answers questions using RAG + web search tools
-```
+Four class bodies. Insert a video and all of it runs.
 
-**API surface** (identical across all four):
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/upload` | POST | Upload a text document or image |
-| `/search` | POST | Semantic search across the knowledge base |
-| `/agent/query` | POST | Ask the AI agent a question (RAG) |
-| `/documents` | GET | List all ingested documents |
-
-## Quick Scorecard
-
-### DX Metrics (auto-generated)
-
-| Metric | Pixeltable | Supabase | Convex | Modal |
-|--------|-----------|----------|--------|-------|
-| **Lines of Code** | 368 | 617 | 434 | 676 |
-| **Source Files** | 14 | 9 | 9 | 11 |
-| **Languages** | 1 (Python) | 2 (TS + SQL) | 1 (TS) | 2 (Python + SQL) |
-| **External Services** | 1 (OpenAI) | 2 (Supabase Cloud, OpenAI) | 2 (Convex Cloud, OpenAI) | 3 (Modal, Supabase, OpenAI) |
-| **Env Vars Required** | 1 | 4 | 2 | 5 |
-| **Cloud Account Needed** | No | Yes | Yes | Yes |
-
-### Journey Scorecard
-
-Rating: **Strong** = clear advantage, **Okay** = functional but friction, **Weak** = significant pain, **Gap** = not available.
-
-| Phase | Pixeltable | Supabase | Convex | Modal |
-|-------|-----------|----------|--------|-------|
-| 1. Install & Setup | **Strong** | Okay | Okay | Okay |
-| 2. Define Schema | **Strong** | Okay | Okay | Gap (no DB) |
-| 3. Ingest Data | **Strong** | Okay | Okay | Gap (no DB) |
-| 4. Add Embeddings | **Strong** | Weak | Weak | Okay |
-| 5. Semantic Search | **Strong** | Okay | Okay | Gap (no DB) |
-| 6. Serve API | **Strong** | Okay | Okay | Okay |
-| 7. Dev Loop | **Strong** | Okay | Okay | Okay |
-| 8. Deploy to Prod | Gap* | Okay | **Strong** | **Strong** |
-| 9. Schema Evolution | Weak* | Weak | Weak | Okay |
-| 10. Monitor & Scale | Gap* | Okay | **Strong** | **Strong** |
-
-*Pixeltable's cloud deployment (Live Tables) is on the [Q2-Q3 2026 roadmap](https://github.com/pixeltable/pixeltable).
-
-## Side-by-Side: The Same Operation, Four Ways
-
-### Embed documents on insert
-
-**Pixeltable** -- 3 lines (declarative, automatic):
 ```python
-t.add_computed_column(embed=embeddings(input=t.text, model='text-embedding-3-small'))
-t.add_embedding_index('text', embedding=embeddings.using(model='text-embedding-3-small'))
-# Every future insert auto-embeds. Done.
+class Videos(TableModel, name='videos'):
+    video: pxt.Video
+    title: pxt.String
+    audio = extract_audio(video, format='mp3')
+    duration_sec = pxtf.video.get_duration(video)
+    scenes = video.scene_detect_content(threshold=8.0)
+
+class Frames(TableModel, name='frames', base=Videos,
+             iterator=frame_iterator(Videos.video, fps=1.0)):
+    still = pxtf.image.resize(frame, (320, 180))
+    __indexes__ = [pxt.EmbeddingIndex(frame, embedding=VISUAL)]
+
+class Chunks(TableModel, name='chunks', base=Videos,
+             iterator=audio_splitter(Videos.audio, duration=10.0)):
+    transcript = transcribe(audio_segment, model='base.en').text.astype(pxt.String)
+    __indexes__ = [pxt.EmbeddingIndex(transcript, embedding=SEMANTIC)]
 ```
 
-**Supabase** -- 25+ lines (imperative, per-document):
-```typescript
-// Edge Function: manually call OpenAI, parse response, UPDATE row
-const embeddingResp = await fetch('https://api.openai.com/v1/embeddings', {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${openaiKey}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ model: 'text-embedding-3-small', input: content }),
-});
-const { data } = await embeddingResp.json();
-await supabase.from('documents').update({ embedding: data[0].embedding }).eq('id', docId);
-// Must trigger this for every new document (webhook, cron, or inline)
-```
+Search is an expression, not a service call:
 
-**Convex** -- 15+ lines (action + mutation, per-document):
-```typescript
-// Action (required for external API calls):
-const embeddingResp = await openai.embeddings.create({
-  model: 'text-embedding-3-small', input: content,
-});
-// Separate mutation to store (vectorSearch requires action context):
-await ctx.runMutation(internal.documents.insertDocument, {
-  ...args, embedding: embeddingResp.data[0].embedding,
-});
-```
-
-**Modal** -- 20+ lines (Modal function + external DB):
 ```python
-# Modal function calls OpenAI, then writes to external Supabase pgvector:
-response = openai_client.embeddings.create(model='text-embedding-3-small', input=content)
-embedding = response.data[0].embedding
-supabase_client.table('documents').insert({'content': content, 'embedding': embedding}).execute()
-# Three services wired together for one insert
+sim = Frames.frame.similarity(string=query)
+Frames.order_by(sim, asc=False).limit(limit).select(video_title=Frames.title, similarity=sim)
 ```
 
-### Semantic search
+And the agent is a table. Insert a question, and retrieval and generation are columns,
+so the evidence behind an answer is stored rather than thrown away with the prompt:
 
-**Pixeltable** -- 2 lines:
 ```python
-sim = t.text.similarity(string=query)
-results = t.order_by(sim, asc=False).limit(10).select(t.text, sim).collect()
+class Conversations(TableModel, name='conversations'):
+    request_id: pxt.String
+    question: pxt.String
+    visual = frames_seen(question, limit=4)
+    spoken = search_transcripts(question, limit=4)
+    answer = create_chat_completion(messages=[...], repo_id='Qwen/Qwen2.5-1.5B-Instruct-GGUF')
 ```
 
-**Supabase** -- 15 lines (SQL function + Edge Function + manual query embedding):
-```sql
--- Step 1: SQL function (migration)
-CREATE FUNCTION search_documents(query_embedding vector(1536), match_count int)
-RETURNS TABLE(...) AS $$ SELECT ... ORDER BY embedding <=> query_embedding LIMIT match_count; $$;
-```
-```typescript
-// Step 2: Edge Function — embed query, then RPC
-const embedding = await embedQuery(query);
-const { data } = await supabase.rpc('search_documents', { query_embedding: embedding, match_count: limit });
-```
+`request_id` is not part of the idea. It is there because one route in this file is
+written by hand and has to find the row it just wrote; see
+[the known limits](pixeltable/README.md#known-limits-stated-rather-than-hidden).
 
-**Convex** -- 12 lines (action required, 256-result cap):
-```typescript
-const embedding = await getEmbedding(query);  // manual OpenAI call
-const results = await ctx.vectorSearch('documents', 'by_embedding', {
-  vector: embedding, limit: Math.min(limit, 256),  // hard 256 cap
-});
-const docs = await ctx.runQuery(internal.documents.getByIds, { ids: results.map(r => r._id) });
-```
+Read the whole thing: [`pixeltable/app.py`](pixeltable/app.py). It is 128 lines and it
+is the entire backend, HTTP included.
 
-**Modal** -- 15 lines (Modal -> OpenAI -> Supabase):
-```python
-embedding = openai_client.embeddings.create(model='text-embedding-3-small', input=query)
-result = supabase_client.rpc('search_documents', {
-    'query_embedding': embedding.data[0].embedding, 'match_count': limit
-}).execute()
-```
+## What the other two have to build
 
-## Repo Structure
+Every item below is something Supabase and Convex must write, operate, or work around,
+and that has no counterpart in `app.py`.
 
-```
-platform-comparison/
-├── README.md                    # This file
-├── AGENTS.md                    # AI agent coding instructions
-├── fixtures/                    # Shared test data (3 docs, 3 images, 5 queries)
-├── pixeltable/                  # Implementation 1: Pixeltable (Python, 368 LOC)
-├── supabase-app/                # Implementation 2: Supabase (TS + SQL, 617 LOC)
-├── convex-app/                  # Implementation 3: Convex (TS, 434 LOC)
-├── modal-app/                   # Implementation 4: Modal + pgvector (Python + SQL, 676 LOC)
-├── harness/                     # Cross-platform test harness + metrics
-│   ├── api_contract.py          # Shared Pydantic models for the API surface
-│   ├── metrics.py               # LOC counter + DX metrics
-│   ├── test_equivalence.py      # Same queries -> comparable results
-│   └── run_comparison.py        # Run metrics + tests
-└── docs/
-    ├── JOURNEY.md               # Full 10-phase developer journey comparison
-    ├── METHODOLOGY.md           # How we measure, what counts
-    └── SCORECARD.md             # Living scorecard updated per release
-```
+**A second service.** `compute-service/` exists only because neither runtime can
+execute ffmpeg, Whisper, or CLIP where the data is. It is 258 lines you deploy, scale,
+and page for.
 
-## Run It Yourself
+**Media on the wire, twice.** Supabase base64s every extracted frame out of the compute
+service, decodes it, uploads it to Storage, then a webhook downloads it again and
+re-encodes it to send it back for embedding. A 15 second video at 1 FPS does that 15
+times. In Pixeltable the frame is a column; `still` is its stored derivative and the
+router serves it as a URL.
+
+**A status column that lies.** Both write `status` before any embedding exists, so both
+need a second, derived answer: Supabase counts NULL embeddings in a SQL function,
+Convex counts them in `listVideos`. Pixeltable has no status column. A cell holds a
+value or holds its own `errormsg`, per row, queryable with `pxt errors`.
+
+**Orchestration.** 19 hops in Supabase (edge function to Postgres to trigger to edge
+function to compute service), 17 in Convex (`ctx.runMutation` / `ctx.runQuery` /
+`scheduler.runAfter`, not counting its HTTP router). Nothing retries a failed one in either: the row keeps a NULL
+embedding and drops out of search silently. Pixeltable has none, because the column
+definition is the schedule.
+
+**Embedding models kept in sync by hand.** Both must embed the query with the same
+model that filled the column, and nothing enforces it. The only guard is the dimension,
+and 384 equals 384. `similarity(string=q)` asks the index, which knows its own model.
+
+**Joins for lineage.** `frames` and `audio_chunks` are separate tables with foreign
+keys, so every search joins back to `videos` to recover a title. Convex's `vectorSearch`
+returns ids and scores only, so a 10-result search is 11 round trips. A Pixeltable view
+carries its base columns: `Frames.title` is just there.
+
+**A migration to add a column.** Adding a derived field later means a migration, a
+backfill script, and a re-run for both. In this repo, adding `scene_count` and `still`
+to a populated catalog was one edit and `pxt schema update`: `videos` and `frames`
+backfilled their new columns, existing rows were kept, and `chunks` reported
+`unchanged` and re-ran no transcription. One caveat, since it is not free: `still`
+changed the return type of a query, so the one table with a column calling that query
+had to be dropped and recreated. Details in
+[METHODOLOGY.md](docs/METHODOLOGY.md#where-pixeltable-came-off-worse).
+
+## Run it
+
+Everything runs locally on CPU. No API key, for any of the three.
+
+```bash
+pip install gTTS && python fixtures/videos/generate.py
+```
 
 ### Pixeltable
 
 ```bash
-cd pixeltable
-pip install -e ".[test]"       # or: uv sync
-cp .env.example .env           # add OPENAI_API_KEY
-python setup_pixeltable.py     # creates tables + computed columns + indexes
-python main.py                 # FastAPI on :8000
-pytest tests/                  # integration tests
+cd pixeltable && pip install -e . && pxt init
+pxt schema update app.py media
+pxt service update app.py media
+URL=$(pxt service list | awk '/^media/{print $2}')
 ```
 
-### Supabase
+Then ingest and ask:
 
 ```bash
-cd supabase-app
-npm install
-supabase init                  # if not already initialized
-supabase start                 # Docker-based local Postgres
-supabase db push               # apply migrations
-supabase functions deploy      # deploy Edge Functions
-npx tsx scripts/seed.ts        # seed fixture data (manual embedding loop)
-npm test                       # vitest
+curl -X POST $URL/videos -H 'Content-Type: application/json' \
+  -d '{"video":"'$PWD'/../fixtures/videos/whiteboard_algorithms.mp4","title":"whiteboard_algorithms.mp4"}'
+curl -X POST $URL/search/transcripts -H 'Content-Type: application/json' \
+  -d '{"query":"quicksort pivot partition","limit":3}'
 ```
 
-### Convex
+### Supabase and Convex
+
+Both need `compute-service/` first:
 
 ```bash
-cd convex-app
-npm install
-npx convex dev                 # creates project, syncs schema + functions
-# Set OPENAI_API_KEY in Convex dashboard
-npm test                       # vitest
+cd compute-service && pip install -e . && uvicorn app:app --port 9000
 ```
 
-### Modal
+Then follow [`supabase-app/README.md`](supabase-app/README.md) or
+[`convex-app/README.md`](convex-app/README.md).
+
+### Measure and test
 
 ```bash
-cd modal-app
-pip install -e ".[test]"
-modal setup                    # browser auth
-# Run schema.sql on your Supabase/Neon instance
-# Set secrets: modal secret create comparison-secrets OPENAI_API_KEY=... SUPABASE_URL=...
-modal deploy app.py            # deploys all endpoints
-pytest tests/                  # integration tests
+python harness/run_comparison.py
+python harness/run_comparison.py --test --impl pixeltable --base-url http://127.0.0.1:PORT
 ```
 
-### Metrics
+## Reading the rest
 
-```bash
-python harness/run_comparison.py               # DX metrics (no servers needed)
-python harness/run_comparison.py --test-all     # + equivalence tests
-```
-
-## Methodology
-
-See [docs/METHODOLOGY.md](docs/METHODOLOGY.md) for full details. In brief:
-
-- **Lines of Code** counts non-empty, non-comment lines in application source files. Generated code, lock files, and config files are excluded.
-- **External Services** counts cloud services that require an account and API key.
-- **Journey Scorecard** is assessed manually against the 10-phase developer journey in [docs/JOURNEY.md](docs/JOURNEY.md).
-- All implementations use the same OpenAI models, the same fixture data, and expose the same API contract.
+- [docs/METHODOLOGY.md](docs/METHODOLOGY.md): what is measured, what is a judgment
+  call, which implementations were actually executed, and where this comparison is
+  favourable to Pixeltable by construction.
+- [docs/JOURNEY.md](docs/JOURNEY.md): the same ten steps on all three, with the code.
+- [docs/SCORECARD.md](docs/SCORECARD.md): the numbers, regenerated from
+  `docs/metrics.json`.
 
 ## Contributing
 
-When a platform ships a new feature that changes the comparison:
-
-1. Update the relevant implementation
-2. Run `python harness/run_comparison.py` to refresh metrics
-3. Update `docs/SCORECARD.md` if the journey scorecard changes
-4. Open a PR with before/after metrics
+Change the contract and you change all three. Run `python harness/run_comparison.py`
+afterwards so the docs and `docs/metrics.json` stay in step, and keep each
+implementation idiomatic for its platform: the point is the contrast, not a
+strawman.
 
 ## License
 
-Apache 2.0. See [LICENSE](LICENSE).
+Apache 2.0

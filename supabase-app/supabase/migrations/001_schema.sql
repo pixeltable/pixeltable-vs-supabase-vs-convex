@@ -1,39 +1,57 @@
--- Enable pgvector extension for embedding storage and similarity search
-create extension if not exists vector with schema extensions;
+-- Video Intelligence Pipeline schema
+-- 4 tables, 3 foreign keys, 2 vector columns, 2 HNSW indexes, 1 status column.
+-- Compare: pixeltable/app.py declares 1 table and 2 views, and no status column,
+-- because a cell either holds a value or holds its own error.
 
--- Documents table: stores text content, image descriptions, and their embeddings
-create table public.documents (
-  id uuid primary key default gen_random_uuid(),
-  content text not null,
-  source text not null,
-  modality text not null check (modality in ('text', 'image')),
-  image_url text,
-  metadata jsonb default '{}'::jsonb,
-  embedding extensions.vector(1536) not null,
-  created_at timestamptz default now()
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Main video table
+CREATE TABLE IF NOT EXISTS videos (
+    id BIGSERIAL PRIMARY KEY,
+    title TEXT NOT NULL,
+    video_url TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    status TEXT NOT NULL DEFAULT 'processing' CHECK (status IN ('processing', 'ready', 'error')),
+    created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- HNSW index for fast approximate nearest-neighbor search
-create index documents_embedding_idx
-  on public.documents
-  using hnsw (embedding extensions.vector_cosine_ops)
-  with (m = 16, ef_construction = 64);
+-- Extracted frames (one per video per FPS tick)
+CREATE TABLE IF NOT EXISTS frames (
+    id BIGSERIAL PRIMARY KEY,
+    video_id BIGINT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    frame_idx INT NOT NULL,
+    frame_url TEXT NOT NULL,
+    embedding vector(512),  -- openai/clip-vit-base-patch32
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
--- Index for filtering by modality
-create index documents_modality_idx on public.documents (modality);
+CREATE INDEX IF NOT EXISTS frames_video_id_idx ON frames(video_id);
+CREATE INDEX IF NOT EXISTS frames_embedding_idx ON frames
+    USING hnsw (embedding vector_cosine_ops);
 
--- Index for ordering by creation time
-create index documents_created_at_idx on public.documents (created_at desc);
+-- Audio chunks (10-second segments)
+CREATE TABLE IF NOT EXISTS audio_chunks (
+    id BIGSERIAL PRIMARY KEY,
+    video_id BIGINT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    start_sec FLOAT NOT NULL,
+    end_sec FLOAT NOT NULL,
+    audio_url TEXT,
+    transcript TEXT,
+    embedding vector(384),  -- sentence-transformers/all-MiniLM-L6-v2
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
--- Enable Row Level Security (required by Supabase best practices)
-alter table public.documents enable row level security;
+CREATE INDEX IF NOT EXISTS audio_chunks_video_id_idx ON audio_chunks(video_id);
+CREATE INDEX IF NOT EXISTS audio_chunks_embedding_idx ON audio_chunks
+    USING hnsw (embedding vector_cosine_ops);
 
--- Allow authenticated and anon users to read documents
-create policy "Documents are publicly readable"
-  on public.documents for select
-  using (true);
+-- Detected scenes
+CREATE TABLE IF NOT EXISTS scenes (
+    id BIGSERIAL PRIMARY KEY,
+    video_id BIGINT NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+    start_sec FLOAT NOT NULL,
+    end_sec FLOAT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
--- Only service role can insert (Edge Functions use service role key)
-create policy "Service role can insert documents"
-  on public.documents for insert
-  with check (true);
+CREATE INDEX IF NOT EXISTS scenes_video_id_idx ON scenes(video_id);

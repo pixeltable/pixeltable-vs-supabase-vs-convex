@@ -1,12 +1,10 @@
-"""Cross-platform equivalence tests.
+"""Contract and relevance tests, run against one live implementation.
 
-Validates that all four implementations return comparable results for the same
-queries. Requires at least one implementation to be running and seeded with the
-shared fixture data.
+    pytest harness/test_equivalence.py --impl pixeltable --base-url http://localhost:8123
 
-Usage:
-    pytest harness/test_equivalence.py --base-url http://localhost:8000
-    pytest harness/test_equivalence.py --base-url http://localhost:8000 --base-url http://localhost:8001
+The previous version asserted only JSON shape and HTTP 200, so a search returning
+nothing, or returning the wrong video, passed. `expected_video` in the fixture file
+was never checked. It is checked here.
 """
 
 from __future__ import annotations
@@ -17,114 +15,86 @@ from pathlib import Path
 import httpx
 import pytest
 
-FIXTURES = Path(__file__).resolve().parent.parent / 'fixtures'
-QUERIES = json.loads((FIXTURES / 'queries' / 'test_queries.json').read_text())
+TIMEOUT = 600.0
+ROOT = Path(__file__).resolve().parent.parent
+QUERIES = json.loads((ROOT / 'fixtures' / 'queries' / 'test_queries.json').read_text())
 
 
-def pytest_addoption(parser):
-    parser.addoption(
-        '--base-url',
-        action='append',
-        default=[],
-        help='Base URL(s) of running implementations to test against',
-    )
+@pytest.fixture(scope='session')
+def client(base_url: str, headers: dict[str, str]) -> httpx.Client:
+    with httpx.Client(base_url=base_url, headers=headers, timeout=TIMEOUT) as c:
+        yield c
 
 
-@pytest.fixture(params=lambda request: request.config.getoption('--base-url') or ['http://localhost:8000'])
-def base_url(request):
-    return request.param
+def call(client: httpx.Client, paths: dict, name: str, **body) -> dict:
+    method, path = paths[name]
+    response = client.request(method, path, json=body or None)
+    assert response.status_code == 200, f'{method} {path} -> {response.status_code}: {response.text[:300]}'
+    payload = response.json()
+    assert 'rows' in payload, f'{path} returned no "rows" envelope: {payload}'
+    return payload
 
 
-@pytest.fixture
-def client(base_url):
-    return httpx.Client(base_url=base_url, timeout=30.0)
+class TestVideos:
+    def test_list_returns_every_fixture_video(self, client, paths):
+        rows = call(client, paths, 'list')['rows']
+        assert rows, 'no videos ingested; seed the implementation first'
+        for row in rows:
+            assert row['video_title']
+            assert row['duration_sec'] > 0, f'{row["video_title"]} has no duration'
+            assert row['scene_count'] >= 1, f'{row["video_title"]} has no detected scenes'
+
+    def test_every_expected_video_is_present(self, client, paths):
+        titles = {row['video_title'] for row in call(client, paths, 'list')['rows']}
+        for query in QUERIES:
+            assert query['expected_video'] in titles, f'{query["expected_video"]} was never ingested'
 
 
-class TestUploadContract:
-    """All implementations must accept the same upload payloads."""
+class TestSearch:
+    @pytest.mark.parametrize('query', [q for q in QUERIES if q['type'] == 'frames'], ids=lambda q: q['id'])
+    def test_frame_search_ranks_the_right_video_first(self, client, paths, query):
+        rows = call(client, paths, 'frames', query=query['query'], limit=5)['rows']
+        assert rows, f'{query["id"]} returned nothing'
+        for row in rows:
+            assert row['frame_url'], 'frame_url is empty, so the result is not servable'
+            assert 0 <= row['similarity'] <= 1
+            assert isinstance(row['frame_idx'], int)
+        assert rows[0]['video_title'] == query['expected_video'], (
+            f'{query["id"]}: top hit was {rows[0]["video_title"]}, expected {query["expected_video"]}'
+        )
 
-    def test_upload_text_document(self, client: httpx.Client):
-        response = client.post('/upload', json={
-            'content': 'Test document for equivalence checking.',
-            'source': 'equivalence-test.txt',
-            'metadata': {'test': True},
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert 'id' in data
-        assert data['source'] == 'equivalence-test.txt'
-        assert data['modality'] == 'text'
+    @pytest.mark.parametrize('query', [q for q in QUERIES if q['type'] == 'transcripts'], ids=lambda q: q['id'])
+    def test_transcript_search_ranks_the_right_video_first(self, client, paths, query):
+        rows = call(client, paths, 'transcripts', query=query['query'], limit=5)['rows']
+        assert rows, f'{query["id"]} returned nothing'
+        for row in rows:
+            assert row['transcript'].strip(), 'transcript is empty'
+            assert 0 <= row['similarity'] <= 1
+        assert rows[0]['video_title'] == query['expected_video'], (
+            f'{query["id"]}: top hit was {rows[0]["video_title"]}, expected {query["expected_video"]}'
+        )
 
-    def test_upload_image(self, client: httpx.Client):
-        image_url = 'https://raw.githubusercontent.com/pixeltable/pixeltable/release/docs/resources/images/000000000001.jpg'
-        response = client.post('/upload', json={
-            'image_url': image_url,
-            'source': 'equivalence-test-image.jpg',
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert data['modality'] == 'image'
+    def test_chunks_are_not_all_the_same_text(self, client, paths):
+        """A video longer than one chunk must yield different text per chunk.
 
+        Both alternatives originally transcribed the whole track once per chunk and
+        wrote the same string to every row. This catches that.
+        """
+        rows = call(client, paths, 'transcripts', query='algorithm', limit=20)['rows']
+        by_video: dict[str, set[str]] = {}
+        for row in rows:
+            by_video.setdefault(row['video_title'], set()).add(row['transcript'])
+        multi = {title: texts for title, texts in by_video.items() if len(texts) > 1}
+        assert multi or len(rows) <= 1, f'every chunk carries identical text: {by_video}'
 
-class TestSearchContract:
-    """All implementations must return the same response shape for search."""
-
-    def test_search_returns_results(self, client: httpx.Client):
-        response = client.post('/search', json={'query': 'embedding and indexing', 'limit': 5})
-        assert response.status_code == 200
-        data = response.json()
-        assert 'results' in data
-        assert 'query' in data
-        assert isinstance(data['results'], list)
-
-    def test_search_result_shape(self, client: httpx.Client):
-        response = client.post('/search', json={'query': 'GPU computing cost', 'limit': 3})
-        data = response.json()
-        for result in data['results']:
-            assert 'content' in result
-            assert 'source' in result
-            assert 'similarity' in result
-            assert 'modality' in result
-            assert result['modality'] in ('text', 'image')
-            assert 0 <= result['similarity'] <= 1
-
-    @pytest.mark.parametrize('q', QUERIES, ids=[q['id'] for q in QUERIES])
-    def test_fixture_queries_return_relevant_results(self, client: httpx.Client, q: dict):
-        response = client.post('/search', json={'query': q['query'], 'limit': 5})
-        assert response.status_code == 200
-        data = response.json()
-        assert len(data['results']) > 0, f'Query {q["id"]!r} returned no results'
+    def test_limit_is_respected(self, client, paths):
+        assert len(call(client, paths, 'frames', query='whiteboard', limit=2)['rows']) <= 2
 
 
-class TestAgentContract:
-    """All implementations must accept agent queries and return grounded answers."""
-
-    def test_agent_returns_answer(self, client: httpx.Client):
-        response = client.post('/agent/query', json={
-            'message': 'How does automatic embedding work?',
-        })
-        assert response.status_code == 200
-        data = response.json()
-        assert 'answer' in data
-        assert len(data['answer']) > 0
-        assert 'sources' in data
-
-    def test_agent_with_conversation_id(self, client: httpx.Client):
-        response = client.post('/agent/query', json={
-            'message': 'What is RAG?',
-            'conversation_id': 'test-conv-001',
-        })
-        data = response.json()
-        assert data.get('conversation_id') is not None
-
-
-class TestDocumentsContract:
-    """All implementations must list uploaded documents."""
-
-    def test_list_documents(self, client: httpx.Client):
-        response = client.get('/documents')
-        assert response.status_code == 200
-        data = response.json()
-        assert 'documents' in data
-        assert 'total' in data
-        assert isinstance(data['documents'], list)
+class TestAgent:
+    def test_agent_answers_and_keeps_its_evidence(self, client, paths):
+        rows = call(client, paths, 'agent', question='What is the time complexity of quicksort?')['rows']
+        assert rows, 'agent returned no row'
+        answer = rows[0]
+        assert answer['answer'].strip(), 'agent produced an empty answer'
+        assert answer['visual'] or answer['spoken'], 'agent returned an answer with no retrieved evidence'
