@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint-python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install ruff==0.15.0   # pinned: formatting rules change between minors
+      - run: ruff check pixeltable/ compute-service/ harness/ fixtures/
+      - run: ruff format --check pixeltable/ compute-service/ harness/ fixtures/
+
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install pydantic pytest httpx
+      - name: The equivalence suite must collect, which imports and exercises the contract
+        run: python -m pytest harness/test_equivalence.py --collect-only -q
+
+  typecheck-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Every Edge Function typechecks
+        run: |
+          deno check supabase-app/supabase/functions/api/index.ts
+
+  typecheck-convex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+        working-directory: convex-app
+      - name: Typecheck, minus the generated code a Convex account would provide
+        working-directory: convex-app
+        run: |
+          # convex/_generated/ needs an authenticated deployment, so every error that
+          # mentions it, and every implicit-any it causes, is expected here.
+          npx tsc --noEmit 2>&1 | tee /tmp/tsc.log || true
+          if grep -v '_generated' /tmp/tsc.log | grep -v "implicitly has an 'any' type" | grep -q 'error TS'; then
+            echo 'unexpected TypeScript errors:'
+            grep -v '_generated' /tmp/tsc.log | grep -v "implicitly has an 'any' type"
+            exit 1
+          fi
+
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python harness/run_comparison.py
+      - name: Measurements must match the committed docs/metrics.json
+        run: git diff --exit-code docs/metrics.json

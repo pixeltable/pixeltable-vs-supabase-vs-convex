@@ -1,0 +1,37 @@
+[
+  {
+    "id": "visual_whiteboard",
+    "type": "frames",
+    "query": "whiteboard with algorithm diagram",
+    "description": "Visual search for whiteboard content in frames",
+    "expected_video": "whiteboard_algorithms.mp4"
+  },
+  {
+    "id": "visual_code",
+    "type": "frames",
+    "query": "code on screen with syntax highlighting",
+    "description": "Visual search for code review frames",
+    "expected_video": "code_review_session.mp4"
+  },
+  {
+    "id": "transcript_data_structures",
+    "type": "transcripts",
+    "query": "explains arrays and hash tables",
+    "description": "Semantic search in lecture transcript",
+    "expected_video": "lecture_data_structures.mp4"
+  },
+  {
+    "id": "transcript_quicksort",
+    "type": "transcripts",
+    "query": "quicksort pivot partition algorithm",
+    "description": "Semantic search for sorting algorithm explanation",
+    "expected_video": "whiteboard_algorithms.mp4"
+  },
+  {
+    "id": "transcript_optimization",
+    "type": "transcripts",
+    "query": "performance optimization and profiling",
+    "description": "Semantic search for code performance discussion",
+    "expected_video": "code_review_session.mp4"
+  }
+]

@@ -1,0 +1,7 @@
+{
+  "name": "platform-comparison-supabase",
+  "private": true,
+  "scripts": {
+    "typecheck": "deno check supabase/functions/api/index.ts"
+  }
+}

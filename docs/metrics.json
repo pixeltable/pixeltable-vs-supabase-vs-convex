@@ -1,0 +1,127 @@
+{
+  "pixeltable": {
+    "name": "pixeltable",
+    "app_loc": 128,
+    "config_loc": 19,
+    "app_files": 1,
+    "languages": [
+      "Python"
+    ],
+    "tables": 2,
+    "views": 2,
+    "vector_indexes": 2,
+    "foreign_keys": null,
+    "db_triggers": null,
+    "orchestration_hops": 3,
+    "http_routes_written_by_hand": 1,
+    "file_breakdown": {
+      "app.py": 128
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "Pixeltable (one process)"
+      ],
+      "needs_compute_service": false,
+      "work_runs_on_insert": true,
+      "incremental_column_add": true,
+      "data_versioning": true
+    }
+  },
+  "supabase": {
+    "name": "supabase",
+    "app_loc": 243,
+    "config_loc": 32,
+    "app_files": 5,
+    "languages": [
+      "TypeScript",
+      "SQL"
+    ],
+    "tables": 5,
+    "views": 1,
+    "vector_indexes": 2,
+    "foreign_keys": 3,
+    "db_triggers": 0,
+    "orchestration_hops": 12,
+    "http_routes_written_by_hand": 1,
+    "file_breakdown": {
+      "supabase/functions/_shared/client.ts": 17,
+      "supabase/functions/api/index.ts": 124,
+      "supabase/migrations/001_schema.sql": 47,
+      "supabase/migrations/002_search_functions.sql": 52,
+      "supabase/migrations/003_storage.sql": 3
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "Supabase (Postgres, Storage, Deno)",
+        "compute-service"
+      ],
+      "needs_compute_service": true,
+      "work_runs_on_insert": false,
+      "incremental_column_add": false,
+      "data_versioning": false
+    }
+  },
+  "convex": {
+    "name": "convex",
+    "app_loc": 378,
+    "config_loc": 33,
+    "app_files": 7,
+    "languages": [
+      "TypeScript"
+    ],
+    "tables": 5,
+    "views": null,
+    "vector_indexes": 2,
+    "foreign_keys": null,
+    "db_triggers": null,
+    "orchestration_hops": 9,
+    "http_routes_written_by_hand": 5,
+    "file_breakdown": {
+      "convex/agent.ts": 33,
+      "convex/compute.ts": 10,
+      "convex/http.ts": 46,
+      "convex/ingest.ts": 60,
+      "convex/schema.ts": 49,
+      "convex/search.ts": 74,
+      "convex/videos.ts": 106
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "Convex (database, actions, storage)",
+        "compute-service"
+      ],
+      "needs_compute_service": true,
+      "work_runs_on_insert": false,
+      "incremental_column_add": false,
+      "data_versioning": false
+    }
+  },
+  "compute-service": {
+    "name": "compute-service",
+    "app_loc": 247,
+    "config_loc": 20,
+    "app_files": 1,
+    "languages": [
+      "Python"
+    ],
+    "tables": null,
+    "views": null,
+    "vector_indexes": null,
+    "foreign_keys": null,
+    "db_triggers": null,
+    "orchestration_hops": null,
+    "http_routes_written_by_hand": 7,
+    "file_breakdown": {
+      "app.py": 247
+    },
+    "classified": {
+      "runtimes_to_operate": [
+        "compute-service"
+      ],
+      "needs_compute_service": false,
+      "work_runs_on_insert": false,
+      "incremental_column_add": false,
+      "data_versioning": false
+    }
+  }
+}
