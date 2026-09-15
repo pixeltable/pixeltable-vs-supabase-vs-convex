@@ -25,8 +25,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install pydantic pytest httpx
-      - name: The equivalence suite must collect, which imports and exercises the contract
-        run: python -m pytest harness/test_equivalence.py --collect-only -q
+      - name: The test suite must collect, which imports and exercises the contract
+        run: python -m pytest harness/ --collect-only -q
 
   typecheck-supabase:
     runs-on: ubuntu-latest
