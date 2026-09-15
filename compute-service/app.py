@@ -2,7 +2,7 @@
 
 Supabase Edge Functions and Convex Actions call these endpoints because they
 **cannot** run ffmpeg, Whisper, or CLIP natively.  Pixeltable does NOT need
-this service — it handles everything declaratively via computed columns.
+this service -- it handles everything declaratively via computed columns.
 
 The existence of this service IS the comparison point: it represents the
 external infrastructure that other platforms require.
@@ -311,7 +311,7 @@ async def detect_scenes(req: DetectScenesRequest):
         'csv=p=0',
         '-f',
         'lavfi',
-        f"movie={req.video_url},select='gt(scene,{req.threshold / 100})'",
+        f"movie='{req.video_url.replace(chr(58), chr(92) + chr(58))}',select='gt(scene,{req.threshold / 100})'",
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
 

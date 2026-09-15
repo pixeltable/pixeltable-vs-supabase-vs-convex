@@ -78,7 +78,7 @@ Stated per implementation, because "it typechecks" and "it ran" are different cl
 |---|---|---|
 | **Pixeltable** | Yes | Catalog created, three videos ingested over HTTP with background jobs, `harness/test_equivalence.py` 10/10 against the live service |
 | **compute-service** | Yes | All seven endpoints exercised against the fixture videos |
-| **Supabase** | Yes | `supabase start` applied all three migrations, seven Edge Functions served under `supabase functions serve`, three videos ingested, the `pg_net` triggers fired, 45/45 frames and 6/6 chunks embedded, `harness/test_equivalence.py` 10/10. Also typechecks clean under Deno 2.9.6. |
+| **Supabase** | Yes | `supabase start` applied all three migrations, the `api` Edge Function served under `supabase functions serve`, three videos ingested, 45/45 frames and 6/6 chunks embedded, `harness/test_equivalence.py` 10/10. Also typechecks clean under Deno 2.9.6. |
 | **Convex** | Yes | `npx convex dev` (anonymous local backend, no account), three videos ingested over its HTTP actions port, `harness/test_equivalence.py` 10/10, and `tsc --noEmit` clean against real generated code. |
 
 All three produced the same counts from the same fixtures: 3 videos, 45 frames

@@ -17,7 +17,7 @@ RETURNS TABLE(
         f.frame_url,
         f.frame_idx,
         v.title AS video_title,
-        1 - (f.embedding <=> query_embedding) AS similarity
+        GREATEST(0.0, LEAST(1.0, 1 - (f.embedding <=> query_embedding))) AS similarity
     FROM frames f
     JOIN videos v ON f.video_id = v.id
     WHERE f.embedding IS NOT NULL
@@ -40,7 +40,7 @@ RETURNS TABLE(
         ac.transcript,
         ac.start_sec,
         v.title AS video_title,
-        1 - (ac.embedding <=> query_embedding) AS similarity
+        GREATEST(0.0, LEAST(1.0, 1 - (ac.embedding <=> query_embedding))) AS similarity
     FROM audio_chunks ac
     JOIN videos v ON ac.video_id = v.id
     WHERE ac.embedding IS NOT NULL AND ac.transcript IS NOT NULL

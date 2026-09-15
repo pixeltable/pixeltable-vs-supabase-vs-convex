@@ -40,8 +40,8 @@ different vendor. Price of the swap: per-call cost, an API key, and no offline p
 
 After it, the row reads 1 / 2 / 2 still. **It does not strike out**, and that is the
 single most durable finding in this repo: on Supabase and Convex, media processing lives
-somewhere else. Everything downstream — the extra service, most of the orchestration
-hops, the base64 round trips — follows from that one fact.
+somewhere else. Everything downstream -- the extra service, most of the orchestration
+hops, the base64 round trips -- follows from that one fact.
 
 **Swap 2: equalise "realtime push".** Pixeltable has none here. To match Supabase or
 Convex you would put a polling client or a websocket layer in front, and pay latency plus

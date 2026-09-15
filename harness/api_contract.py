@@ -23,6 +23,23 @@ class VideoIngestRequest(BaseModel):
     title: str = Field(..., description='Human-readable title')
 
 
+class IngestAck(BaseModel):
+    """What POST /videos returns. Deliberately not a VideoRow.
+
+    Ingest is asynchronous on Pixeltable, which returns a job to poll and frees the
+    worker immediately, and synchronous on Supabase and Convex, which block for the
+    length of the pipeline and then report `ready`. Neither can honestly return
+    `scene_count` in the same breath as accepting the video, so the contract asks only
+    that the response identifies the work. What matters is the effect, and the suite
+    asserts that instead: after ingest, the video is listed and searchable.
+    """
+
+    id: str
+    job_url: str | None = Field(None, description='Pixeltable: poll until status is done')
+    video_title: str | None = None
+    status: Literal['processing', 'ready', 'error'] | None = None
+
+
 class SearchRequest(BaseModel):
     query: str = Field(..., description='Natural-language query')
     limit: int = Field(10, ge=1, le=100)

@@ -39,6 +39,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption('--base-url', default='http://localhost:8000', help='Root URL of the running implementation')
     parser.addoption('--impl', default='pixeltable', choices=sorted(PATHS), help='Which implementation is running')
     parser.addoption('--auth-token', default='', help='Bearer token, for Supabase Edge Functions')
+    parser.addoption(
+        '--compare',
+        action='append',
+        default=[],
+        metavar='IMPL=URL',
+        help='Repeatable. Two or more running implementations to diff against each other.',
+    )
 
 
 @pytest.fixture(scope='session')
@@ -55,3 +62,15 @@ def paths(request: pytest.FixtureRequest) -> dict[str, tuple[str, str]]:
 def headers(request: pytest.FixtureRequest) -> dict[str, str]:
     token = str(request.config.getoption('--auth-token'))
     return {'Authorization': f'Bearer {token}'} if token else {}
+
+
+@pytest.fixture(scope='session')
+def comparands(request: pytest.FixtureRequest) -> dict[str, str]:
+    """The implementations to diff, as {impl: base_url}, from repeated --compare."""
+    pairs = {}
+    for item in request.config.getoption('--compare'):
+        impl, _, url = item.partition('=')
+        if impl not in PATHS:
+            raise pytest.UsageError(f'--compare: unknown implementation {impl!r}')
+        pairs[impl] = url.rstrip('/')
+    return pairs

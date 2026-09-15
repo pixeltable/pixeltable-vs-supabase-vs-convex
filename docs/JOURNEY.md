@@ -9,8 +9,8 @@ criticism survived that rewrite; several did not, and are marked.
 
 ## Summary
 
-Ratings are judgments, not measurements. The Convex column is read from source, not from
-a run: see [METHODOLOGY.md](METHODOLOGY.md).
+Ratings are judgments, not measurements. All three implementations were executed
+end to end: see [METHODOLOGY.md](METHODOLOGY.md).
 
 | Step | Pixeltable | Supabase | Convex |
 |---|---|---|---|

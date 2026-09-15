@@ -1,4 +1,4 @@
-// Four tables, two vector indexes, three by_video indexes, and a status column.
+// Five tables, two vector indexes, three by_video indexes, and a status column.
 // Compare pixeltable/app.py: one table, two views derived from it, and no status.
 
 import { defineSchema, defineTable } from "convex/server";
