@@ -32,11 +32,10 @@ videos, same frame rate, same chunk length, same scene threshold.
 table. Nothing in that table is typed by hand.
 
 **Lines of code.** Non-blank, non-comment, using the comment syntax of each language:
-`#` for Python, `//` and `/* */` for TypeScript, `--` for SQL. An earlier version of
-this harness treated `#` as the only comment marker, so every `//` and `--` counted as
-code. That inflated Supabase and Convex against Pixeltable, and fixing it lowered
-their totals. Lock files are counted nowhere; `package.json`, `pyproject.toml`,
-`tsconfig.json`, `config.toml` and `.env.example` are counted separately as config.
+`#` for Python, `//` and `/* */` for TypeScript, `--` for SQL. Counting a comment marker
+as code inflates whichever language uses it, so each language gets its own rule. Lock
+files are counted nowhere; `package.json`, `pyproject.toml`, `tsconfig.json`,
+`config.toml` and `.env.example` are counted separately as config.
 
 **Architecture.** Tables, views, vector indexes, foreign keys, database triggers,
 orchestration hops, and hand-written HTTP routes are counted by pattern per
@@ -45,15 +44,14 @@ concept differently. The patterns are in `PATTERNS` in `metrics.py`, readable an
 arguable.
 
 A metric is reported only for a platform that has a pattern for it; anything else renders
-as `n/a`. An earlier version had no `orchestration_hops`, `foreign_keys` or `db_triggers`
-pattern for Pixeltable, so the dataclass default of `0` was printed in the headline table
-as though it had been measured. Three of the bolded zeros were not measurements. Pixeltable's
-real hop count is 3, from the one route it has to write by hand.
+as `n/a`. A structural zero printed as a measurement is not a measurement, and a metric
+that only one platform has a pattern for flatters that platform. Pixeltable's hop count is
+3, from the one route it writes by hand.
 
-Two metrics were deleted rather than fixed. `env_vars` counted lines in `.env.example`, so
-Pixeltable scored 0 for not having the file. `external_hosts` reported 0 for Pixeltable
-while `app.py` downloads CLIP, MiniLM and a Qwen GGUF from huggingface.co at runtime; the
-regex could not see a hostname a library assembles.
+Two metrics are deliberately absent. A count of `.env.example` lines measures whether a
+file exists, not what a deployment needs. A regex for external hosts cannot see a hostname
+a library assembles, so it would report 0 for `app.py` while it downloads CLIP, MiniLM and
+a Qwen GGUF from huggingface.co.
 
 **Orchestration hops** counts `ctx.runMutation` / `ctx.runQuery` / `ctx.runAction` /
 `scheduler.runAfter` in Convex, and `supabase.from()` / `.storage.` / `.rpc()` /
@@ -111,12 +109,6 @@ against each other across three explicit tiers:
 - **Known divergence**: rank ordering below the top hit and differing scene counts between
   PySceneDetect and ffmpeg scene filters are recorded rather than asserted.
 
-Two earlier claims in this document were false and are worth recording. It said "no claim
-is made about behavior that was not observed" while rating Convex across ten rows it had
-never run. And it said Convex code "does not typecheck, let alone run, until you have an
-account", which is simply untrue: `npx convex dev` sets up an anonymous local backend
-without one. Both errors came from writing about a platform we had not executed.
-
 ## Where this is favourable to Pixeltable
 
 Stated so you do not have to find it yourself.
@@ -133,9 +125,9 @@ Stated so you do not have to find it yourself.
    subscriptions would read very differently, and Convex in particular would look
    much better.
 4. **One author wrote all three.** The Pixeltable version had the benefit of knowing
-   what the contract needed. The other two were rewritten to follow their own vendors'
-   documented guidance, which cut Supabase by 49% and Convex by 19%, but they were still
-   not written by their platforms' experts.
+   what the contract needed. The other two follow their vendors' documented guidance and
+   pass their vendors' own checkers, but they were still not written by their platforms'
+   experts.
 5. **The contract is REST-shaped**, which is Pixeltable's native serving surface,
    Supabase's third-best (behind PostgREST and Realtime) and Convex's worst. Convex's
    `http.ts` is 46 lines that exist only because we asked for REST instead of using its
@@ -147,26 +139,6 @@ Stated so you do not have to find it yourself.
    runs on a service-role key and writes no policy. For a multi-tenant product those are
    decisive and Supabase and Convex both have answers where Pixeltable, here, does not.
    See [TRADEOFFS.md](TRADEOFFS.md).
-
-## Where Pixeltable came off worse
-
-Also stated, for the same reason.
-
-- `pixeltable/app.py` writes one HTTP route by hand. `add_insert_route` resolves its
-  target model eagerly and fails on a model whose columns call a query, so the agent
-  endpoint could not be declared. Reproduced on released 0.7.7.
-- `pxtf.json.len()` raises an internal `AssertionError` on a stored Json column, in a
-  plain select as well as in a computed column, so `scene_count` is a one-line UDF.
-  Reproduced on released 0.7.7.
-- Changing the return shape of a query changes the inferred type of any column that
-  calls it, which is a `FATAL` schema difference that `pxt schema update` will not
-  apply. The table has to be dropped. Reproduced on released 0.7.7.
-- A destructive catalog reset leaves a running service holding stale table handles,
-  and `pxt service update` reports "up to date" rather than restarting it. Observed on
-  0.7.7.dev9; not retested on the release.
-
-Minimal repros for the first two are in
-[pixeltable/README.md](../pixeltable/README.md#known-limits-stated-rather-than-hidden).
 
 ## Each implementation is held to its vendor's own checker
 
@@ -181,6 +153,21 @@ CI runs it, so "idiomatic" is a command a reader can re-run rather than a claim.
 
 That asymmetry is worth stating plainly: the sponsor's implementation is the one with the
 weakest automated proof that it follows its own vendor's guidance.
+
+## What a clean install gets you
+
+Verified by cloning the published repo and following its own README, which is a different
+claim from "it runs on the author's machine".
+
+| | Clean install runs? |
+|---|---|
+| Supabase | Yes. `supabase start`, migrations, one Edge Function. |
+| Convex | Yes. `npx convex dev` gives an anonymous local backend, no account. |
+| compute-service | Yes. |
+| Pixeltable | **Not on the released package.** `pip install 'pixeltable[serve]'` gives 0.7.7, which cannot build this app's embedding index (PXT-1419). Fixed on Pixeltable main, unreleased. Install from source until it ships. |
+
+That the sponsor's own implementation is the one that fails a clean install is worth
+stating plainly rather than leaving a reader to discover it.
 
 ## Fairness rules
 

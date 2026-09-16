@@ -43,6 +43,7 @@ CHUNK_SECONDS = 10.0
 
 @pxt.udf
 def count_items(items: list) -> int:
+    """Length of a Json array. Stands in for pxtf.json.len()."""
     return len(items)
 
 
@@ -168,10 +169,9 @@ api.add_query_route(path='/search/frames', query=search_frames, method='post')
 api.add_query_route(path='/search/transcripts', query=search_transcripts, method='post')
 
 
-# The fifth endpoint is the one route this file has to write by hand. `add_insert_route`
-# resolves its target model eagerly, which fails on a model whose columns call a query
-# (pixeltable 0.7.7: "A query over model `Frames` cannot be serialized"). The table still
-# does the work; only the plumbing is manual.
+# The one route written by hand. `add_insert_route` resolves its target model eagerly and
+# cannot target a model whose columns call a query, which Conversations does. The table
+# still does the work; only the plumbing is manual.
 @api.post('/agent/query')
 def ask(question: str = Body(..., embed=True)) -> dict:
     conversations = pxt.get_table(f'{CATALOG}.conversations')

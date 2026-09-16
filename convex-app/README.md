@@ -5,11 +5,12 @@ external compute service.
 
 ## Written to Convex's own guidance
 
-An earlier version ran one `ctx.runQuery` per search hit and one `ctx.runMutation` per
-row. Convex documents the opposite: [most logic should be plain TypeScript
-functions](https://docs.convex.dev/understanding/best-practices/), and separate `ctx.run*`
-calls each run in their own transaction, so a loop of them loses atomicity. Following that
-took this implementation from 458 lines to 378.
+Convex documents that [most logic should be plain TypeScript
+functions](https://docs.convex.dev/understanding/best-practices/), and that separate
+`ctx.run*` calls each run in their own transaction, so a loop of them loses atomicity.
+This implementation batches its writes, hydrates vector hits in one query, calls plain
+helpers rather than `ctx.runAction`, and passes explicit table ids. Their own ESLint
+plugin runs in CI: `npm run lint`.
 
 ## Why the compute service
 
@@ -37,7 +38,7 @@ respectively, and the compute service must be reachable from Convex's cloud, so
 ## Known limits, stated rather than hidden
 
 - An action cannot write to the database, so every write goes through a mutation.
-  `videos.ts` is 106 of this implementation's 378 lines for that reason.
+  `videos.ts` is 109 of this implementation's 383 lines for that reason.
 - `vectorSearch` returns ids and scores, so rows are fetched in a second query.
 - `http.ts` is 46 lines that exist only because this benchmark's contract is REST.
 - Processing lives in the ingest path; restoring per-row automatic processing means a

@@ -1,8 +1,8 @@
 {
   "pixeltable": {
     "name": "pixeltable",
-    "app_loc": 128,
-    "config_loc": 19,
+    "app_loc": 129,
+    "config_loc": 23,
     "app_files": 1,
     "languages": [
       "Python"
@@ -15,7 +15,7 @@
     "orchestration_hops": 3,
     "http_routes_written_by_hand": 1,
     "file_breakdown": {
-      "app.py": 128
+      "app.py": 129
     },
     "classified": {
       "runtimes_to_operate": [

@@ -4,11 +4,8 @@ The most valuable contribution is telling us this benchmark is wrong about your 
 
 ## If you work on Supabase or Convex
 
-Open an issue or a PR. The comparison has already been corrected twice from exactly this
-kind of feedback: once when the LOC counter treated `//` and `--` as code, and once when
-both implementations turned out to be more verbose than their own vendors' documentation
-recommends. Fixing the second cut Supabase by 49% and Convex by 19%, and we published the
-smaller numbers.
+Open an issue or a PR. Corrections that shrink the gap get published, because a benchmark
+that survives scrutiny is worth more than a flattering number.
 
 Concretely, we want to hear about:
 

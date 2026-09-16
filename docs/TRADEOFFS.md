@@ -11,7 +11,7 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 128 | 254 | 383 |
+| App code you maintain | 129 | 254 | 383 |
 | Plus the shared compute service | 0 | 252 | 252 |
 | Files you open to read the backend | 1 | 5 | 7 |
 | Services you operate | 1 | 2 | 2 |
@@ -47,7 +47,7 @@ hops, the base64 round trips -- follows from that one fact.
 
 **Swap 2: equalise "realtime push".** Pixeltable has none here. To match Supabase or
 Convex you would put a polling client or a websocket layer in front, and pay latency plus
-the code to write it. Price: Pixeltable's 128 goes up, and the thing you build yourself
+the code to write it. Price: Pixeltable's 129 goes up, and the thing you build yourself
 is what the other two ship. For an app whose clients need live updates, this swap is
 expensive enough to decide the question on its own.
 
@@ -70,7 +70,7 @@ script you run once; on 45 million it is a maintenance window. This swap gets ch
 smaller your data and more expensive the larger it is, which is why it belongs in the
 conditional answer rather than the headline.
 
-**What survives every swap**: lines of code and files to open (128/1 against 254/6 and
+**What survives every swap**: lines of code and files to open (129/1 against 254/6 and
 383/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 
 ## The conditional recommendation

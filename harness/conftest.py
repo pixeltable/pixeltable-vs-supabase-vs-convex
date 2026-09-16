@@ -1,8 +1,7 @@
 """pytest options for the equivalence suite.
 
-`pytest_addoption` has to live in a conftest, not in the test module. It was in the
-test module, which is why `--base-url` was an unrecognized argument and this suite
-had never actually run.
+`pytest_addoption` has to live in a conftest. pytest does not read the hook from a test
+module, so `--base-url` would be an unrecognized argument.
 """
 
 from __future__ import annotations

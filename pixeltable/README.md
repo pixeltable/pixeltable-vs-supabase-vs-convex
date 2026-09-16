@@ -47,51 +47,27 @@ pxt errors media/chunks --col transcript
 pxt history media/videos
 ```
 
-## Known limits, stated rather than hidden
+## Known limit on the released package
 
-Found while building this. The version each was observed on is named, because
-"reproduces on the release" and "reproduces on my build" are different claims.
+Building the transcript embedding index needs a Pixeltable build newer than the current
+release. Released 0.7.7 resolves the index dimension by calling
+`SentenceTransformer.get_embedding_dimension()`, which no sentence-transformers version
+defines, so `pxt schema check` fails before any table is created:
 
-**One route is written by hand** (reproduced on released 0.7.7). `add_insert_route`
-resolves its target model eagerly, so it fails on a model whose columns call a
-`@pxt.query`. That is why `/agent/query` could not be declared. Minimal repro:
-
-```python
-class Docs(TableModel, name='docs'):
-    body: pxt.String
-
-@pxt.query
-def find(q: str):
-    return Docs.where(Docs.body == q).select(body=Docs.body).limit(3)
-
-class Asks(TableModel, name='asks'):
-    question: pxt.String
-    hits = find(question)
-
-api.add_insert_route(Asks, path='/ask', inputs=[Asks.question], outputs=[Asks.hits])
-# pixeltable.exceptions.Error: A query over model `Docs` cannot be serialized;
-# bind it to a table first.
+```
+pxt: 422 error loading app.py: 'SentenceTransformer' object has no attribute 'get_embedding_dimension'
 ```
 
-**`pxtf.json.len()` raises an internal `AssertionError`** (reproduced on released
-0.7.7), in a plain select as well as in a computed column. `scene_count` is a one-line
-UDF instead. Minimal repro:
+It is fixed on Pixeltable main and tracked as PXT-1419. Until that ships, install
+Pixeltable from source. Everything else here works on the release.
 
-```python
-t = pxt.create_table('d.t', {'blob': pxt.Json})
-t.insert([{'blob': [1, 2, 3]}])
-t.select(t.blob).collect()                    # fine
-t.select(n=pxtf.json.len(t.blob)).collect()   # AssertionError: 0
-```
+## Two things that look odd, and why
 
-**Changing a query's return shape is a FATAL schema difference** (released 0.7.7) for
-any column that calls it, so that table has to be dropped rather than updated. Adding
-the `still` column changed `search_frames`'s return type, which changed the inferred
-type of `Conversations.visual`.
+`/agent/query` is the one route written by hand. `add_insert_route` resolves its target
+model eagerly and cannot target a model whose columns call a `@pxt.query`, which the
+`Conversations` table does.
 
-**After a destructive catalog reset, restart the service** (observed on 0.7.7.dev9).
-`pxt service update` reports "up to date" and keeps serving stale table handles, which
-then 500 with `TABLE_NOT_FOUND`. Run `pxt service stop media/api` first.
+`scene_count` is a one-line UDF rather than `pxtf.json.len()`.
 
 ## Swapping providers
 

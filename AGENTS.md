@@ -10,8 +10,8 @@ source of truth; do not restate them here.
 ## Rules that are easy to break
 
 1. **Never type a number into a doc.** Everything comes from `docs/metrics.json` via
-   `python harness/run_comparison.py`. This has been violated twice: once by hard-coding
-   architecture constants, once by pasting raw `wc -l` for competitors into two docs.
+   `python harness/run_comparison.py`. Raw `wc -l` is not the measurement: the harness
+   excludes blanks and comments, so pasting a file's line count inflates it.
 2. **A metric with no pattern for a platform renders `n/a`, never `0`.** A structural
    zero presented as a measurement is the most attackable thing this repo can ship.
 3. **Hold every implementation to its own vendor's documentation.** If a competitor's

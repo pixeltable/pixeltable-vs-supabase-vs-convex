@@ -6,9 +6,13 @@ Three implementations of one application: a video intelligence pipeline that ext
 frames, transcribes speech, embeds both, detects scenes, and answers questions about what
 it saw and heard.
 
-[Pixeltable](https://pixeltable.com) is an open-source database for multimodal data,
-where the processing is declared as columns and runs when a row arrives. It is also the
-sponsor of this repo, which is why the methodology below is written to be attacked.
+Most stacks glue a blob store, a warehouse, a vector database, an orchestrator and custom
+endpoints together, and you pay for the joints. [Pixeltable](https://pixeltable.com) is
+the database, the orchestration and the serving: tables, computed columns, indexes and
+endpoints in one Python file. Insert a row. Transforms run.
+
+Pixeltable also sponsors this repo, which is why the methodology below is written to be
+attacked, and why every implementation here is held to its own vendor's checker.
 
 Same contract, same fixtures, same models. All three run locally with no API key and no
 account, all three were executed end to end, and all three pass the same 10-test suite
@@ -18,9 +22,9 @@ scored zero.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | **128** | 254 | 383 |
+| App code you maintain | **129** | 254 | 383 |
 | Plus the shared compute service | **0** | 252 | 252 |
-| **Total** | **128** | **506** | **635** |
+| **Total** | **129** | **506** | **635** |
 | Files you open to read the backend | **1** | 5 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
@@ -32,20 +36,23 @@ under which conditions, using even swaps, and it concedes the cases where Pixelt
 loses. The short version: this app is media-heavy, which suits Pixeltable; if you need
 realtime, row-level security or a managed database, the answer changes.
 
-## Both competitors were rewritten to their own documentation
+## Every implementation is held to its vendor's own checker
 
-An earlier version of this benchmark measured Supabase at 473 lines and Convex at 458.
-Those numbers were inflated by code their own engineers would not write. Supabase's docs
-say to [develop few large functions, rather than many small
-ones](https://supabase.com/docs/guides/functions/development-tips) and to put shared code
-in `_shared/`; this repo had seven functions repeating the same preamble. Convex's docs
-say [most logic should be plain TypeScript
-functions](https://docs.convex.dev/understanding/best-practices/) and warn that separate
-`ctx.run*` calls each run in their own transaction; this repo called one per row.
+"Idiomatic" is a command here, not an opinion. CI runs each vendor's own tooling, so you
+can re-run the claim:
 
-Rewriting both to follow that guidance cut Supabase by 49% and Convex by 19%, and removed
-the two criticisms this README used to lead with: the per-row webhook storm and the N+1
-on search. Neither was a platform cost. Both were ours.
+| | Checker | What it gates |
+|---|---|---|
+| Supabase | `deno lint`, `supabase db advisors --local` | Edge Function style, and no security or performance errors on a live database |
+| Convex | `@convex-dev/eslint-plugin`, `tsc --noEmit` | Their own best-practice rules against real generated code |
+| Pixeltable | `ruff` | Generic Python. Pixeltable ships no conformance checker, so it has the weakest automated proof of the three. |
+
+Supabase follows [develop few large functions, rather than many small
+ones](https://supabase.com/docs/guides/functions/development-tips), the documented
+handler shape, `npm:` and `jsr:` specifiers with pinned versions, RLS on every table, and
+a locked `search_path`. Convex follows [most logic should be plain TypeScript
+functions](https://docs.convex.dev/understanding/best-practices/), batched writes,
+explicit table ids and bounded reads.
 
 ## The whole Pixeltable pipeline
 
@@ -76,7 +83,7 @@ Search is an expression, not a service call:
 sim = Frames.frame.similarity(string=query)
 ```
 
-Read the whole thing: [`pixeltable/app.py`](pixeltable/app.py). 128 lines, the entire
+Read the whole thing: [`pixeltable/app.py`](pixeltable/app.py). 129 lines, the entire
 backend, HTTP included.
 
 ## What the difference actually is
@@ -98,8 +105,8 @@ backfill script. This costs nothing at 45 rows and decides the question at 45 mi
 **Processing fires for any writer.** A row inserted into a Pixeltable table by anything
 at all gets processed, because the pipeline is the schema. On Supabase or Convex the
 processing lives in the ingest path, so a row written by another client, a backfill, or a
-`psql` session is not processed. Getting that behaviour back is what the database triggers
-in this repo's history used to do, and what a Convex scheduled action would do.
+`psql` session is not processed. Getting that behaviour back means database triggers on
+Supabase or a scheduled action on Convex, and a webhook or a job per row.
 
 **Retrieval knows its own model.** `similarity(string=q)` asks the index. The other two
 embed the query themselves and nothing checks it came from the model that filled the
@@ -118,6 +125,10 @@ pip install gTTS && python fixtures/videos/generate.py
 ```
 
 ### Pixeltable
+
+Install Pixeltable from source for now: the released 0.7.7 cannot build this app's
+embedding index ([PXT-1419](https://pixeltable.atlassian.net/browse/PXT-1419), fixed on
+main). See [pixeltable/README.md](pixeltable/README.md).
 
 ```bash
 cd pixeltable && pip install -e . && pxt init
@@ -195,6 +206,17 @@ python harness/run_comparison.py --test --impl pixeltable
 See [CONTRIBUTING.md](CONTRIBUTING.md). If you work on Supabase or Convex and think your
 platform is misrepresented here, that is the most useful issue you could open, and the
 history of this repo shows we act on it.
+
+## Pixeltable
+
+- [Quickstart](https://docs.pixeltable.com/overview/quick-start) and
+  [docs](https://docs.pixeltable.com/)
+- [Why Pixeltable](https://docs.pixeltable.com/overview/pixeltable) and
+  [how it works](https://docs.pixeltable.com/overview/how-it-works)
+- [Starter kit](https://github.com/pixeltable/pixeltable-starter-kit): `uvx pixeltable-new myapp`.
+  Its `video-search` app is this same pipeline, maintained by the people who build Pixeltable.
+- [Migrating from another stack](https://docs.pixeltable.com/howto/coming-from)
+- [Discord](https://discord.gg/QPyqFYx2UN)
 
 ## License
 

@@ -2,9 +2,8 @@
 
     pytest harness/test_equivalence.py --impl pixeltable --base-url http://localhost:8123
 
-The previous version asserted only JSON shape and HTTP 200, so a search returning
-nothing, or returning the wrong video, passed. `expected_video` in the fixture file
-was never checked. It is checked here.
+Asserting shape and HTTP 200 alone would pass a search that returns nothing, or the
+wrong video. `expected_video` from the fixture file is checked here.
 """
 
 from __future__ import annotations
@@ -42,8 +41,8 @@ ROW_MODELS = {
 def call(client: httpx.Client, paths: dict, name: str, **body) -> dict:
     """Call an endpoint and validate the response against harness/api_contract.py.
 
-    The models used to be decorative: nothing imported them and CI only checked that the
-    file parsed. Validating here is what makes the word "contract" true.
+    Validating every row here is what makes the word "contract" true; a model nothing
+    imports proves only that the file parses.
     """
     method, path = paths[name]
     response = client.request(method, path, json=body or None)

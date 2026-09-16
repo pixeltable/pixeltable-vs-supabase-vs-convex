@@ -30,9 +30,9 @@ def _has_ffmpeg() -> bool:
 def _generate_tts(text: str, outpath: Path) -> None:
     """Generate a short MP3 speech clip via gTTS.
 
-    Hard-fails when gTTS is missing. The previous version fell back to silent audio,
-    which produced fixtures Whisper transcribes as nothing and a transcript-search suite
-    that looks broken for a reason the failure message never explains.
+    Hard-fails when gTTS is missing rather than falling back to silence. Silent fixtures
+    give Whisper nothing to transcribe, and the transcript-search suite then fails for a
+    reason its message cannot explain.
     """
     try:
         from gtts import gTTS  # type: ignore[import-untyped]

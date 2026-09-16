@@ -2,8 +2,7 @@
 
 Everything in `MEASURED` is derived from the source on disk. Everything in
 `CLASSIFIED` is a judgment call written down by hand, and is reported as such.
-The distinction matters: an earlier version of this file hard-coded the
-architecture numbers and the docs quoted them as if they had been measured.
+The distinction matters: a judgment call quoted as a measurement is not a measurement.
 """
 
 from __future__ import annotations
@@ -105,12 +104,9 @@ CLASSIFIED = {
 # are both TypeScript and express the same concept differently.
 #
 # A metric is only reported for an implementation that has a pattern for it here.
-# Anything absent renders as `n/a`, never as 0. An earlier version of this file had no
-# `orchestration_hops`, `foreign_keys` or `db_triggers` pattern for Pixeltable, so the
-# dataclass default of 0 was rendered in the README as if it had been measured, under a
-# sentence promising every number was read from the source. Three of the bolded zeros in
-# the headline table were not measurements. If a metric genuinely does not apply to a
-# platform, say so; do not score it zero.
+# Anything absent renders as `n/a`, never as 0: a structural zero printed as a measurement
+# is not a measurement, and a metric only one platform has a pattern for flatters that
+# platform.
 PATTERNS = {
     'pixeltable': {
         'tables': r'class \w+\(\s*TableModel(?![^)]*base=)',

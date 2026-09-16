@@ -46,7 +46,7 @@ def main() -> int:
         cmd.append(f'--base-url={args.base_url}')
     if args.auth_token:
         cmd.append(f'--auth-token={args.auth_token}')
-    # The previous version dropped this return code, so --test-all exited 0 on failure.
+    # Propagate pytest's exit code; swallowing it makes --test pass on failure.
     return subprocess.run(cmd).returncode
 
 

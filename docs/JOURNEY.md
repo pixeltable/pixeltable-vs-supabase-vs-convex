@@ -3,9 +3,9 @@
 Every snippet comes from this repo. Some are shortened with `...` or reflowed to fit;
 none are invented, and none show code that is not there.
 
-Supabase and Convex were both rewritten to follow their vendors' own documented guidance
-before this was written. Where a step used to criticise something, check whether the
-criticism survived that rewrite; several did not, and are marked.
+Supabase and Convex follow their vendors' own documented guidance, enforced in CI by
+each vendor's checker. Where a step below names a cost, it is a cost the platform
+imposes, not one this repo chose.
 
 ## Summary
 
@@ -42,10 +42,8 @@ pxt init
 Plus the compute service, because Deno has no subprocess and therefore no ffmpeg.
 
 **Convex.** `npx convex dev` sets up an anonymous local backend with no account, writes
-`convex/_generated/`, and serves HTTP actions. This is the easiest install of the three.
-
-An earlier version of this file said Convex required an account before the code would
-typecheck. That was wrong, and it was wrong because we never ran the command.
+`convex/_generated/`, and serves HTTP actions. No Docker, no signup. This is the easiest
+install of the three.
 
 ## 2. Schema
 
@@ -152,8 +150,8 @@ query. One, taking every id, not one per hit.
       ids: hits.map((h) => h._id),
 ```
 
-The earlier version of this repo ran one `runQuery` per hit and called that a platform
-cost. It was not: Convex's own guidance is to avoid exactly that.
+Convex's own guidance is to avoid a `ctx.run*` per row, and their ESLint plugin enforces
+it, so one batched query is both the idiomatic and the measured shape.
 
 ## 7. The agent
 
