@@ -27,6 +27,8 @@ jobs:
       - run: pip install pydantic pytest httpx
       - name: The test suite must collect, which imports and exercises the contract
         run: python -m pytest harness/ --collect-only -q
+      - name: The measuring code is tested, because every published number comes from it
+        run: python -m pytest harness/test_metrics.py -q
 
   supabase:
     runs-on: ubuntu-latest

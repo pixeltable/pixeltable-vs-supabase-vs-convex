@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
-"""Generate short synthetic test videos for the benchmark.
+"""Generate synthetic test videos for the benchmark.
 
-Creates 3 videos (~14-16 seconds each) with:
-  - Colour background + text overlay (so CLIP can match visual queries)
-  - Synthesised speech audio via gTTS (so Whisper can transcribe)
-  - Scene changes (colour shifts) for scene-detection tests
+Every video is colour cards with text drawn on them (so CLIP has something to match),
+synthesised speech (so Whisper has something to transcribe), and colour changes (so the
+scene detectors have something to find).
+
+Two tiers:
+  small   3 videos, ~15s each. The correctness fixtures. Every equivalence, differential
+          and resilience test runs against these.
+  large   20 videos, ~30s each. The scale fixtures, in large/. Nothing asserts against
+          them; they exist so ingest throughput and search latency are measured rather
+          than extrapolated from 45 rows.
 
 Requires: ffmpeg on PATH, pip install gTTS
 
-Run once from the repo root:
-    python fixtures/videos/generate.py
+Run from the repo root:
+    python fixtures/videos/generate.py                # small
+    python fixtures/videos/generate.py --tier large   # large
 """
 
 from __future__ import annotations
 
+import argparse
 import shutil
 import subprocess
 import sys
@@ -21,6 +29,7 @@ import tempfile
 from pathlib import Path
 
 VIDEOS_DIR = Path(__file__).resolve().parent
+LARGE_DIR = VIDEOS_DIR / 'large'
 
 
 def _has_ffmpeg() -> bool:
@@ -45,9 +54,11 @@ def _generate_video(
     filename: str,
     segments: list[dict],
     speech_text: str,
+    outdir: Path = VIDEOS_DIR,
 ) -> None:
     """Build a video from colour segments + text overlay + TTS audio."""
-    outpath = VIDEOS_DIR / filename
+    outdir.mkdir(parents=True, exist_ok=True)
+    outpath = outdir / filename
     if outpath.exists():
         print(f'  {filename} already exists, skipping')
         return
@@ -118,10 +129,76 @@ def _generate_video(
     print(f'  Created {filename} ({outpath.stat().st_size / 1024:.0f} KB)')
 
 
+# Twenty topics for the scale tier. Each one is four colour cards and eight spoken
+# sentences, which gTTS renders as roughly 30 seconds: enough for three transcript chunks
+# and about 30 frames at 1 fps, so 20 videos is ~600 frames and ~60 chunks.
+LARGE_TOPICS = [
+    ('binary_search_trees', 'Binary Search Trees', '#1a237e', 'balanced tree rotation and height'),
+    ('graph_traversal', 'Graph Traversal', '#0d47a1', 'breadth first and depth first search'),
+    ('dynamic_programming', 'Dynamic Programming', '#01579b', 'memoisation and overlapping subproblems'),
+    ('hash_collisions', 'Hash Collisions', '#006064', 'open addressing and separate chaining'),
+    ('heap_priority_queues', 'Heaps and Priority Queues', '#004d40', 'sift up sift down and heapify'),
+    ('string_matching', 'String Matching', '#1b5e20', 'prefix functions and rolling hashes'),
+    ('sorting_stability', 'Sorting Stability', '#33691e', 'merge sort and stable ordering'),
+    ('amortised_analysis', 'Amortised Analysis', '#827717', 'dynamic arrays and the potential method'),
+    ('cache_locality', 'Cache Locality', '#f57f17', 'row major traversal and prefetching'),
+    ('concurrency_locks', 'Concurrency and Locks', '#ff6f00', 'mutexes deadlock and lock ordering'),
+    ('database_indexes', 'Database Indexes', '#e65100', 'b trees and index selectivity'),
+    ('query_planning', 'Query Planning', '#bf360c', 'join order and cardinality estimates'),
+    ('transaction_isolation', 'Transaction Isolation', '#3e2723', 'snapshot isolation and write skew'),
+    ('vector_search', 'Vector Search', '#b71c1c', 'approximate nearest neighbours and recall'),
+    ('embedding_models', 'Embedding Models', '#880e4f', 'contrastive training and cosine distance'),
+    ('http_caching', 'HTTP Caching', '#4a148c', 'etags and cache control headers'),
+    ('load_balancing', 'Load Balancing', '#311b92', 'consistent hashing and health checks'),
+    ('observability', 'Observability', '#1a237e', 'traces metrics and structured logs'),
+    ('code_review_practice', 'Code Review Practice', '#263238', 'small diffs and review latency'),
+    ('incident_response', 'Incident Response', '#37474f', 'blameless postmortems and error budgets'),
+]
+
+
+def _large_speech(title: str, subject: str) -> str:
+    """Eight sentences naming the topic, so transcript search has something to rank."""
+    return (
+        f'This session covers {title.lower()}. '
+        f'The subject today is {subject}. '
+        f'We begin with the definition and the cost model. '
+        f'Then we walk through a worked example on the board. '
+        f'The common mistake is to ignore the constant factors. '
+        f'Measuring is always better than guessing about {subject}. '
+        f'We close with the cases where this approach does not apply. '
+        f'Next session continues from {title.lower()}.'
+    )
+
+
+def _generate_large() -> None:
+    print(f'Generating {len(LARGE_TOPICS)} scale-tier videos in {LARGE_DIR.relative_to(VIDEOS_DIR.parent.parent)}...')
+    for slug, title, colour, subject in LARGE_TOPICS:
+        _generate_video(
+            f'{slug}.mp4',
+            segments=[
+                {'color': colour, 'text': title},
+                {'color': '#212121', 'text': 'Definition'},
+                {'color': colour, 'text': 'Worked Example'},
+                {'color': '#212121', 'text': 'Summary'},
+            ],
+            speech_text=_large_speech(title, subject),
+            outdir=LARGE_DIR,
+        )
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--tier', choices=['small', 'large'], default='small')
+    args = parser.parse_args()
+
     if not _has_ffmpeg():
         print('ffmpeg not found on PATH. Install ffmpeg first.')
         sys.exit(1)
+
+    if args.tier == 'large':
+        _generate_large()
+        print('Done.')
+        return
 
     print('Generating test videos...')
 

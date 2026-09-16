@@ -91,11 +91,12 @@ the trade.
 
 **Pick Convex** when reactivity is the point. It also has the easiest install of the
 three: `npx convex dev` gives you a working local backend with no account and no Docker.
-Its 429 lines here are the worst showing in the table, and they are mostly two taxes this contract imposes: `videos.ts` (109 lines)
-because an action cannot write to the database directly, and `http.ts` (46) because we
-asked for REST. Build the same app with Convex's reactive client instead of five REST
-endpoints and `http.ts` disappears, the client re-renders on write for free, and mutations
-are transactional. A REST-shaped benchmark is Convex's worst event and you should discount
+Its 429 lines here are the worst showing in the table, and they are mostly two taxes this
+contract imposes: `videos.ts` (109 lines) because an action cannot write to the database
+directly, and `http.ts` (90 lines) because we asked for REST and then had to validate
+request bodies there by hand. Build the same app with Convex's reactive client instead of
+five REST endpoints and `http.ts` disappears along with both taxes, the client re-renders
+on write for free, and mutations are transactional. A REST-shaped benchmark is Convex's worst event and you should discount
 this column accordingly.
 
 **Pick more than one.** These are not mutually exclusive. Pixeltable as the media and

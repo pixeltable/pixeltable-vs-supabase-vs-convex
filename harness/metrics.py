@@ -14,9 +14,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Comment syntax per language. The previous counter treated '#' as the only comment
-# marker, so every '//' in TypeScript and every '--' in SQL counted as code, which
-# inflated both alternatives against Pixeltable.
+# Comment syntax per language. Counting one language's comment marker as code inflates
+# that language, so each extension gets its own rule.
 LINE_COMMENTS = {'.py': ('#',), '.ts': ('//',), '.tsx': ('//',), '.sql': ('--',)}
 BLOCK_COMMENTS = {'.ts': ('/*', '*/'), '.tsx': ('/*', '*/'), '.sql': ('/*', '*/')}
 
@@ -43,7 +42,7 @@ IMPLEMENTATIONS = {
         'extensions': {'.ts', '.sql'},
         'exclude_patterns': {'node_modules', '_generated'},
         'languages': ['TypeScript', 'SQL'],
-        'router_files': set(),  # each Deno.serve handler is the route and the logic
+        'router_files': set(),  # the one handler holds both the routing and the logic
     },
     'convex': {
         'dir': ROOT / 'convex-app',

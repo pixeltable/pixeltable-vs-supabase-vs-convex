@@ -18,6 +18,12 @@ source of truth; do not restate them here.
    code is more verbose than their docs recommend, that is our bug, not their cost.
 4. **Do not claim runtime behaviour you did not observe.** `METHODOLOGY.md` records which
    implementations were executed.
+5. **A change to one implementation is a change to all three.** The contract, the fixtures
+   and the models are shared, and a fix applied to one of them is a finding about the
+   other two until you check.
+6. **Timings come from `harness/benchmark.py` and land in `docs/benchmarks.json`.** Same
+   rule as the line counts: nothing is typed in by hand, and a failed ingest is published
+   rather than retried away.
 
 ## Style
 
