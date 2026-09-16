@@ -9,6 +9,9 @@ export default defineSchema({
     title: v.string(),
     videoUrl: v.string(),
     durationSec: v.optional(v.number()),
+    // Denormalized so listVideos reads one table instead of collecting every scene row
+    // per video, which is the unbounded read Convex's linter flags.
+    sceneCount: v.optional(v.number()),
     status: v.string(), // 'processing' | 'ready' | 'error'
     createdAt: v.number(),
   }),

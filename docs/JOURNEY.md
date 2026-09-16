@@ -16,7 +16,7 @@ end to end: see [METHODOLOGY.md](METHODOLOGY.md).
 |---|---|---|---|
 | 1. Install | Adequate: big Python deps | Weak: Docker, or managed | Strong: one command, no account |
 | 2. Schema | Strong: 2 tables, 2 views | Adequate: 5 tables, 3 FKs | Adequate: optional-free schema |
-| 3. Ingest | Strong: one insert | Adequate: 124-line function | Adequate: 60 lines plus mutations |
+| 3. Ingest | Strong: one insert | Adequate: 132-line function | Adequate: 61 lines plus mutations |
 | 4. Process | Strong: it is the schema | Weak: lives in the ingest path | Weak: lives in the ingest path |
 | 5. Embed | Strong: one line | Weak: second service | Weak: second service |
 | 6. Search | Strong: an expression | Adequate: SQL function plus join | Adequate: vector search plus lookup |
@@ -83,7 +83,7 @@ nothing needs `v.optional()` any more:
 Videos.insert([{'video': 'lecture.mp4', 'title': 'CS101'}])
 ```
 
-**Supabase.** 124 lines in one function: extract, embed the batch, upload each frame,
+**Supabase.** 132 lines in one function: extract, embed the batch, upload each frame,
 one insert per table.
 
 ```ts
@@ -91,7 +91,7 @@ one insert per table.
     const { embeddings } = await compute("/embed-clip", { images_b64: frames });
 ```
 
-**Convex.** 60 lines of the same shape, plus 106 lines of mutations in `videos.ts`,
+**Convex.** 61 lines of the same shape, plus 109 lines of mutations in `videos.ts`,
 because an action cannot write to the database directly.
 
 ```ts

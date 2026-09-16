@@ -1,13 +1,11 @@
 // Shared between Functions, per Supabase's documented layout: "store any shared code in
 // a folder prefixed with an underscore (_)".
 // https://supabase.com/docs/guides/functions/development-tips
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-export const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-);
+//
+// Imports use the `npm:` specifier with a pinned version, per Supabase's Edge Function
+// guidance: "Do NOT use bare specifiers... make sure it's prefixed with either `npm:` or
+// `jsr:`", "always define a version", and minimize `esm.sh`.
+// https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions
 
 const COMPUTE_SERVICE_URL = Deno.env.get("COMPUTE_SERVICE_URL") || "http://localhost:9000";
 

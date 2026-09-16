@@ -67,6 +67,7 @@ export const ingestVideo = action({
       await ctx.runMutation(internal.videos.finishVideo, {
         videoId,
         durationSec: audio.duration_sec,
+        sceneCount: scenes.length,
         status: "ready",
       });
     } catch (err) {

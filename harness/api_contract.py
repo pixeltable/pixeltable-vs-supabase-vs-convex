@@ -90,7 +90,7 @@ class Rows(BaseModel):
     rows: list[dict]
 
 
-# POST /videos            VideoIngestRequest -> Rows[VideoRow]
+# POST /videos            VideoIngestRequest -> IngestAck | Rows[IngestAck]
 # GET  /videos                              -> Rows[VideoRow]
 # POST /search/frames     SearchRequest      -> Rows[FrameRow]
 # POST /search/transcripts SearchRequest     -> Rows[TranscriptRow]

@@ -131,7 +131,8 @@ PATTERNS = {
             r'supabase\s*\n?\s*\.from\(|supabase\.from\(|supabase\.storage\.'
             r'|supabase\.rpc\(|PERFORM notify_edge_function'
         ),
-        'http_routes_written_by_hand': r'Deno\.serve\(',
+        # The documented handler shape: a default export whose fetch is wrapped.
+        'http_routes_written_by_hand': r'fetch:\s*withSupabase\(|Deno\.serve\(',
     },
     'convex': {
         'tables': r'defineTable\(',

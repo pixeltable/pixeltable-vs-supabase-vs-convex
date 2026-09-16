@@ -5,11 +5,20 @@ a Storage bucket, one Edge Function, and an external compute service.
 
 ## Written to Supabase's own guidance
 
-An earlier version of this had seven Edge Functions repeating the same preamble. Supabase
-documents the opposite: [develop few large functions, rather than many small
-ones](https://supabase.com/docs/guides/functions/development-tips), with shared code in a
-folder prefixed with an underscore. Following that took this implementation from 473
-lines to 243.
+Supabase publishes concrete rules for Edge Functions, and this implementation follows
+them:
+
+- [Few large functions, not many small ones](https://supabase.com/docs/guides/functions/development-tips),
+  with shared code under `_shared/`. All five contract routes are one Function.
+- [Do not use `Deno.serve`](https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions).
+  The handler is a default export whose `fetch` is wrapped with `withSupabase`.
+- `npm:` specifiers with pinned versions, not `esm.sh`.
+
+`withSupabase({ auth: 'secret' })` means the endpoint is authenticated: an
+unauthenticated request gets a 401 naming the accepted auth modes, and the handler
+receives a client that bypasses RLS. A multi-tenant application would declare
+`auth: 'user'` instead and get an RLS-scoped client. Neither of the other two
+implementations in this benchmark authenticates anything.
 
 ## Why the compute service
 

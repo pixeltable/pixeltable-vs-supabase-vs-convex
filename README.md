@@ -18,9 +18,9 @@ scored zero.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | **128** | 243 | 378 |
-| Plus the shared compute service | **0** | 247 | 247 |
-| **Total** | **128** | **490** | **625** |
+| App code you maintain | **128** | 246 | 383 |
+| Plus the shared compute service | **0** | 252 | 252 |
+| **Total** | **128** | **498** | **635** |
 | Files you open to read the backend | **1** | 5 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
@@ -139,9 +139,48 @@ Then [`supabase-app/README.md`](supabase-app/README.md) or
 
 ### Measure and test
 
+Measure lines of code and architecture metrics:
+
 ```bash
 python harness/run_comparison.py
-python harness/run_comparison.py --test --impl pixeltable --base-url http://127.0.0.1:PORT
+```
+
+Seed fixture videos into any running platform:
+
+```bash
+# Against Pixeltable (auto-discovers the running service, or pass --base-url):
+python harness/seed.py --impl pixeltable
+
+# Against Supabase or Convex:
+python harness/seed.py --impl supabase --base-url http://127.0.0.1:54321
+python harness/seed.py --impl convex --base-url http://127.0.0.1:3211
+```
+
+Run contract and relevance equivalence tests against one live implementation:
+
+```bash
+# Against Pixeltable (auto-discovers the running service, or pass --base-url):
+pytest harness/test_equivalence.py
+
+# Against Supabase or Convex:
+pytest harness/test_equivalence.py --impl supabase --base-url http://127.0.0.1:54321
+pytest harness/test_equivalence.py --impl convex --base-url http://127.0.0.1:3211
+```
+
+Run differential tests comparing implementations against each other:
+
+```bash
+# Auto-discovers Pixeltable, or pass --compare pixeltable=URL:
+pytest harness/test_differential.py \
+  --compare pixeltable \
+  --compare supabase=http://127.0.0.1:54321 \
+  --compare convex=http://127.0.0.1:3211
+```
+
+Or measure and test in one step:
+
+```bash
+python harness/run_comparison.py --test --impl pixeltable
 ```
 
 ## Reading the rest

@@ -115,8 +115,15 @@ class TranscribeRequest(BaseModel):
     end_sec: float | None = Field(None, description='Transcribe only up to this offset')
 
 
+class TranscriptSegment(BaseModel):
+    start: float
+    end: float
+    text: str
+
+
 class TranscribeResponse(BaseModel):
     text: str
+    segments: list[TranscriptSegment] = Field(default_factory=list)
 
 
 class EmbedClipRequest(BaseModel):

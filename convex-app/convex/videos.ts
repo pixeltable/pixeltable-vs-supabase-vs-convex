@@ -4,6 +4,9 @@
 import { internalMutation, internalQuery, query } from "./_generated/server";
 import { v } from "convex/values";
 
+/** Bounded read. Convex advises against unbounded .collect() in a query. */
+const MAX_VIDEOS = 1000;
+
 export const insertVideo = internalMutation({
   args: { title: v.string(), videoUrl: v.string() },
   handler: async (ctx, args) =>
@@ -65,16 +68,25 @@ export const insertScenes = internalMutation({
 });
 
 export const finishVideo = internalMutation({
-  args: { videoId: v.id("videos"), durationSec: v.number(), status: v.string() },
+  args: {
+    videoId: v.id("videos"),
+    durationSec: v.number(),
+    sceneCount: v.number(),
+    status: v.string(),
+  },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.videoId, { durationSec: args.durationSec, status: args.status });
+    await ctx.db.patch("videos", args.videoId, {
+      durationSec: args.durationSec,
+      sceneCount: args.sceneCount,
+      status: args.status,
+    });
   },
 });
 
 export const markError = internalMutation({
   args: { videoId: v.id("videos") },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.videoId, { status: "error" });
+    await ctx.db.patch("videos", args.videoId, { status: "error" });
   },
 });
 
@@ -92,28 +104,21 @@ export const saveConversation = internalMutation({
 
 export const getVideo = internalQuery({
   args: { videoId: v.id("videos") },
-  handler: async (ctx, args) => await ctx.db.get(args.videoId),
+  handler: async (ctx, args) => await ctx.db.get("videos", args.videoId),
 });
 
 export const listVideos = query({
   args: {},
   handler: async (ctx) => {
-    const videos = await ctx.db.query("videos").collect();
-
-    const rows = [];
-    for (const video of videos) {
-      const scenes = await ctx.db
-        .query("scenes")
-        .withIndex("by_video", (q) => q.eq("videoId", video._id))
-        .collect();
-      rows.push({
-        video_title: video.title,
-        duration_sec: video.durationSec ?? 0,
-        scene_count: scenes.length,
-        status: video.status,
-      });
-    }
-
+    // One bounded read of one table. The scene count is denormalized onto the row at
+    // ingest, so this no longer collects every scene of every video.
+    const videos = await ctx.db.query("videos").take(MAX_VIDEOS);
+    const rows = videos.map((video) => ({
+      video_title: video.title,
+      duration_sec: video.durationSec ?? 0,
+      scene_count: video.sceneCount ?? 0,
+      status: video.status,
+    }));
     rows.sort((a, b) => a.video_title.localeCompare(b.video_title));
     return { rows };
   },

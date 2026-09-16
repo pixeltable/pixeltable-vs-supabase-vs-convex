@@ -24,7 +24,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from harness.conftest import PATHS
+from harness.conftest import PATHS, auth_headers
 
 TIMEOUT = 600.0
 ROOT = Path(__file__).resolve().parent.parent
@@ -49,7 +49,7 @@ TRANSCRIPT_MIN_OVERLAP = 0.9
 
 
 @pytest.fixture(scope='session')
-def responses(comparands: dict[str, str]) -> dict[str, dict]:
+def responses(comparands: dict[str, str], request: pytest.FixtureRequest) -> dict[str, dict]:
     """Collect every implementation's answers once, so each test just compares."""
     if len(comparands) < 2:
         pytest.skip('needs two or more --compare IMPL=URL to diff')
@@ -60,10 +60,12 @@ def responses(comparands: dict[str, str]) -> dict[str, dict]:
         response.raise_for_status()
         return response.json()['rows']
 
+    token = str(request.config.getoption('--auth-token'))
     collected: dict[str, dict] = {}
     for impl, base_url in comparands.items():
         paths = PATHS[impl]
-        with httpx.Client(base_url=base_url, timeout=TIMEOUT) as client:
+        # Each implementation authenticates its own way: only Supabase requires it.
+        with httpx.Client(base_url=base_url, headers=auth_headers(impl, token), timeout=TIMEOUT) as client:
             collected[impl] = {
                 'videos': rows(client, paths, 'list'),
                 'searches': {
@@ -141,7 +143,12 @@ class TestWithinTolerance:
     def test_durations_agree(self, responses):
         titles = sorted(by_title(next(iter(responses.values()))['videos']))
         for title in titles:
-            values = {impl: by_title(data['videos'])[title]['duration_sec'] for impl, data in responses.items()}
+            values = {
+                impl: by_title(data['videos'])[title]['duration_sec']
+                for impl, data in responses.items()
+                if title in by_title(data['videos'])
+            }
+            assert len(values) == len(responses), f'{title} not present across all implementations: {values}'
             spread = max(values.values()) - min(values.values())
             assert spread <= DURATION_TOLERANCE_SEC, (
                 f'{title}: duration_sec spread {spread:.3f}s exceeds {DURATION_TOLERANCE_SEC}s: {values}'
@@ -154,6 +161,8 @@ class TestWithinTolerance:
             for impl, data in responses.items()
             if data['searches'][query['id']]
         }
+        assert tops, f'{query["id"]}: no results returned by any implementation'
+        assert len(tops) == len(responses), f'{query["id"]}: some implementations returned no hits: {tops}'
         spread = max(tops.values()) - min(tops.values())
         assert spread <= SIMILARITY_TOLERANCE, (
             f'{query["id"]}: top similarity spread {spread:.4f} exceeds {SIMILARITY_TOLERANCE}: {tops}'
@@ -189,7 +198,12 @@ class TestKnownDivergence:
         """
         titles = sorted(by_title(next(iter(responses.values()))['videos']))
         for title in titles:
-            counts = {impl: by_title(data['videos'])[title]['scene_count'] for impl, data in responses.items()}
+            counts = {
+                impl: by_title(data['videos'])[title]['scene_count']
+                for impl, data in responses.items()
+                if title in by_title(data['videos'])
+            }
+            assert len(counts) == len(responses), f'{title} not present across all implementations: {counts}'
             assert all(c >= 1 for c in counts.values()), f'{title}: a detector found no scenes: {counts}'
             if len(set(counts.values())) > 1:
                 print(f'  scene counts differ for {title}: {counts}')

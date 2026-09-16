@@ -2,16 +2,28 @@
 // few large functions, rather than many small functions".
 // https://supabase.com/docs/guides/functions/development-tips
 //
+// The handler is a default export with a `fetch` property wrapped in `withSupabase`,
+// which is the shape Supabase documents: "do NOT use `Deno.serve`. Instead, export a
+// default object with a `fetch` handler." `auth: 'secret'` gives `ctx.supabaseAdmin`,
+// a client that bypasses RLS, which is what this benchmark uses throughout. A real
+// multi-tenant application would declare `auth: 'user'` and get an RLS-scoped client.
+// https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions
+//
 // Compare pixeltable/app.py, where the same five are four `add_*_route` declarations
 // and one hand-written handler.
 
-import { decodeBase64 } from "jsr:@std/encoding/base64";
-import { compute, json, supabase } from "../_shared/client.ts";
+import { decodeBase64 } from "jsr:@std/encoding@^1/base64";
+import { withSupabase } from "npm:@supabase/server@^1";
+import type { SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
+import { compute, json } from "../_shared/client.ts";
+
+type FrameHit = { video_title: string; frame_idx: number };
+type ChunkHit = { video_title: string; start_sec: number; transcript: string };
 
 const FRAME_FPS = 1.0;
 const CHUNK_SECONDS = 10.0;
 
-async function ingest(req: Request): Promise<Response> {
+async function ingest(req: Request, supabase: SupabaseClient): Promise<Response> {
   const { video: video_url, title } = await req.json();
 
   const { data: video, error } = await supabase
@@ -89,14 +101,14 @@ async function ingest(req: Request): Promise<Response> {
   return json({ rows: [{ id: String(videoId), video_title: title, status: "ready" }] });
 }
 
-async function listVideos(): Promise<Response> {
+async function listVideos(supabase: SupabaseClient): Promise<Response> {
   // One request against the video_summary view, which does the counting in SQL.
   const { data, error } = await supabase.from("video_summary").select("*").order("video_title");
   if (error) return json({ error: error.message }, 500);
   return json({ rows: data ?? [] });
 }
 
-async function search(req: Request, kind: "frames" | "transcripts"): Promise<Response> {
+async function search(req: Request, kind: "frames" | "transcripts", supabase: SupabaseClient): Promise<Response> {
   const { query, limit } = await req.json();
 
   // The query has to be embedded with the same model that filled the column, and
@@ -113,7 +125,7 @@ async function search(req: Request, kind: "frames" | "transcripts"): Promise<Res
   return json({ rows: data ?? [] });
 }
 
-async function agent(req: Request): Promise<Response> {
+async function agent(req: Request, supabase: SupabaseClient): Promise<Response> {
   const { question } = await req.json();
 
   const [clip, text] = await Promise.all([
@@ -125,9 +137,10 @@ async function agent(req: Request): Promise<Response> {
     supabase.rpc("search_transcripts", { query_embedding: text.embeddings[0], match_count: 4 }),
   ]);
 
-  const seen = (visual ?? []).map((r: any) => `- ${r.video_title}, frame ${r.frame_idx}`).join("\n") || "(nothing)";
+  const seen = (visual ?? []).map((r: FrameHit) => `- ${r.video_title}, frame ${r.frame_idx}`).join("\n") ||
+    "(nothing)";
   const heard = (spoken ?? [])
-    .map((r: any) => `- [${r.video_title} @ ${Math.round(r.start_sec)}s] ${r.transcript}`)
+    .map((r: ChunkHit) => `- [${r.video_title} @ ${Math.round(r.start_sec)}s] ${r.transcript}`)
     .join("\n") || "(nothing)";
 
   const chat = await compute("/chat", {
@@ -149,12 +162,16 @@ async function agent(req: Request): Promise<Response> {
   return json({ rows: [{ answer: chat.content, visual: visual ?? [], spoken: spoken ?? [] }] });
 }
 
-Deno.serve(async (req) => {
-  const path = new URL(req.url).pathname.replace(/^\/api/, "");
-  if (req.method === "POST" && path === "/videos") return await ingest(req);
-  if (req.method === "GET" && path === "/videos") return await listVideos();
-  if (req.method === "POST" && path === "/search/frames") return await search(req, "frames");
-  if (req.method === "POST" && path === "/search/transcripts") return await search(req, "transcripts");
-  if (req.method === "POST" && path === "/agent/query") return await agent(req);
-  return json({ error: `no route for ${req.method} ${path}` }, 404);
-});
+export default {
+  fetch: withSupabase({ auth: "secret" }, async (req: Request, ctx: { supabaseAdmin: SupabaseClient }) => {
+    const db = ctx.supabaseAdmin;
+    // Every route is prefixed with the function name, as Supabase routes it.
+    const path = new URL(req.url).pathname.replace(/^\/api/, "");
+    if (req.method === "POST" && path === "/videos") return await ingest(req, db);
+    if (req.method === "GET" && path === "/videos") return await listVideos(db);
+    if (req.method === "POST" && path === "/search/frames") return await search(req, "frames", db);
+    if (req.method === "POST" && path === "/search/transcripts") return await search(req, "transcripts", db);
+    if (req.method === "POST" && path === "/agent/query") return await agent(req, db);
+    return json({ error: `no route for ${req.method} ${path}` }, 404);
+  }),
+};

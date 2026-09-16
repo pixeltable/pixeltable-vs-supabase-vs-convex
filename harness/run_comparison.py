@@ -21,7 +21,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Platform comparison harness')
     parser.add_argument('--test', action='store_true', help='Also run the equivalence suite')
     parser.add_argument('--impl', default='pixeltable', help='Which implementation is running')
-    parser.add_argument('--base-url', default='http://localhost:8000')
+    parser.add_argument('--base-url', default='', help='Root URL of the running implementation')
     parser.add_argument('--auth-token', default='')
     args = parser.parse_args()
 
@@ -32,16 +32,18 @@ def main() -> int:
     if not args.test:
         return 0
 
-    print(f'\ntesting {args.impl} at {args.base_url}\n')
+    target = f' at {args.base_url}' if args.base_url else ''
+    print(f'\ntesting {args.impl}{target}\n')
     cmd = [
         sys.executable,
         '-m',
         'pytest',
         str(ROOT / 'harness' / 'test_equivalence.py'),
-        f'--base-url={args.base_url}',
         f'--impl={args.impl}',
         '-v',
     ]
+    if args.base_url:
+        cmd.append(f'--base-url={args.base_url}')
     if args.auth_token:
         cmd.append(f'--auth-token={args.auth_token}')
     # The previous version dropped this return code, so --test-all exited 0 on failure.

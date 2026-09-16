@@ -11,8 +11,8 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 128 | 243 | 378 |
-| Plus the shared compute service | 0 | 247 | 247 |
+| App code you maintain | 128 | 246 | 383 |
+| Plus the shared compute service | 0 | 252 | 252 |
 | Files you open to read the backend | 1 | 5 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Orchestration hops | 3 | 12 | 9 |
@@ -22,6 +22,7 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 | Per-cell error state | yes (`errormsg`, `pxt errors`) | no | no |
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
 | Realtime push to clients | no | yes | yes, and it is the core idea |
+| Endpoints authenticated by default | no | **yes**, one config line | no |
 | Row-level security / multi-tenant auth | no | yes (RLS) | yes |
 | Operations | you run the process | managed | managed |
 | Free tier | n/a, self-hosted | yes | yes |
@@ -49,10 +50,16 @@ the code to write it. Price: Pixeltable's 128 goes up, and the thing you build y
 is what the other two ship. For an app whose clients need live updates, this swap is
 expensive enough to decide the question on its own.
 
-**Swap 3: equalise "row-level security".** Same shape. This repo runs entirely on a
-service-role key and never writes a policy, so the benchmark does not measure it at all.
-For a multi-tenant product, Supabase's RLS is a feature you would otherwise build, and
-Pixeltable has no equivalent in this comparison. Another swap that does not strike out.
+**Swap 3: equalise "authenticated endpoints".** Supabase's Edge Function declares
+`withSupabase({ auth: 'secret' })`, and an unauthenticated request gets a 401 with a
+machine-readable body naming the accepted auth modes. That is one config line. The
+Pixeltable and Convex endpoints in this repo are open, and the harness has to send a key
+only to Supabase. To equalise you would put a gateway in front of the other two and write
+the check yourself. Price: code you did not have to write on Supabase.
+
+This repo still never writes an RLS policy, so multi-tenant authorization proper remains
+unmeasured, and for a multi-tenant product it is the feature you would otherwise build.
+Another swap that does not strike out.
 
 **Swap 4: equalise "add a derived column to live data".** Give Supabase and Convex the
 migration plus backfill they need and the row becomes equal. Price: on 45 rows it is a
@@ -60,8 +67,8 @@ script you run once; on 45 million it is a maintenance window. This swap gets ch
 smaller your data and more expensive the larger it is, which is why it belongs in the
 conditional answer rather than the headline.
 
-**What survives every swap**: lines of code and files to open (128/1 against 243/5 and
-378/7), orchestration hops (3 against 12 and 9), and where media processing runs.
+**What survives every swap**: lines of code and files to open (128/1 against 246/5 and
+383/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 
 ## The conditional recommendation
 
@@ -81,7 +88,7 @@ the trade.
 
 **Pick Convex** when reactivity is the point. It also has the easiest install of the
 three: `npx convex dev` gives you a working local backend with no account and no Docker.
-Its 378 lines here are the worst showing in the table, and they are mostly two taxes this contract imposes: `videos.ts` (106 lines)
+Its 383 lines here are the worst showing in the table, and they are mostly two taxes this contract imposes: `videos.ts` (109 lines)
 because an action cannot write to the database directly, and `http.ts` (46) because we
 asked for REST. Build the same app with Convex's reactive client instead of five REST
 endpoints and `http.ts` disappears, the client re-renders on write for free, and mutations

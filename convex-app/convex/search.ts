@@ -61,9 +61,9 @@ export const framesByIds = internalQuery({
   handler: async (ctx, args) => {
     const rows = [];
     for (let i = 0; i < args.ids.length; i++) {
-      const frame = await ctx.db.get(args.ids[i]);
+      const frame = await ctx.db.get("frames", args.ids[i]);
       if (!frame) continue;
-      const video = await ctx.db.get(frame.videoId);
+      const video = await ctx.db.get("videos", frame.videoId);
       rows.push({
         frame_url: (await ctx.storage.getUrl(frame.imageStorageId)) ?? "",
         frame_idx: frame.frameIdx,
@@ -80,9 +80,9 @@ export const chunksByIds = internalQuery({
   handler: async (ctx, args) => {
     const rows = [];
     for (let i = 0; i < args.ids.length; i++) {
-      const chunk = await ctx.db.get(args.ids[i]);
+      const chunk = await ctx.db.get("audioChunks", args.ids[i]);
       if (!chunk) continue;
-      const video = await ctx.db.get(chunk.videoId);
+      const video = await ctx.db.get("videos", chunk.videoId);
       rows.push({
         transcript: chunk.transcript,
         video_title: video?.title ?? "",

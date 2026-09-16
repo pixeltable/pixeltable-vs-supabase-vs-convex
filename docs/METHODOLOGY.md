@@ -8,13 +8,16 @@ One application, three implementations, one contract:
 
 | Operation | Request | Response |
 |---|---|---|
-| `POST /videos` | `{video, title}` | `{rows: [{...}]}` |
+| `POST /videos` | `{video, title}` | `{id, job_url?, video_title?, status?}` (`IngestAck`) |
 | `GET /videos` | | `{rows: [{video_title, duration_sec, scene_count}]}` |
 | `POST /search/frames` | `{query, limit}` | `{rows: [{frame_url, frame_idx, video_title, similarity}]}` |
 | `POST /search/transcripts` | `{query, limit}` | `{rows: [{transcript, video_title, start_sec, similarity}]}` |
 | `POST /agent/query` | `{question}` | `{rows: [{answer, visual, spoken}]}` |
 
-Defined in [`harness/api_contract.py`](../harness/api_contract.py). Paths differ per
+Defined in [`harness/api_contract.py`](../harness/api_contract.py). Ingest returns an
+acknowledgement identifying the work (`IngestAck`): Pixeltable returns an asynchronous
+job (`{id, job_url}`) to poll until done; Supabase and Convex return synchronously once
+processing completes (`{rows: [{id, video_title, status}]}`). Paths differ per
 platform, because Supabase serves Edge Functions under `/functions/v1`; the harness
 holds a path map in `harness/conftest.py` rather than pretending the URLs match.
 
@@ -94,6 +97,19 @@ different algorithms to agree.
 
 All three implementations have now been executed end to end and all three pass the same
 suite. Where a claim is about runtime behaviour, it comes from the table above.
+
+Seeding fixture videos across any implementation is managed by
+[`harness/seed.py`](../harness/seed.py), accommodating Pixeltable's asynchronous job polling
+and the synchronous pipelines of Supabase and Convex.
+
+In addition to single-platform contract testing in `test_equivalence.py`,
+[`harness/test_differential.py`](../harness/test_differential.py) tests live implementations
+against each other across three explicit tiers:
+- **Identical**: same videos listed and same top hit for all search queries.
+- **Tolerance**: durations within 0.1s, top-1 similarities within 0.05, and transcript token
+  overlap of at least 90% (accounting for audio boundary variations).
+- **Known divergence**: rank ordering below the top hit and differing scene counts between
+  PySceneDetect and ffmpeg scene filters are recorded rather than asserted.
 
 Two earlier claims in this document were false and are worth recording. It said "no claim
 is made about behavior that was not observed" while rating Convex across ten rows it had

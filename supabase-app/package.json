@@ -2,6 +2,7 @@
   "name": "platform-comparison-supabase",
   "private": true,
   "scripts": {
-    "typecheck": "deno check supabase/functions/api/index.ts"
+    "typecheck": "deno check supabase/functions/api/index.ts",
+    "lint": "deno lint supabase/functions/"
   }
 }

@@ -28,18 +28,21 @@ jobs:
       - name: The test suite must collect, which imports and exercises the contract
         run: python -m pytest harness/ --collect-only -q
 
-  typecheck-supabase:
+  supabase:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v1
         with:
           deno-version: v2.x
+      - name: Deno's own linter, minus the one rule Supabase's guidance overrides
+        working-directory: supabase-app
+        run: deno lint supabase/functions/
       - name: Every Edge Function typechecks
         run: |
           deno check supabase-app/supabase/functions/api/index.ts
 
-  typecheck-convex:
+  convex:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -48,6 +51,9 @@ jobs:
           node-version: '22'
       - run: npm install
         working-directory: convex-app
+      - name: Convex's own ESLint plugin, so "idiomatic" is not our opinion
+        working-directory: convex-app
+        run: npx eslint convex/
       - name: Typecheck, minus the generated code a Convex account would provide
         working-directory: convex-app
         run: |
