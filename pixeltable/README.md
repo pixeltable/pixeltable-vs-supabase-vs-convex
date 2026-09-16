@@ -43,23 +43,36 @@ curl -X POST $URL/search/transcripts -H 'Content-Type: application/json' \
 ```bash
 pxt ls -l media
 pxt describe media/frames
-pxt errors media/chunks --col transcript
 pxt history media/videos
 ```
 
-## Known limit on the released package
+A failed cell keeps its own error beside the value, so you read it as a column:
 
-Building the transcript embedding index needs a Pixeltable build newer than the current
-release. Released 0.7.7 resolves the index dimension by calling
-`SentenceTransformer.get_embedding_dimension()`, which no sentence-transformers version
-defines, so `pxt schema check` fails before any table is created:
+```python
+Chunks.select(Chunks.title, err=Chunks.transcript.errormsg).where(Chunks.transcript.errormsg != None)
+```
+
+`pxt errors` builds a view keyed by primary key and this schema declares none, so it
+answers `no primary key defined`. The column is the way in here.
+
+## One error worth recognising
+
+`pip install -e .` into a fresh environment works: it resolves `pixeltable[serve]` 0.7.8
+and `sentence-transformers` 6.0.1, and `pxt schema update` creates all four tables and
+both embedding indexes.
+
+Into an environment that already holds `sentence-transformers` older than 5.4, the same
+command leaves the old one in place and `pxt schema check` fails before any table exists:
 
 ```
 pxt: 422 error loading app.py: 'SentenceTransformer' object has no attribute 'get_embedding_dimension'
 ```
 
-It is fixed on Pixeltable main and tracked as PXT-1419. Until that ships, install
-Pixeltable from source. Everything else here works on the release.
+`pip install -U 'sentence-transformers>=5.4'` fixes it. The message is misleading rather
+than the problem: Pixeltable needs `sentence-transformers` 5.4 or newer, and the code path
+that resolves an index's dimension calls the new method without the version check that
+every other path performs, so a version mismatch surfaces as a missing attribute instead
+of the readable error Pixeltable already knows how to print. Tracked as PXT-1419.
 
 ## Two things that look odd, and why
 

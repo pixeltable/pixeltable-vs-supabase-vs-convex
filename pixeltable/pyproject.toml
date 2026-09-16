@@ -6,11 +6,10 @@ dependencies = [
     # Everything the app needs. No vector database, no queue, no compute service.
     "pixeltable[serve]>=0.7.7",
     "openai-whisper",      # whisper.transcribe
-    # Released pixeltable 0.7.7 calls SentenceTransformer.get_embedding_dimension(),
-    # which does not exist in any sentence-transformers release; the method is
-    # get_sentence_embedding_dimension(). Fixed on pixeltable main, unreleased.
-    # Building this app's embedding index needs a build newer than 0.7.7. PXT-1419.
-    "sentence-transformers",
+    # The floor pixeltable needs. Below it, resolving the transcript index's dimension
+    # calls a method the older package does not define and the failure reads as a missing
+    # attribute rather than a version error. PXT-1419.
+    "sentence-transformers>=5.4",
     "transformers",        # clip
     "torch",
     "scenedetect",         # video.scene_detect_content

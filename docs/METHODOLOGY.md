@@ -193,10 +193,15 @@ claim from "it runs on the author's machine".
 | Supabase | Yes. `supabase start`, migrations, one Edge Function. |
 | Convex | Yes. `npx convex dev` gives an anonymous local backend, no account. |
 | compute-service | Yes. |
-| Pixeltable | **Not on the released package.** `pip install 'pixeltable[serve]'` gives 0.7.7, which cannot build this app's embedding index (PXT-1419). Fixed on Pixeltable main, unreleased. Install from source until it ships. |
+| Pixeltable | Yes. A fresh venv, `pip install -e .`, `pxt init`, `pxt schema update`: four tables and both embedding indexes created, on released 0.7.8 with no patch and no source install. |
 
-That the sponsor's own implementation is the one that fails a clean install is worth
-stating plainly rather than leaving a reader to discover it.
+The Pixeltable row is the one that was checked hardest, because this repo carried the
+opposite claim. `pixeltable[serve]` needs `sentence-transformers` 5.4 or newer and a clean
+install resolves 6.0.1, where everything works. An environment that already holds an older
+one keeps it, and the code path that resolves an index's dimension then calls a method
+that version does not define, so the failure reads as a missing attribute rather than the
+version error Pixeltable prints everywhere else. That is PXT-1419, and it is a confusing
+message on a stale environment, not a broken release.
 
 ## Fairness rules
 

@@ -15,8 +15,9 @@ Pixeltable also sponsors this repo, which is why the methodology below is writte
 attacked, and why every implementation here is held to its own vendor's checker.
 
 Same contract, same fixtures, same models. All three run locally with no API key and no
-account, all three were executed end to end, and all three pass the same 10-test suite
-against the same fixtures. Every number here is produced by `harness/run_comparison.py`
+account, and all three were executed end to end: 10 contract tests each, then 20
+differential tests comparing them against each other and 32 resilience tests running
+against all three at once. Every number here is produced by `harness/run_comparison.py`
 reading the source; `n/a` means a metric does not apply to that platform, never that it
 scored zero.
 
@@ -61,7 +62,7 @@ explicit table ids and bounded reads.
 
 ## The whole Pixeltable pipeline
 
-Four class bodies. Insert a video and all of it runs.
+Three class bodies, and the agent is a fourth. Insert a video and all of it runs.
 
 ```python
 class Videos(TableModel, name='videos'):
@@ -144,16 +145,16 @@ pip install gTTS && python fixtures/videos/generate.py
 
 ### Pixeltable
 
-Install Pixeltable from source for now: the released 0.7.7 cannot build this app's
-embedding index ([PXT-1419](https://pixeltable.atlassian.net/browse/PXT-1419), fixed on
-main). See [pixeltable/README.md](pixeltable/README.md).
-
 ```bash
 cd pixeltable && pip install -e . && pxt init
 pxt schema update app.py media
 pxt service update app.py media
 URL=$(pxt service list | awk '/^media/{print $2}')
 ```
+
+Into an environment that already holds `sentence-transformers` older than 5.4, add
+`pip install -U 'sentence-transformers>=5.4'`. See
+[pixeltable/README.md](pixeltable/README.md).
 
 ### Supabase and Convex
 
