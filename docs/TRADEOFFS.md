@@ -65,10 +65,13 @@ multi-tenant authorization proper remains unmeasured, and for a multi-tenant pro
 the feature you would otherwise build. Another swap that does not strike out.
 
 **Swap 4: equalise "add a derived column to live data".** Give Supabase and Convex the
-migration plus backfill they need and the row becomes equal. Price: on 45 rows it is a
-script you run once; on 45 million it is a maintenance window. This swap gets cheaper the
-smaller your data and more expensive the larger it is, which is why it belongs in the
-conditional answer rather than the headline.
+migration plus backfill they need and the row becomes equal. Price: at the largest size
+measured here, 648 frames, it is a script you run once and nobody notices; Pixeltable's
+`pxt schema update` on the same catalog is 1.4 seconds. Neither number decides anything.
+The swap gets more expensive as the data grows, because a backfill script is work
+proportional to the table and an incremental backfill is work proportional to the change,
+and that is a structural claim this repo does not measure at a size where it bites. It
+belongs in the conditional answer rather than the headline for exactly that reason.
 
 Throughput is not in the swaps below because it now has its own measurement:
 [SCALE.md](SCALE.md), where Supabase ingests fastest and Convex searches fastest. If speed

@@ -93,6 +93,17 @@ and found 3 / 2 / 3. Same videos, different detectors. The harness asserts only 
 each video has at least one scene, because requiring equality would be requiring two
 different algorithms to agree.
 
+Two claims about Pixeltable's behaviour are checked by hand rather than by a suite, and
+both were re-run against the live catalog:
+
+- **Processing fires for any writer.** A plain `videos.insert([...])` in a Python shell,
+  with the HTTP service not involved, produced 30 frames and 3 chunks, all columns
+  computed, and the new frames were returned by a similarity query in the same session.
+- **Adding a column backfills incrementally.** Adding one computed column to `Videos` and
+  running `pxt schema update` took 1.4s: `media/videos` updated, `media/frames`,
+  `media/chunks` and `media/conversations` each reported `unchanged`, and no transcription
+  re-ran. Removing it again is refused as `DESTRUCTIVE` without an explicit flag.
+
 All three run live at once for `harness/test_differential.py` (20 tests) and
 `harness/test_resilience.py` (32 tests), and `harness/test_metrics.py` (27 tests) checks
 the measuring code itself against fixtures with known counts. Where a claim is about

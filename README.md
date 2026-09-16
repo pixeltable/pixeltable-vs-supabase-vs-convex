@@ -101,10 +101,15 @@ and have no hosted-API substitute, so this does not go away if you switch to Ope
 embeddings. Everything downstream follows from it: the second service, most of the
 orchestration hops, and base64 on the wire.
 
-**Adding a column to live data.** Adding `scene_count` and `still` to a populated catalog
-was one edit and `pxt schema update`: `videos` and `frames` backfilled, `chunks` reported
-`unchanged` and re-ran no transcription. On the other two it is a migration plus a
-backfill script. This costs nothing at 45 rows and decides the question at 45 million.
+**Adding a column to live data.** One edit and `pxt schema update`: the table that gained
+the column backfills, and every table that did not need recomputing prints `unchanged`.
+On a populated catalog that is 1.4 seconds, and no transcription re-runs. Removing the
+column again is refused as `DESTRUCTIVE` until you pass a flag. On the other two it is a
+migration plus a backfill script.
+
+The largest catalog measured here is 648 frames, where this costs nothing either way. The
+claim past that is structural, not measured: what backfills incrementally stays
+proportional to the rows that changed, and what re-runs a script does not.
 
 **Processing fires for any writer.** A row inserted into a Pixeltable table by anything
 at all gets processed, because the pipeline is the schema. On Supabase or Convex the
@@ -116,9 +121,11 @@ Supabase or a scheduled action on Convex, and a webhook or a job per row.
 embed the query themselves and nothing checks it came from the model that filled the
 column; the dimension is the only guard, and 384 equals 384.
 
-**Errors are per cell.** A Pixeltable cell holds a value or its own `errormsg`, queryable
-with `pxt errors`. Elsewhere a failed step leaves a NULL and finding out which rows are
-affected is a query you write.
+**Errors are per cell.** A Pixeltable cell holds a value or its own `errormsg` and
+`errortype`, selectable like any other column:
+`Videos.select(err=Videos.audio.errormsg)`. The `pxt errors` CLI view wants a primary
+key, which this schema does not declare, so here the column is the way in. Elsewhere a
+failed step leaves a NULL and finding out which rows are affected is a query you write.
 
 **Rejecting a bad request is free on one and hand-written on two.** `add_query_route`
 derives the route signature from the query function, so a missing `query` or a negative
