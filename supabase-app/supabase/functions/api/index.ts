@@ -15,7 +15,7 @@
 import { decodeBase64 } from "jsr:@std/encoding@^1/base64";
 import { withSupabase } from "npm:@supabase/server@^1";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
-import { compute, json } from "../_shared/client.ts";
+import { BadRequest, compute, json, readJson, readLimit, requireString } from "../_shared/client.ts";
 
 type FrameHit = { video_title: string; frame_idx: number };
 type ChunkHit = { video_title: string; start_sec: number; transcript: string };
@@ -24,7 +24,9 @@ const FRAME_FPS = 1.0;
 const CHUNK_SECONDS = 10.0;
 
 async function ingest(req: Request, supabase: SupabaseClient): Promise<Response> {
-  const { video: video_url, title } = await req.json();
+  const body = await readJson(req);
+  const video_url = requireString(body.video, "video");
+  const title = requireString(body.title, "title");
 
   const { data: video, error } = await supabase
     .from("videos")
@@ -109,7 +111,9 @@ async function listVideos(supabase: SupabaseClient): Promise<Response> {
 }
 
 async function search(req: Request, kind: "frames" | "transcripts", supabase: SupabaseClient): Promise<Response> {
-  const { query, limit } = await req.json();
+  const body = await readJson(req);
+  const query = requireString(body.query, "query");
+  const limit = readLimit(body.limit);
 
   // The query has to be embedded with the same model that filled the column, and
   // nothing enforces that. The dimension is the only guard.
@@ -118,7 +122,7 @@ async function search(req: Request, kind: "frames" | "transcripts", supabase: Su
 
   const { data, error } = await supabase.rpc(`search_${kind}`, {
     query_embedding: embeddings[0],
-    match_count: limit || 10,
+    match_count: limit,
   });
   if (error) return json({ error: error.message }, 500);
 
@@ -126,7 +130,7 @@ async function search(req: Request, kind: "frames" | "transcripts", supabase: Su
 }
 
 async function agent(req: Request, supabase: SupabaseClient): Promise<Response> {
-  const { question } = await req.json();
+  const question = requireString((await readJson(req)).question, "question");
 
   const [clip, text] = await Promise.all([
     compute("/embed-clip", { texts: [question] }),
@@ -167,11 +171,16 @@ export default {
     const db = ctx.supabaseAdmin;
     // Every route is prefixed with the function name, as Supabase routes it.
     const path = new URL(req.url).pathname.replace(/^\/api/, "");
-    if (req.method === "POST" && path === "/videos") return await ingest(req, db);
-    if (req.method === "GET" && path === "/videos") return await listVideos(db);
-    if (req.method === "POST" && path === "/search/frames") return await search(req, "frames", db);
-    if (req.method === "POST" && path === "/search/transcripts") return await search(req, "transcripts", db);
-    if (req.method === "POST" && path === "/agent/query") return await agent(req, db);
+    try {
+      if (req.method === "POST" && path === "/videos") return await ingest(req, db);
+      if (req.method === "GET" && path === "/videos") return await listVideos(db);
+      if (req.method === "POST" && path === "/search/frames") return await search(req, "frames", db);
+      if (req.method === "POST" && path === "/search/transcripts") return await search(req, "transcripts", db);
+      if (req.method === "POST" && path === "/agent/query") return await agent(req, db);
+    } catch (err) {
+      if (err instanceof BadRequest) return json({ error: err.message }, 400);
+      throw err;
+    }
     return json({ error: `no route for ${req.method} ${path}` }, 404);
   }),
 };

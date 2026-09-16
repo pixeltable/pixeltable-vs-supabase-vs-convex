@@ -16,7 +16,7 @@ end to end: see [METHODOLOGY.md](METHODOLOGY.md).
 |---|---|---|---|
 | 1. Install | Adequate: big Python deps | Weak: Docker, or managed | Strong: one command, no account |
 | 2. Schema | Strong: 2 tables, 2 views | Adequate: 5 tables, 3 FKs | Adequate: optional-free schema |
-| 3. Ingest | Strong: one insert | Adequate: 132-line function | Adequate: 61 lines plus mutations |
+| 3. Ingest | Strong: one insert | Adequate: 67-line function | Adequate: 61 lines plus mutations |
 | 4. Process | Strong: it is the schema | Weak: lives in the ingest path | Weak: lives in the ingest path |
 | 5. Embed | Strong: one line | Weak: second service | Weak: second service |
 | 6. Search | Strong: an expression | Adequate: SQL function plus join | Adequate: vector search plus lookup |
@@ -81,7 +81,7 @@ nothing needs `v.optional()` any more:
 Videos.insert([{'video': 'lecture.mp4', 'title': 'CS101'}])
 ```
 
-**Supabase.** 132 lines in one function: extract, embed the batch, upload each frame,
+**Supabase.** 67 lines in one function: extract, embed the batch, upload each frame,
 one insert per table.
 
 ```ts
@@ -188,7 +188,7 @@ api.add_query_route(path='/search/frames', query=search_frames, method='post')
 large functions. Note that two of these five would not need to exist at all: PostgREST
 already exposes every table, view and function over REST with no handler code.
 
-**Convex.** Five `http.route` blocks, 46 lines that exist only because this contract is
+**Convex.** Five `http.route` blocks, 90 lines that exist only because this contract is
 REST. Convex's actual interface is a reactive client where the UI re-renders on write.
 
 ## 9. Evolve

@@ -38,9 +38,11 @@ respectively, and the compute service must be reachable from Convex's cloud, so
 ## Known limits, stated rather than hidden
 
 - An action cannot write to the database, so every write goes through a mutation.
-  `videos.ts` is 109 of this implementation's 383 lines for that reason.
+  `videos.ts` is 109 of this implementation's 429 lines for that reason.
 - `vectorSearch` returns ids and scores, so rows are fetched in a second query.
-- `http.ts` is 46 lines that exist only because this benchmark's contract is REST.
+- `http.ts` is 90 lines: 46 because this benchmark's contract is REST, and the rest
+  because argument validators live inside the function, so a bad body reaches the client
+  as a 500 unless the HTTP edge checks it first.
 - Processing lives in the ingest path; restoring per-row automatic processing means a
   scheduled action.
 

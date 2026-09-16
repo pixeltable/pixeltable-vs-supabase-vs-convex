@@ -11,7 +11,7 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 129 | 254 | 383 |
+| App code you maintain | 129 | 282 | 429 |
 | Plus the shared compute service | 0 | 252 | 252 |
 | Files you open to read the backend | 1 | 5 | 7 |
 | Services you operate | 1 | 2 | 2 |
@@ -70,8 +70,8 @@ script you run once; on 45 million it is a maintenance window. This swap gets ch
 smaller your data and more expensive the larger it is, which is why it belongs in the
 conditional answer rather than the headline.
 
-**What survives every swap**: lines of code and files to open (129/1 against 254/6 and
-383/7), orchestration hops (3 against 12 and 9), and where media processing runs.
+**What survives every swap**: lines of code and files to open (129/1 against 282/6 and
+429/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 
 ## The conditional recommendation
 
@@ -80,7 +80,7 @@ video, audio, images, documents, embeddings, and a retrieval step over them. The
 backend is one file, the processing is the schema, and nothing extra has to exist to run
 ffmpeg. The stronger reason is not the line count: it is that adding a column to a
 populated table backfills only that column, and a row inserted by anything at all gets
-processed. That compounds; a 2x line difference does not.
+processed. That compounds; a line-count difference does not.
 
 **Pick Supabase** when you want Postgres and the things around it. If your clients need
 realtime subscriptions, if you need row-level security for multi-tenancy, if you want an
@@ -91,7 +91,7 @@ the trade.
 
 **Pick Convex** when reactivity is the point. It also has the easiest install of the
 three: `npx convex dev` gives you a working local backend with no account and no Docker.
-Its 383 lines here are the worst showing in the table, and they are mostly two taxes this contract imposes: `videos.ts` (109 lines)
+Its 429 lines here are the worst showing in the table, and they are mostly two taxes this contract imposes: `videos.ts` (109 lines)
 because an action cannot write to the database directly, and `http.ts` (46) because we
 asked for REST. Build the same app with Convex's reactive client instead of five REST
 endpoints and `http.ts` disappears, the client re-renders on write for free, and mutations

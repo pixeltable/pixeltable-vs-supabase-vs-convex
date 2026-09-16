@@ -93,8 +93,9 @@ and found 3 / 2 / 3. Same videos, different detectors. The harness asserts only 
 each video has at least one scene, because requiring equality would be requiring two
 different algorithms to agree.
 
-All three implementations have now been executed end to end and all three pass the same
-suite. Where a claim is about runtime behaviour, it comes from the table above.
+All three run live at once for `harness/test_differential.py` (20 tests) and
+`harness/test_resilience.py` (32 tests). Where a claim is about runtime behaviour, it
+comes from the table above.
 
 Seeding fixture videos across any implementation is managed by
 [`harness/seed.py`](../harness/seed.py), accommodating Pixeltable's asynchronous job polling
@@ -108,6 +109,19 @@ against each other across three explicit tiers:
   overlap of at least 90% (accounting for audio boundary variations).
 - **Known divergence**: rank ordering below the top hit and differing scene counts between
   PySceneDetect and ffmpeg scene filters are recorded rather than asserted.
+
+[`harness/test_resilience.py`](../harness/test_resilience.py) sends the requests the
+contract does not describe: a missing field, a negative `limit`, a query that is a number,
+a body that is an array. Its one assertion is that a malformed request never draws a 5xx,
+because a 5xx tells a client the server broke and to retry, and a retry of a malformed
+request can only fail again. Which 4xx is recorded and not enforced: Pixeltable answers
+422 from Pydantic, the other two 400 from checks written by hand.
+
+It also pins the semantics `limit` has to have. Omitted means 10, `0` means no rows, and a
+limit past the corpus returns the corpus. Those are easy to get subtly wrong in a way no
+contract test notices: `limit || 10` in TypeScript turns a request for zero rows into a
+request for ten, and Convex's `vectorSearch` rejects a limit below 1, so clamping into
+range silently answers a request for zero rows with one.
 
 ## Where this is favourable to Pixeltable
 
@@ -130,10 +144,10 @@ Stated so you do not have to find it yourself.
    experts.
 5. **The contract is REST-shaped**, which is Pixeltable's native serving surface,
    Supabase's third-best (behind PostgREST and Realtime) and Convex's worst. Convex's
-   `http.ts` is 46 lines that exist only because we asked for REST instead of using its
+   `http.ts` is 90 lines that exist only because we asked for REST instead of using its
    reactive client, and choosing REST discards reactivity, the reason most teams pick it.
-6. **`compute-service` is charged in full to both competitors** and is 50% of Supabase's
-   total and 40% of Convex's. Roughly half of it would disappear behind a hosted
+6. **`compute-service` is charged in full to both competitors** and is 47% of Supabase's
+   total and 37% of Convex's. Roughly half of it would disappear behind a hosted
    embedding API; the ffmpeg half would not.
 7. **Auth, row-level security, realtime and cost are entirely out of frame.** This repo
    runs on a service-role key and writes no policy. For a multi-tenant product those are

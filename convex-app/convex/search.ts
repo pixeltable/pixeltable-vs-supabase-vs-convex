@@ -13,6 +13,9 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { compute } from "./compute";
 
+// `vectorSearch` takes a limit between 1 and 256, so a caller asking for 0 rows is
+// answered without calling it rather than silently given one, and a caller asking for
+// more than 256 gets Convex's ceiling. Postgres and Pixeltable have no such ceiling.
 const clamp = (n: number | undefined) => Math.min(Math.max(n ?? 10, 1), 256);
 
 // Plain helpers, not actions. The agent calls these directly: routing it through
@@ -22,6 +25,7 @@ export type FrameHit = { frame_url: string; frame_idx: number; video_title: stri
 export type ChunkHit = { transcript: string; video_title: string; start_sec: number; similarity: number };
 
 export async function findFrames(ctx: ActionCtx, query: string, limit?: number): Promise<FrameHit[]> {
+  if (limit === 0) return [];
   // Nothing checks that this is the model that produced the stored vectors.
   const { embeddings } = await compute("/embed-clip", { texts: [query] });
   const hits = await ctx.vectorSearch("frames", "by_embedding", {
@@ -35,6 +39,7 @@ export async function findFrames(ctx: ActionCtx, query: string, limit?: number):
 }
 
 export async function findTranscripts(ctx: ActionCtx, query: string, limit?: number): Promise<ChunkHit[]> {
+  if (limit === 0) return [];
   const { embeddings } = await compute("/embed-text", { texts: [query] });
   const hits = await ctx.vectorSearch("audioChunks", "by_embedding", {
     vector: embeddings[0],

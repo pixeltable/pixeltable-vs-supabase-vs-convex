@@ -22,10 +22,10 @@ scored zero.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | **129** | 254 | 383 |
+| App code you maintain | **129** | 282 | 429 |
 | Plus the shared compute service | **0** | 252 | 252 |
-| **Total** | **129** | **506** | **635** |
-| Files you open to read the backend | **1** | 5 | 7 |
+| **Total** | **129** | **534** | **681** |
+| Files you open to read the backend | **1** | 6 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
 | Orchestration hops | **3** | 12 | 9 |
@@ -88,8 +88,7 @@ backend, HTTP included.
 
 ## What the difference actually is
 
-Not the line count. After the rewrite the gap is about 2x, and lines are the least
-durable thing in the table. What survives:
+Not the line count. Lines are the least durable thing in the table. What survives:
 
 **Media processing has to live somewhere else.** Neither Deno nor the Convex runtime can
 execute ffmpeg, so both need `compute-service/`. Three of its seven endpoints are ffmpeg
@@ -115,6 +114,13 @@ column; the dimension is the only guard, and 384 equals 384.
 **Errors are per cell.** A Pixeltable cell holds a value or its own `errormsg`, queryable
 with `pxt errors`. Elsewhere a failed step leaves a NULL and finding out which rows are
 affected is a query you write.
+
+**Rejecting a bad request is free on one and hand-written on two.** `add_query_route`
+derives the route signature from the query function, so a missing `query` or a negative
+`limit` is a 422 before any handler runs. Deno has no request-validation layer, and
+Convex's argument validators sit inside the function, where a failure is a 500 rather
+than a 400: 28 lines in `supabase-app` and 46 in `convex-app` exist to turn a client's
+mistake back into a client error. `harness/test_resilience.py` holds all three to it.
 
 ## Run it
 

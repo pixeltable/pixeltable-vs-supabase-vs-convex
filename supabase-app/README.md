@@ -13,6 +13,9 @@ them:
 - [Do not use `Deno.serve`](https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions).
   The handler is a default export whose `fetch` is wrapped with `withSupabase`.
 - `npm:` specifiers with pinned versions, not `esm.sh`.
+- Request bodies are validated at the handler, in `_shared/client.ts`. Deno has no
+  request-validation layer, so without it a missing field is an unhandled throw and
+  the Edge Runtime reports a client's mistake as a 500.
 
 `withSupabase({ auth: 'secret' })` means the endpoint is authenticated: an
 unauthenticated request gets a 401 naming the accepted auth modes, and the handler

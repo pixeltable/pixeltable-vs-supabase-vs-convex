@@ -88,8 +88,24 @@ def by_title(rows: list[dict]) -> dict[str, dict]:
 
 class TestMustBeIdentical:
     def test_same_videos(self, responses):
-        titles = {impl: sorted(by_title(data['videos'])) for impl, data in responses.items()}
+        """Compare the full list, not the set.
+
+        Keying by title collapses duplicates, so a doubled ingest looks identical to a
+        clean one. Sort the raw titles instead and the row counts have to match too.
+        """
+        titles = {impl: sorted(row['video_title'] for row in data['videos']) for impl, data in responses.items()}
         assert len(set(map(tuple, titles.values()))) == 1, f'different videos ingested: {titles}'
+
+    def test_no_duplicate_videos(self, responses):
+        """A title appearing twice means the same file was ingested twice.
+
+        None of the three enforces uniqueness, so a repeated seed silently doubles every
+        downstream row and every count derived from it.
+        """
+        for impl, data in responses.items():
+            titles = [row['video_title'] for row in data['videos']]
+            dupes = {t for t in titles if titles.count(t) > 1}
+            assert not dupes, f'{impl} has the same video ingested more than once: {sorted(dupes)}'
 
     @pytest.mark.parametrize('query', QUERIES, ids=lambda q: q['id'])
     def test_same_top_hit(self, responses, query):
