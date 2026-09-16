@@ -82,6 +82,11 @@ model eagerly and cannot target a model whose columns call a `@pxt.query`, which
 
 `scene_count` is a one-line UDF rather than `pxtf.json.len()`.
 
+A column whose value is a `@pxt.query` can only be declared when the table is created.
+Adding one to a table that already exists answers `500 A query over model 'Frames' cannot
+be serialized; bind it to a table first`, so `Conversations` is the shape it is from the
+start. Ordinary computed columns have no such limit and backfill in place.
+
 ## Swapping providers
 
 Each model is one expression. To go hosted, change the line:

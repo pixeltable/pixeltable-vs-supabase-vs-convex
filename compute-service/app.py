@@ -1,11 +1,11 @@
 """Shared compute service for media processing.
 
-Supabase Edge Functions and Convex Actions call these endpoints because they
-**cannot** run ffmpeg, Whisper, or CLIP natively.  Pixeltable does NOT need
-this service -- it handles everything declaratively via computed columns.
+Supabase Edge Functions run on Deno and Convex Actions run on Convex's runtime, and
+neither can execute ffmpeg, Whisper or CLIP. So both call these seven endpoints, and
+both implementations are charged for every line of this file. Pixeltable runs the same
+work inside its own process, in computed columns.
 
-The existence of this service IS the comparison point: it represents the
-external infrastructure that other platforms require.
+That this service has to exist at all is the comparison point.
 """
 
 from __future__ import annotations

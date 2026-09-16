@@ -221,9 +221,16 @@ the `@convex-dev/migrations` component.
 **Pixeltable.** Per-cell errors, schema history, and a way back.
 
 ```bash
-pxt errors media/chunks --col transcript
 pxt history media/videos
+pxt revert media/videos --steps 3 -f
 ```
+
+```python
+Chunks.select(Chunks.title, err=Chunks.transcript.errormsg).where(Chunks.transcript.errormsg != None)
+```
+
+`pxt errors` is the CLI view of the same thing and wants a primary key, which this schema
+does not declare, so here the column is the way in.
 
 **Supabase.** No per-cell error: a failed step leaves a NULL and finding the affected
 rows is a query you write. Against that, Postgres gives you point-in-time recovery,

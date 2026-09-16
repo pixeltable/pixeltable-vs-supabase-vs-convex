@@ -13,13 +13,13 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 |---|---|---|---|
 | App code you maintain | 129 | 282 | 429 |
 | Plus the shared compute service | 0 | 252 | 252 |
-| Files you open to read the backend | 1 | 5 | 7 |
+| Files you open to read the backend | 1 | 6 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Orchestration hops | 3 | 12 | 9 |
 | ffmpeg, Whisper, CLIP run in-platform | yes | no | no |
 | Add a derived column to live data | backfills in place* | migration + backfill script | migration action |
 | Processing fires for writes from any client | yes | no, unless you add triggers | no, unless you add a scheduler |
-| Per-cell error state | yes (`errormsg`, `pxt errors`) | no | no |
+| Per-cell error state | yes (`errormsg`, `errortype`) | no | no |
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
 | Realtime push to clients | no | yes | yes, and it is the core idea |
 | Endpoints authenticated by default | no | **yes**, one config line | no |
@@ -28,8 +28,10 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 | Operations | you run the process | managed | managed |
 | Free tier | n/a, self-hosted | yes | yes |
 
-\* With a caveat this repo found the hard way: adding a *query-backed* column to an
-existing table fails today. See `pixeltable/README.md`.
+\* Not every column. A column whose value is a `@pxt.query` cannot be added to a table
+that already exists: `pxt schema update` answers `500 A query over model 'Frames' cannot
+be serialized; bind it to a table first`. Ordinary computed columns backfill in place, and
+that is what the row claims.
 
 ## The swaps
 
@@ -42,8 +44,8 @@ different vendor. Price of the swap: per-call cost, an API key, and no offline p
 
 After it, the row reads 1 / 2 / 2 still. **It does not strike out**, and that is the
 single most durable finding in this repo: on Supabase and Convex, media processing lives
-somewhere else. Everything downstream -- the extra service, most of the orchestration
-hops, the base64 round trips -- follows from that one fact.
+somewhere else. The extra service, most of the orchestration hops and the base64 round
+trips all follow from that one fact.
 
 **Swap 2: equalise "realtime push".** Pixeltable has none here. To match Supabase or
 Convex you would put a polling client or a websocket layer in front, and pay latency plus

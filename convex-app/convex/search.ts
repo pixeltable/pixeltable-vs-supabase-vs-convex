@@ -1,5 +1,5 @@
 // Vector search. `vectorSearch` returns ids and scores only, so the rows have to be
-// fetched separately -- but in one query taking every id, not one query per hit.
+// fetched separately, but in one query taking every id, not one query per hit.
 // Convex's best-practices guide warns that separate ctx.run* calls each run in their
 // own transaction: https://docs.convex.dev/understanding/best-practices/
 //
