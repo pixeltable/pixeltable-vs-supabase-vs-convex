@@ -66,6 +66,21 @@ jobs:
             exit 1
           fi
 
+  supabase-advisors:
+    # Supabase's own security and performance checks, against a real database.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Start the local stack
+        working-directory: supabase-app
+        run: supabase start -x studio,realtime,imgproxy,inbucket,logflare,vector
+      - name: No security or performance errors
+        working-directory: supabase-app
+        run: supabase db advisors --local --type all --level error --fail-on error
+
   metrics:
     runs-on: ubuntu-latest
     steps:

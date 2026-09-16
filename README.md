@@ -18,9 +18,9 @@ scored zero.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | **128** | 246 | 383 |
+| App code you maintain | **128** | 254 | 383 |
 | Plus the shared compute service | **0** | 252 | 252 |
-| **Total** | **128** | **498** | **635** |
+| **Total** | **128** | **506** | **635** |
 | Files you open to read the backend | **1** | 5 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |

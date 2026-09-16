@@ -11,7 +11,7 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 128 | 246 | 383 |
+| App code you maintain | 128 | 254 | 383 |
 | Plus the shared compute service | 0 | 252 | 252 |
 | Files you open to read the backend | 1 | 5 | 7 |
 | Services you operate | 1 | 2 | 2 |
@@ -23,7 +23,8 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
 | Realtime push to clients | no | yes | yes, and it is the core idea |
 | Endpoints authenticated by default | no | **yes**, one config line | no |
-| Row-level security / multi-tenant auth | no | yes (RLS) | yes |
+| Row-level security | no | **yes**, enabled and verified | no |
+| Vendor ships a conformance checker | no | **yes**, `db advisors` on a live database | **yes**, an ESLint plugin |
 | Operations | you run the process | managed | managed |
 | Free tier | n/a, self-hosted | yes | yes |
 
@@ -57,9 +58,11 @@ Pixeltable and Convex endpoints in this repo are open, and the harness has to se
 only to Supabase. To equalise you would put a gateway in front of the other two and write
 the check yourself. Price: code you did not have to write on Supabase.
 
-This repo still never writes an RLS policy, so multi-tenant authorization proper remains
-unmeasured, and for a multi-tenant product it is the feature you would otherwise build.
-Another swap that does not strike out.
+Row-level security is now enabled on all five Supabase tables and an anonymous client
+gets an empty result from a direct table read. That is a real protection Pixeltable and
+Convex do not have here. Per-tenant policies against `auth.uid()` are still unwritten, so
+multi-tenant authorization proper remains unmeasured, and for a multi-tenant product it is
+the feature you would otherwise build. Another swap that does not strike out.
 
 **Swap 4: equalise "add a derived column to live data".** Give Supabase and Convex the
 migration plus backfill they need and the row becomes equal. Price: on 45 rows it is a
@@ -67,7 +70,7 @@ script you run once; on 45 million it is a maintenance window. This swap gets ch
 smaller your data and more expensive the larger it is, which is why it belongs in the
 conditional answer rather than the headline.
 
-**What survives every swap**: lines of code and files to open (128/1 against 246/5 and
+**What survives every swap**: lines of code and files to open (128/1 against 254/6 and
 383/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 
 ## The conditional recommendation

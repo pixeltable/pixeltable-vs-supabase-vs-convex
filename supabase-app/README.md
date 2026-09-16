@@ -49,6 +49,29 @@ All five contract routes are served by one Function at `/functions/v1/api`:
 | `POST /search/transcripts` | `/functions/v1/api/search/transcripts` |
 | `POST /agent/query` | `/functions/v1/api/agent/query` |
 
+## Supabase's own advisors
+
+`supabase db advisors --local --type all` inspects the running database and exits
+non-zero on findings. Against this schema it reports **no errors**. Row-level security is
+enabled on all five tables, `video_summary` is `security_invoker`, and both search
+functions pin `search_path = ''`.
+
+Enabling RLS with no policies is the right shape here: every client goes through the
+Edge Function holding the service role, which bypasses RLS, while PostgREST's anon and
+authenticated roles are denied direct table access. You can check that:
+
+```bash
+curl "$SUPABASE_URL/rest/v1/videos?select=*" -H "apikey: $PUBLISHABLE_KEY"   # []
+```
+
+A multi-tenant application would write per-table policies against `auth.uid()` instead.
+
+One warning is left deliberately: `extension_in_public`, because `pgvector` lives in
+`public`. Moving it means qualifying the `<=>` operator and the `vector` type at every
+use, which trades a hygiene warning for noticeably more SQL. Locking `search_path`
+already forced `OPERATOR(public.<=>)` into both search functions; that is the visible
+cost of the fix, and it is in `002_search_functions.sql`.
+
 ## Known limits, stated rather than hidden
 
 - Processing lives in the ingest path, so a row inserted by anything else is not

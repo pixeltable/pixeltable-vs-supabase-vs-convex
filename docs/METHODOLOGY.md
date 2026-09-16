@@ -168,6 +168,20 @@ Also stated, for the same reason.
 Minimal repros for the first two are in
 [pixeltable/README.md](../pixeltable/README.md#known-limits-stated-rather-than-hidden).
 
+## Each implementation is held to its vendor's own checker
+
+Where a vendor ships a tool that inspects our code or our database and exits non-zero,
+CI runs it, so "idiomatic" is a command a reader can re-run rather than a claim.
+
+| | Tool | What it proves |
+|---|---|---|
+| Supabase | `deno lint`, `supabase db advisors --local` | Edge Function style; no security or performance errors on a live database |
+| Convex | `@convex-dev/eslint-plugin`, `tsc --noEmit` | Their own best-practice rules, against real generated code |
+| Pixeltable | `ruff` | Generic Python only. Pixeltable ships no conformance checker, so its claim to being idiomatic rests on prose and a reference app, not a command. |
+
+That asymmetry is worth stating plainly: the sponsor's implementation is the one with the
+weakest automated proof that it follows its own vendor's guidance.
+
 ## Fairness rules
 
 - Each implementation follows its own platform's idioms. No platform is made to

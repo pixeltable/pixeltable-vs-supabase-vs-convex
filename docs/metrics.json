@@ -29,9 +29,9 @@
   },
   "supabase": {
     "name": "supabase",
-    "app_loc": 246,
+    "app_loc": 254,
     "config_loc": 33,
-    "app_files": 5,
+    "app_files": 6,
     "languages": [
       "TypeScript",
       "SQL"
@@ -48,7 +48,8 @@
       "supabase/functions/api/index.ts": 132,
       "supabase/migrations/001_schema.sql": 47,
       "supabase/migrations/002_search_functions.sql": 52,
-      "supabase/migrations/003_storage.sql": 3
+      "supabase/migrations/003_storage.sql": 3,
+      "supabase/migrations/004_security.sql": 8
     },
     "classified": {
       "runtimes_to_operate": [
