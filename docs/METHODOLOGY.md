@@ -94,8 +94,9 @@ each video has at least one scene, because requiring equality would be requiring
 different algorithms to agree.
 
 All three run live at once for `harness/test_differential.py` (20 tests) and
-`harness/test_resilience.py` (32 tests). Where a claim is about runtime behaviour, it
-comes from the table above.
+`harness/test_resilience.py` (32 tests), and `harness/test_metrics.py` (27 tests) checks
+the measuring code itself against fixtures with known counts. Where a claim is about
+runtime behaviour, it comes from the table above.
 
 Seeding fixture videos across any implementation is managed by
 [`harness/seed.py`](../harness/seed.py), accommodating Pixeltable's asynchronous job polling
@@ -122,6 +123,9 @@ limit past the corpus returns the corpus. Those are easy to get subtly wrong in 
 contract test notices: `limit || 10` in TypeScript turns a request for zero rows into a
 request for ten, and Convex's `vectorSearch` rejects a limit below 1, so clamping into
 range silently answers a request for zero rows with one.
+
+Throughput and latency are measured separately, over a 20-video tier, in
+[SCALE.md](SCALE.md). Pixeltable is the slowest of the three on both.
 
 ## Where this is favourable to Pixeltable
 

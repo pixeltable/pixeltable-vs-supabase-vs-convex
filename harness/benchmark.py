@@ -34,6 +34,11 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'docs' / 'benchmarks.json'
 TIMEOUT = 900.0
 
+# Pixeltable answers an ingest with a job to poll; Supabase and Convex answer when the
+# work is done. Poll fast enough that the interval does not show up in the number: at 2s
+# every asynchronous ingest rounds up to the next 2s, which is most of a 3s ingest.
+POLL_SEC = 0.05
+
 # Ten queries, five visual and five spoken, none of them the fixture queries the
 # correctness suites assert on. Latency should not be measured on the cases we tuned.
 FRAME_QUERIES = [
@@ -78,7 +83,7 @@ def ingest(client: httpx.Client, impl: str, tier: str) -> dict:
                 response = client.request(method, path, json={'video': str(video), 'title': video.name})
                 response.raise_for_status()
                 if job_url := response.json().get('job_url'):
-                    wait_for_job(client, job_url, started + TIMEOUT)
+                    wait_for_job(client, job_url, started + TIMEOUT, poll_sec=POLL_SEC)
             except httpx.HTTPStatusError as exc:
                 # A rejected credential is a setup mistake, not a throughput measurement.
                 # Failing on the first one beats publishing 20 identical 401s.

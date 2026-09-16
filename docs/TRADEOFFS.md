@@ -70,6 +70,10 @@ script you run once; on 45 million it is a maintenance window. This swap gets ch
 smaller your data and more expensive the larger it is, which is why it belongs in the
 conditional answer rather than the headline.
 
+Throughput is not in the swaps below because it now has its own measurement:
+[SCALE.md](SCALE.md), where Supabase ingests fastest and Convex searches fastest. If speed
+at this scale is your binding constraint, that page decides it and this one does not.
+
 **What survives every swap**: lines of code and files to open (129/1 against 282/6 and
 429/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 

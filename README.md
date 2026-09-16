@@ -31,6 +31,11 @@ scored zero.
 | Orchestration hops | **3** | 12 | 9 |
 | HTTP routes written by hand | 1 | 1 | 5 |
 
+Those are properties of the code. Speed is not one of them, and on speed Pixeltable
+loses: over 20 videos and 10 minutes of footage it ingests at 7.6x realtime against
+Supabase's 11.3x, and answers a frame search in 55ms against Convex's 30ms. Measured, with
+the method and the caveats, in [docs/SCALE.md](docs/SCALE.md).
+
 **Read [docs/TRADEOFFS.md](docs/TRADEOFFS.md) before the rest.** It says which stack wins
 under which conditions, using even swaps, and it concedes the cases where Pixeltable
 loses. The short version: this app is media-heavy, which suits Pixeltable; if you need
@@ -145,6 +150,10 @@ URL=$(pxt service list | awk '/^media/{print $2}')
 
 ### Supabase and Convex
 
+Convex picks its own ports. `npx convex dev` writes `CONVEX_SITE_URL` into
+`convex-app/.env.local`, and that is the base URL for every command below; the `3211` in
+the examples is only what it chose here.
+
 Both need `compute-service/` first:
 
 ```bash
@@ -200,9 +209,18 @@ Or measure and test in one step:
 python harness/run_comparison.py --test --impl pixeltable
 ```
 
+Measure ingest throughput and search latency over the 20-video tier:
+
+```bash
+python fixtures/videos/generate.py --tier large
+python harness/benchmark.py --impl pixeltable --tier large
+```
+
 ## Reading the rest
 
 - [docs/TRADEOFFS.md](docs/TRADEOFFS.md): even swaps, and which stack wins when.
+- [docs/SCALE.md](docs/SCALE.md): ingest throughput and search latency over 20 videos,
+  where Pixeltable is the slowest of the three.
 - [docs/METHODOLOGY.md](docs/METHODOLOGY.md): what is measured, what is a judgment call,
   which implementations were executed, and where this is favourable to Pixeltable.
 - [docs/JOURNEY.md](docs/JOURNEY.md): the same ten steps on all three, with the code.

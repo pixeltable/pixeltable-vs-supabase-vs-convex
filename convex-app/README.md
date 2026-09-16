@@ -30,8 +30,9 @@ npx convex env set COMPUTE_SERVICE_URL http://127.0.0.1:9000
 ```
 
 That writes `convex/_generated/` (not committed) and prints two ports: `CONVEX_URL` for
-the client and `CONVEX_SITE_URL` for HTTP actions. The contract routes are on the HTTP
-actions port. On a hosted deployment those are `.convex.cloud` and `.convex.site`
+the client and `CONVEX_SITE_URL` for HTTP actions, and writes both into `.env.local`. The
+contract routes are on the HTTP actions port. The pair is chosen at start-up rather than
+fixed, so read it from `.env.local` instead of hard-coding it. On a hosted deployment those are `.convex.cloud` and `.convex.site`
 respectively, and the compute service must be reachable from Convex's cloud, so
 `127.0.0.1` will not do there.
 

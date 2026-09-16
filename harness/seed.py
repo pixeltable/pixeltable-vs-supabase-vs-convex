@@ -31,8 +31,13 @@ def videos_for(tier: str) -> list[Path]:
     return sorted(TIERS[tier].glob('*.mp4'))
 
 
-def wait_for_job(client: httpx.Client, job_url: str, deadline: float) -> None:
-    """Poll a Pixeltable background job until it leaves `pending`."""
+def wait_for_job(client: httpx.Client, job_url: str, deadline: float, poll_sec: float = 2.0) -> None:
+    """Poll a Pixeltable background job until it leaves `pending`.
+
+    The interval is an argument because it lands in the measurement: a 2s poll rounds
+    every asynchronous ingest up to the next 2s and charges Pixeltable for the harness.
+    Timing code passes a small value; seeding does not need to.
+    """
     while time.monotonic() < deadline:
         resp = client.get(job_url)
         resp.raise_for_status()
@@ -41,7 +46,7 @@ def wait_for_job(client: httpx.Client, job_url: str, deadline: float) -> None:
             return
         if status == 'error':
             raise RuntimeError(f'ingest job failed: {job_url}')
-        time.sleep(2)
+        time.sleep(poll_sec)
     raise TimeoutError(f'ingest job still pending: {job_url}')
 
 
