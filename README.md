@@ -23,10 +23,10 @@ scored zero.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | **129** | 282 | 429 |
+| App code you maintain | **129** | 294 | 429 |
 | Plus the shared compute service | **0** | 252 | 252 |
-| **Total** | **129** | **534** | **681** |
-| Files you open to read the backend | **1** | 6 | 7 |
+| **Total** | **129** | **546** | **681** |
+| Files you open to read the backend | **1** | 7 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
 | Orchestration hops | **3** | 12 | 9 |
@@ -165,6 +165,15 @@ not exercise any of it**, because every model here is local. Swap one line to a 
 model and the concurrency, the rate limiting and the retries arrive with it; on the other
 two they are yours to write.
 
+**A failed ingest must not become a listed video.** A zero-byte file, a truncated file,
+random bytes with an `.mp4` extension, a path that does not exist: all three reject all
+four and none of them appears in `GET /videos`. Pixeltable rejects the insert outright, so
+no row exists and the error is typed (`INVALID_DATA_FORMAT: Not a valid video`). Supabase
+and Convex write the row first to get an id, so the failure leaves a `status='error'` row
+behind and answers a bare 500; each filters that row out of its list, which is one line in
+a view and one in a query, and both lines exist because this test asked for them.
+`harness/test_recovery.py` holds all three to it.
+
 **Rejecting a bad request is free on one and hand-written on two.** `add_query_route`
 derives the route signature from the query function, so a missing `query` or a negative
 `limit` is a 422 before any handler runs. Deno has no request-validation layer, and
@@ -236,6 +245,14 @@ pytest harness/test_equivalence.py
 # Against Supabase or Convex:
 pytest harness/test_equivalence.py --impl supabase --base-url http://127.0.0.1:54321
 pytest harness/test_equivalence.py --impl convex --base-url http://127.0.0.1:3211
+```
+
+Run the suite that writes to the corpus. It ingests broken files and runs concurrent
+ingests, and none of the three has a delete route, so re-seed afterwards:
+
+```bash
+pytest harness/test_recovery.py --destructive \
+  --compare pixeltable --compare supabase=http://127.0.0.1:54321 --compare convex=http://127.0.0.1:3211
 ```
 
 Run differential tests comparing implementations against each other:

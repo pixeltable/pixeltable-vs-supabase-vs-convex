@@ -29,15 +29,15 @@
   },
   "supabase": {
     "name": "supabase",
-    "app_loc": 282,
+    "app_loc": 294,
     "config_loc": 30,
-    "app_files": 6,
+    "app_files": 7,
     "languages": [
       "TypeScript",
       "SQL"
     ],
     "tables": 5,
-    "views": 1,
+    "views": 3,
     "vector_indexes": 2,
     "foreign_keys": 3,
     "db_triggers": 0,
@@ -49,7 +49,8 @@
       "supabase/migrations/001_schema.sql": 47,
       "supabase/migrations/002_search_functions.sql": 52,
       "supabase/migrations/003_storage.sql": 3,
-      "supabase/migrations/004_security.sql": 8
+      "supabase/migrations/004_security.sql": 8,
+      "supabase/migrations/005_only_ready_videos.sql": 12
     },
     "classified": {
       "runtimes_to_operate": [

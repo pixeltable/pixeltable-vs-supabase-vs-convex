@@ -50,3 +50,6 @@ python -m pytest harness/test_differential.py --compare pixeltable \
 python -m pytest harness/test_resilience.py --compare pixeltable \
   --compare supabase=$SUPABASE_URL --compare convex=$CONVEX_SITE_URL --auth-token "$SECRET"
 ```
+
+`harness/test_recovery.py` writes to the corpus and needs `--destructive`. Re-seed the
+fixtures afterwards; none of the three exposes a delete route.

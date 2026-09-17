@@ -56,6 +56,26 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         metavar='IMPL=URL',
         help='Repeatable. Two or more running implementations to diff against each other.',
     )
+    parser.addoption(
+        '--destructive',
+        action='store_true',
+        default=False,
+        help='Run the tests that write to the corpus. None of the three exposes a delete '
+        'route, so a run leaves rows behind and the fixtures have to be re-seeded after.',
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line('markers', 'destructive: writes to the corpus; needs --destructive')
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    if config.getoption('--destructive'):
+        return
+    skip = pytest.mark.skip(reason='writes to the corpus; pass --destructive and re-seed afterwards')
+    for item in items:
+        if 'destructive' in item.keywords:
+            item.add_marker(skip)
 
 
 def _is_pixeltable_alive(url: str) -> bool:

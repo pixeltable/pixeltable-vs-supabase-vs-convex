@@ -123,6 +123,19 @@ against each other across three explicit tiers:
 - **Known divergence**: rank ordering below the top hit and differing scene counts between
   PySceneDetect and ffmpeg scene filters are recorded rather than asserted.
 
+[`harness/test_recovery.py`](../harness/test_recovery.py) is the only suite that writes,
+so it is behind `--destructive` and the fixtures are re-seeded after a run. It ingests a
+zero-byte file, a truncated file, random bytes with an `.mp4` extension and a path that
+does not exist, and asserts the invariant that matters to a caller: a failed ingest never
+appears in `GET /videos`. It also runs two ingests concurrently and requires both to land
+exactly once.
+
+All three satisfy it. The difference it records is what each leaves behind. Pixeltable
+rejects the insert, so there is no row and the error is typed. Supabase and Convex write
+the row before processing, so a failure leaves `status='error'` in the table and answers a
+bare 500; both filter that row out of their list endpoint, and those two lines exist
+because this suite found that they did not.
+
 [`harness/test_resilience.py`](../harness/test_resilience.py) sends the requests the
 contract does not describe: a missing field, a negative `limit`, a query that is a number,
 a body that is an array. Its one assertion is that a malformed request never draws a 5xx,
@@ -189,7 +202,7 @@ Stated so you do not have to find it yourself.
    Supabase's third-best (behind PostgREST and Realtime) and Convex's worst. Convex's
    `http.ts` is 90 lines that exist only because we asked for REST instead of using its
    reactive client, and choosing REST discards reactivity, the reason most teams pick it.
-6. **`compute-service` is charged in full to both competitors** and is 47% of Supabase's
+6. **`compute-service` is charged in full to both competitors** and is 46% of Supabase's
    total and 37% of Convex's. Roughly half of it would disappear behind a hosted
    embedding API; the ffmpeg half would not.
 7. **Auth, row-level security, realtime and cost are entirely out of frame.** This repo

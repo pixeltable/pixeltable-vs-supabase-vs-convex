@@ -111,9 +111,13 @@ export const listVideos = query({
   args: {},
   handler: async (ctx) => {
     // One bounded read of one table. The scene count is denormalized onto the row at
-    // ingest, so this no longer collects every scene of every video.
+    // ingest, so this does not collect every scene of every video.
+    //
+    // A video whose media steps failed is filtered out rather than listed: the contract's
+    // list row carries no status, so listing one would tell a caller it processed. The
+    // document stays in the table with status "error".
     const videos = await ctx.db.query("videos").take(MAX_VIDEOS);
-    const rows = videos.map((video) => ({
+    const rows = videos.filter((video) => video.status === "ready").map((video) => ({
       video_title: video.title,
       duration_sec: video.durationSec ?? 0,
       scene_count: video.sceneCount ?? 0,

@@ -16,6 +16,9 @@ them:
 - Request bodies are validated at the handler, in `_shared/client.ts`. Deno has no
   request-validation layer, so without it a missing field is an unhandled throw and
   the Edge Runtime reports a client's mistake as a 500.
+- `video_summary` lists only `status = 'ready'`. Ingest writes the row before processing
+  it, to get an id, so a failed media step leaves the row behind; the contract's list row
+  carries no status, so listing it would tell a caller it processed.
 
 `withSupabase({ auth: 'secret' })` means the endpoint is authenticated: an
 unauthenticated request gets a 401 naming the accepted auth modes, and the handler

@@ -41,6 +41,9 @@ respectively, and the compute service must be reachable from Convex's cloud, so
 - An action cannot write to the database, so every write goes through a mutation.
   `videos.ts` is 109 of this implementation's 429 lines for that reason.
 - `vectorSearch` returns ids and scores, so rows are fetched in a second query.
+- `listVideos` filters to `status === "ready"`. An action cannot write, so ingest inserts
+  the video through a mutation before processing it, and a failed media step leaves that
+  document behind.
 - `http.ts` is 90 lines: 46 because this benchmark's contract is REST, and the rest
   because argument validators live inside the function, so a bad body reaches the client
   as a 500 unless the HTTP edge checks it first.

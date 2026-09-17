@@ -11,9 +11,9 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 129 | 282 | 429 |
+| App code you maintain | 129 | 294 | 429 |
 | Plus the shared compute service | 0 | 252 | 252 |
-| Files you open to read the backend | 1 | 6 | 7 |
+| Files you open to read the backend | 1 | 7 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Orchestration hops | 3 | 12 | 9 |
 | ffmpeg, Whisper, CLIP run in-platform | yes | no | no |
@@ -79,7 +79,7 @@ Throughput is not in the swaps below because it has its own measurement:
 [SCALE.md](SCALE.md), where Supabase ingests fastest and Convex searches fastest. If speed
 at this scale is your binding constraint, that page decides it and this one does not.
 
-**What survives every swap**: lines of code and files to open (129/1 against 282/6 and
+**What survives every swap**: lines of code and files to open (129/1 against 294/7 and
 429/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 
 ## The conditional recommendation
