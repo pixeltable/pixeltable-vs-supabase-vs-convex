@@ -103,13 +103,9 @@ embeddings. Everything downstream follows from it: the second service, most of t
 orchestration hops, and base64 on the wire.
 
 **Adding a column to live data.** One edit and `pxt schema update`: the table that gained
-the column backfills, and every table that did not need recomputing prints `unchanged`.
-On a populated catalog that is 1.4 seconds, and no transcription re-runs. Removing the
-column again is refused as `DESTRUCTIVE` until you pass a flag. On the other two it is a
-migration plus a backfill script.
-
-Measured on a populated catalog in [docs/EVOLVE.md](docs/EVOLVE.md), against what the
-other two must write for the same feature: **1 line in 1 file, against 24 and 53**.
+the column backfills, every table that did not prints `unchanged`, and no transcription
+re-runs. On the other two it is a migration plus a backfill script. Run on a populated
+catalog in [docs/EVOLVE.md](docs/EVOLVE.md): **1 line in 1 file, against 24 and 53**.
 Supabase is the fastest of the three in wall time, and at two dozen rows that is noise.
 The claim past this corpus is structural, not measured: what backfills incrementally stays
 proportional to the rows that changed, and what re-runs a script does not.
@@ -172,9 +168,8 @@ random bytes with an `.mp4` extension, a path that does not exist: all three rej
 four and none of them appears in `GET /videos`. Pixeltable rejects the insert outright, so
 no row exists and the error is typed (`INVALID_DATA_FORMAT: Not a valid video`). Supabase
 and Convex write the row first to get an id, so the failure leaves a `status='error'` row
-behind and answers a bare 500; each filters that row out of its list, which is one line in
-a view and one in a query, and both lines exist because this test asked for them.
-`harness/test_recovery.py` holds all three to it.
+behind and answers a bare 500; each filters that row out of its list, one line in a view
+and one in a query. `harness/test_recovery.py` holds all three to it.
 
 **Rejecting a bad request is free on one and hand-written on two.** `add_query_route`
 derives the route signature from the query function, so a missing `query` or a negative
@@ -221,63 +216,64 @@ Then [`supabase-app/README.md`](supabase-app/README.md) or
 
 ### Measure and test
 
-Measure lines of code and architecture metrics:
+Every command below takes the same three URLs. Pixeltable is auto-discovered from
+`pxt service list`, so `--base-url` and `--compare pixeltable` are optional for it.
+
+```bash
+SUPA=http://127.0.0.1:54321        # supabase status
+CONVEX=http://127.0.0.1:3211       # CONVEX_SITE_URL in convex-app/.env.local
+SECRET=...                         # supabase status, the Edge Function needs it
+```
+
+Measure the source. Regenerates `docs/metrics.json`, which every number in the docs comes
+from; CI fails if it drifts:
 
 ```bash
 python harness/run_comparison.py
 ```
 
-Seed fixture videos into any running platform:
+Seed the fixtures, then test one implementation against the contract:
 
 ```bash
-# Against Pixeltable (auto-discovers the running service, or pass --base-url):
 python harness/seed.py --impl pixeltable
+python harness/seed.py --impl supabase --base-url $SUPA --auth-token $SECRET
+python harness/seed.py --impl convex --base-url $CONVEX
 
-# Against Supabase or Convex:
-python harness/seed.py --impl supabase --base-url http://127.0.0.1:54321
-python harness/seed.py --impl convex --base-url http://127.0.0.1:3211
+pytest harness/test_equivalence.py --impl pixeltable
+python harness/run_comparison.py --test --impl pixeltable    # both in one step
 ```
 
-Run contract and relevance equivalence tests against one live implementation:
+Test the three against each other, live. `test_differential.py` compares their answers,
+`test_resilience.py` sends the requests the contract does not describe:
 
 ```bash
-# Against Pixeltable (auto-discovers the running service, or pass --base-url):
-pytest harness/test_equivalence.py
-
-# Against Supabase or Convex:
-pytest harness/test_equivalence.py --impl supabase --base-url http://127.0.0.1:54321
-pytest harness/test_equivalence.py --impl convex --base-url http://127.0.0.1:3211
+pytest harness/test_differential.py harness/test_resilience.py \
+  --compare pixeltable --compare supabase=$SUPA --compare convex=$CONVEX \
+  --auth-token $SECRET
 ```
 
-Run the suite that writes to the corpus. It ingests broken files and runs concurrent
-ingests, and none of the three has a delete route, so re-seed afterwards:
+Test the measuring code itself. Needs nothing running:
+
+```bash
+pytest harness/test_metrics.py
+```
+
+Test what a failed or concurrent ingest leaves behind. This one writes, and none of the
+three has a delete route, so re-seed afterwards:
 
 ```bash
 pytest harness/test_recovery.py --destructive \
-  --compare pixeltable --compare supabase=http://127.0.0.1:54321 --compare convex=http://127.0.0.1:3211
+  --compare pixeltable --compare supabase=$SUPA --compare convex=$CONVEX \
+  --auth-token $SECRET
 ```
 
-Run differential tests comparing implementations against each other:
-
-```bash
-# Auto-discovers Pixeltable, or pass --compare pixeltable=URL:
-pytest harness/test_differential.py \
-  --compare pixeltable \
-  --compare supabase=http://127.0.0.1:54321 \
-  --compare convex=http://127.0.0.1:3211
-```
-
-Or measure and test in one step:
-
-```bash
-python harness/run_comparison.py --test --impl pixeltable
-```
-
-Measure ingest throughput and search latency over the 20-video tier:
+Time ingest and search over 20 videos ([docs/SCALE.md](docs/SCALE.md)), and time adding a
+column to live data ([docs/EVOLVE.md](docs/EVOLVE.md)):
 
 ```bash
 python fixtures/videos/generate.py --tier large
 python harness/benchmark.py --impl pixeltable --tier large
+python harness/bench_evolve.py --supabase-token $SECRET
 ```
 
 ## Reading the rest

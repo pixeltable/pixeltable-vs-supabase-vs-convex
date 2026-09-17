@@ -9,14 +9,14 @@ Every other suite reads. This one writes, and none of the three exposes a delete
 so a run leaves rows in the corpus and the fixtures have to be re-seeded afterwards. That
 is why it is behind `--destructive` and why CI only collects it.
 
-The claims under test are ones the repo makes in prose and nothing checks:
+What it asserts:
 
   - a media step that fails must not leave a video listed as though it worked;
   - a failure must be reported, not swallowed into an empty row;
   - two ingests at once must both land, exactly once each.
 
-Where the three differ, the difference is recorded rather than asserted into agreement:
-they have genuinely different failure models, and flattening that would hide the finding.
+Where the three differ, the difference is recorded rather than asserted into agreement.
+They have genuinely different failure models and flattening that would hide it.
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def clients(comparands: dict[str, str], request: pytest.FixtureRequest):
 
 @pytest.fixture(scope='session')
 def broken_videos(tmp_path_factory) -> dict[str, Path]:
-    """Three ways a video file can be wrong, none of them exotic."""
+    """Four ways a video file can be wrong, none of them exotic."""
     tmp = tmp_path_factory.mktemp('broken')
     empty = tmp / 'zero_bytes.mp4'
     empty.write_bytes(b'')

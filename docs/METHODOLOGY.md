@@ -69,7 +69,7 @@ logic. Convex's raw count is 14 and its pipeline count is 9.
 `CLASSIFIED` in `metrics.py` holds what cannot be derived from a regex: whether work
 runs on insert, whether adding a column backfills incrementally, whether the platform
 versions data, how many runtimes you operate. These are reported as hand-classified
-and are labelled that way in the scorecard. Disagree with one and the line to argue
+and are labelled that way wherever they appear. Disagree with one and the line to argue
 with is in the file.
 
 ## What was actually executed
@@ -78,85 +78,76 @@ Stated per implementation, because "it typechecks" and "it ran" are different cl
 
 | | Executed end to end | How |
 |---|---|---|
-| **Pixeltable** | Yes | Catalog created, three videos ingested over HTTP with background jobs, `harness/test_equivalence.py` 10/10 against the live service |
+| **Pixeltable** | Yes | Catalog created, three videos ingested over HTTP with background jobs, contract suite green against the live service |
 | **compute-service** | Yes | All seven endpoints exercised against the fixture videos |
-| **Supabase** | Yes | `supabase start` applied all three migrations, the `api` Edge Function served under `supabase functions serve`, three videos ingested, 45/45 frames and 6/6 chunks embedded, `harness/test_equivalence.py` 10/10. Also typechecks clean under Deno 2.9.6. |
-| **Convex** | Yes | `npx convex dev` (anonymous local backend, no account), three videos ingested over its HTTP actions port, `harness/test_equivalence.py` 10/10, and `tsc --noEmit` clean against real generated code. |
+| **Supabase** | Yes | `supabase start` applied all five migrations, the `api` Edge Function served under `supabase functions serve`, three videos ingested, 45/45 frames and 6/6 chunks embedded, contract suite green. Also `deno lint` and `deno check` clean. |
+| **Convex** | Yes | `npx convex dev` (anonymous local backend, no account), three videos ingested over its HTTP actions port, contract suite green, and `tsc --noEmit` clean against real generated code. |
 
-All three produced the same counts from the same fixtures: 3 videos, 45 frames
+All three produce the same counts from the same fixtures: 3 videos, 45 frames
 (16 / 15 / 14, per video), 6 transcript chunks, and the same top-ranked video for all
-five fixture queries. The suite that checks that is the same file with a different
-`--impl`.
+five fixture queries.
 
 Scene counts differ, and should: Pixeltable uses PySceneDetect's content detector and
-found 2 per video, while `compute-service` uses ffmpeg's `select='gt(scene,T)'` filter
-and found 3 / 2 / 3. Same videos, different detectors. The harness asserts only that
-each video has at least one scene, because requiring equality would be requiring two
-different algorithms to agree.
+finds 2 per video, while `compute-service` uses ffmpeg's `select='gt(scene,T)'` filter and
+finds 3 / 2 / 3. Same videos, different detectors. The harness asserts only that each
+video has at least one scene, because requiring equality would be requiring two different
+algorithms to agree.
 
-Two claims about Pixeltable's behaviour are checked by hand rather than by a suite, and
-both were re-run against the live catalog:
+## The suites
+
+[`harness/seed.py`](../harness/seed.py) loads the fixtures into any of the three, waiting
+out Pixeltable's asynchronous job and the other two's synchronous pipelines alike.
+
+| Suite | Tests | Needs | Asks |
+|---|---|---|---|
+| [`test_metrics.py`](../harness/test_metrics.py) | 29 | nothing running | does the measuring code measure what it claims? |
+| [`test_equivalence.py`](../harness/test_equivalence.py) | 11 | one implementation | does it satisfy the contract, and rank the right video first? |
+| [`test_differential.py`](../harness/test_differential.py) | 20 | all three | do they agree with each other? |
+| [`test_resilience.py`](../harness/test_resilience.py) | 32 | all three | what do they do with a request they should refuse? |
+| [`test_recovery.py`](../harness/test_recovery.py) | 6 | all three, `--destructive` | what does a failed or concurrent ingest leave behind? |
+
+**Differential** runs three explicit tiers, because the three are not expected to agree on
+everything. Identical: same videos listed, same top hit for every query. Tolerance:
+durations within 0.1s, top-1 similarities within 0.05, transcript token overlap at least
+90%, which covers the audio boundary. Known divergence: rank ordering below the top hit,
+and the two scene detectors, recorded rather than asserted.
+
+**Resilience** sends a missing field, a negative `limit`, a query that is a number, a body
+that is an array. Its one assertion is that a malformed request never draws a 5xx, because
+a 5xx tells a client the server broke and to retry, and retrying a malformed request can
+only fail again. Which 4xx is recorded and not enforced: Pixeltable answers 422 from
+Pydantic, the other two 400 from checks written by hand. It also pins what `limit` means:
+omitted is 10, `0` is no rows, and a limit past the corpus returns the corpus. Those are
+easy to get subtly wrong in a way no contract test notices.
+
+**Recovery** is the only suite that writes, so it is behind `--destructive` and the
+fixtures are re-seeded after a run. All three reject a zero-byte file, a truncated file,
+random bytes with an `.mp4` extension and a path that does not exist, and none of them
+lists the failure. What each leaves behind differs: Pixeltable rejects the insert, so
+there is no row and the error is typed, while Supabase and Convex write the row before
+processing, leave `status='error'` in the table, answer a bare 500, and filter that row out
+of their list endpoint.
+
+Two claims about Pixeltable's behaviour are checked by hand rather than by a suite, both
+re-run against the live catalog:
 
 - **Processing fires for any writer.** A plain `videos.insert([...])` in a Python shell,
   with the HTTP service not involved, produced 30 frames and 3 chunks, all columns
   computed, and the new frames were returned by a similarity query in the same session.
 - **Adding a column backfills incrementally.** Adding one computed column to `Videos` and
-  running `pxt schema update` took 1.4s: `media/videos` updated, `media/frames`,
-  `media/chunks` and `media/conversations` each reported `unchanged`, and no transcription
-  re-ran. Removing it again is refused as `DESTRUCTIVE` without an explicit flag.
-
-All three run live at once for `harness/test_differential.py` (20 tests) and
-`harness/test_resilience.py` (32 tests), and `harness/test_metrics.py` (27 tests) checks
-the measuring code itself against fixtures with known counts. Where a claim is about
-runtime behaviour, it comes from the table above.
-
-Seeding fixture videos across any implementation is managed by
-[`harness/seed.py`](../harness/seed.py), accommodating Pixeltable's asynchronous job polling
-and the synchronous pipelines of Supabase and Convex.
-
-In addition to single-platform contract testing in `test_equivalence.py`,
-[`harness/test_differential.py`](../harness/test_differential.py) tests live implementations
-against each other across three explicit tiers:
-- **Identical**: same videos listed and same top hit for all search queries.
-- **Tolerance**: durations within 0.1s, top-1 similarities within 0.05, and transcript token
-  overlap of at least 90% (accounting for audio boundary variations).
-- **Known divergence**: rank ordering below the top hit and differing scene counts between
-  PySceneDetect and ffmpeg scene filters are recorded rather than asserted.
-
-[`harness/test_recovery.py`](../harness/test_recovery.py) is the only suite that writes,
-so it is behind `--destructive` and the fixtures are re-seeded after a run. It ingests a
-zero-byte file, a truncated file, random bytes with an `.mp4` extension and a path that
-does not exist, and asserts the invariant that matters to a caller: a failed ingest never
-appears in `GET /videos`. It also runs two ingests concurrently and requires both to land
-exactly once.
-
-All three satisfy it. The difference it records is what each leaves behind. Pixeltable
-rejects the insert, so there is no row and the error is typed. Supabase and Convex write
-the row before processing, so a failure leaves `status='error'` in the table and answers a
-bare 500; both filter that row out of their list endpoint, and those two lines exist
-because this suite found that they did not.
-
-[`harness/test_resilience.py`](../harness/test_resilience.py) sends the requests the
-contract does not describe: a missing field, a negative `limit`, a query that is a number,
-a body that is an array. Its one assertion is that a malformed request never draws a 5xx,
-because a 5xx tells a client the server broke and to retry, and a retry of a malformed
-request can only fail again. Which 4xx is recorded and not enforced: Pixeltable answers
-422 from Pydantic, the other two 400 from checks written by hand.
-
-It also pins the semantics `limit` has to have. Omitted means 10, `0` means no rows, and a
-limit past the corpus returns the corpus. Those are easy to get subtly wrong in a way no
-contract test notices: `limit || 10` in TypeScript turns a request for zero rows into a
-request for ten, and Convex's `vectorSearch` rejects a limit below 1, so clamping into
-range silently answers a request for zero rows with one.
+  running `pxt schema update` took 1.4s: `media/videos` updated, the other three
+  `unchanged`, and no transcription re-ran. Removing it again is refused as `DESTRUCTIVE`
+  without an explicit flag. Priced against the other two in [EVOLVE.md](EVOLVE.md).
 
 Throughput and latency are measured separately, over a 20-video tier, in
 [SCALE.md](SCALE.md). Pixeltable is the slowest of the three on both.
 
-## What this benchmark does not exercise
+## Capabilities the contract leaves out
 
-The contract fixes what all three must do, which means Pixeltable capabilities outside it
-are absent from every number in this repo. Stated so the tables are not mistaken for the
-whole picture.
+The contract fixes what all three must do, so a Pixeltable capability outside it is absent
+from every number here. Listed so the tables are not mistaken for the whole picture. The
+decision axes this benchmark ignores entirely are in
+[TRADEOFFS.md](TRADEOFFS.md#what-this-benchmark-does-not-measure).
 
 - **Hosted-model scheduling.** Eighteen provider modules (`openai`, `anthropic`, `gemini`,
   `groq`, `mistralai`, `together`, `voyageai`, `jina`, `fireworks`, `deepseek`, `nebius`,
@@ -176,13 +167,10 @@ whole picture.
   lineage graphs, version history, and a data browser that renders frames and video.
   Supabase Studio and the Convex dashboard both ship too, and are also unmeasured; the
   part with no counterpart is the lineage, because the other two record nothing to draw.
-- **Auth, realtime, multi-tenancy and cost.** See below and
-  [TRADEOFFS.md](TRADEOFFS.md).
-
-One capability outside the contract is measured rather than listed: adding a column to a
-populated table, in [EVOLVE.md](EVOLVE.md). Each platform's change is applied, timed and
-reverted, and nothing is committed to the implementations, so the line counts above keep
-measuring the contract.
+One of them is measured rather than listed: adding a column to a populated table, in
+[EVOLVE.md](EVOLVE.md). Each platform's change is applied, timed and reverted, and nothing
+is committed to the implementations, so the line counts above keep measuring the
+contract.
 
 ## Where this is favourable to Pixeltable
 
@@ -241,8 +229,8 @@ claim from "it runs on the author's machine".
 | compute-service | Yes. |
 | Pixeltable | Yes, on released 0.7.8 with no patch and no source install. A fresh venv, `pip install -e .`, `pxt init`, `pxt schema update`: four tables and both embedding indexes. Then a video ingested and a transcript similarity query answered from it, so the check covers running the pipeline and not only creating it. |
 
-The Pixeltable row is the one checked hardest, and `pyproject.toml` pins the two
-dependencies that decide it. `pixeltable[serve]` needs `sentence-transformers` 5.4 or
+`pyproject.toml` pins the two dependencies that decide the Pixeltable row.
+`pixeltable[serve]` needs `sentence-transformers` 5.4 or
 newer, where the index-dimension call it makes exists; a clean install of this app
 resolves 5.7.0. An environment that already holds an older one keeps it, and that call
 site has no version check, so the failure reads as a missing attribute rather than the
@@ -264,4 +252,4 @@ are wrong there. All three implementations have to embed with the same semantics
   reader to discover.
 - A change to the contract is a change to all three.
 - `python harness/run_comparison.py` regenerates `docs/metrics.json`, and every number
-  in the README and the scorecard comes from that file.
+  in the README and the docs comes from that file.

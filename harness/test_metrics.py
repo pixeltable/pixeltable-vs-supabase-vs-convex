@@ -2,10 +2,9 @@
 
     pytest harness/test_metrics.py
 
-Every number in the README, the scorecard and the tradeoffs doc comes from
-`harness/metrics.py`. Nothing else in this repo checks it, and a miscount nobody catches
-is indistinguishable from a lie. These tests use fixtures with counts that can be read off
-by eye.
+Every line count and architecture count in the README and the docs comes from
+`harness/metrics.py`, and a miscount nobody catches is indistinguishable from a lie. These
+tests use fixtures with counts that can be read off by eye.
 """
 
 from __future__ import annotations

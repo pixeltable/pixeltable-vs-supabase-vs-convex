@@ -127,8 +127,8 @@ class TestSearch:
     def test_chunks_are_not_all_the_same_text(self, client, paths):
         """A video longer than one chunk must yield different text per chunk.
 
-        Both alternatives originally transcribed the whole track once per chunk and
-        wrote the same string to every row. This catches that.
+        An implementation that transcribes the whole track once per chunk writes the same
+        string to every row, passes every shape check, and is wrong.
         """
         rows = call(client, paths, 'transcripts', query='algorithm', limit=20)['rows']
         by_video: dict[str, set[str]] = {}

@@ -1,6 +1,6 @@
 -- Video Intelligence Pipeline schema
 -- 5 tables, 3 foreign keys, 2 vector columns, 2 HNSW indexes, 1 status column.
--- Compare: pixeltable/app.py declares 1 table and 2 views, and no status column,
+-- Compare: pixeltable/app.py declares 2 tables and 2 views, and no status column,
 -- because a cell either holds a value or holds its own error.
 
 CREATE EXTENSION IF NOT EXISTS vector;
