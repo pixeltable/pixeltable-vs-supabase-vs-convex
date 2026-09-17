@@ -137,6 +137,8 @@ def ingest(client: httpx.Client, impl: str, tier: str) -> dict:
         # is reported on its own rather than averaged into the rest.
         'first_video_sec': round(per_video[0], 1),
         'median_video_sec': round(statistics.median(per_video[1:] or per_video), 1),
+        # Seconds of footage per second spent. Normalises across tiers, which hold
+        # different amounts of video, so their wall times cannot be compared directly.
         'realtime_factor': round(seconds_of_video / wall, 2),
     }
 

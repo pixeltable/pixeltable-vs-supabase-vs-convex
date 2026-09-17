@@ -29,6 +29,11 @@ Two tiers, each ingested on top of the corpus the previous one left. Large is 20
 and 10 minutes of footage into a table holding 3; xl is 100 videos and 63 minutes into a
 table holding 103. All three finished every video at both tiers with no failed attempts.
 
+**Faster than realtime** is seconds of footage divided by seconds spent: at 8.04x,
+Pixeltable chewed through 63 minutes of video in 7.8 minutes. It is here because the two
+tiers hold different amounts of footage, 10 minutes against 63, so wall times are not
+comparable between them and this is. Higher is faster.
+
 | | Tier | Wall time | Faster than realtime | Median video |
 |---|---|---|---|---|
 | Pixeltable | large | 66.7s | 9.04x | 3.1s |
