@@ -4,13 +4,16 @@ version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
     # Everything the app needs. No vector database, no queue, no compute service.
-    "pixeltable[serve]>=0.7.7",
+    "pixeltable[serve]>=0.7.8",
     "openai-whisper",      # whisper.transcribe
     # The floor pixeltable needs. Below it, resolving the transcript index's dimension
     # calls a method the older package does not define and the failure reads as a missing
     # attribute rather than a version error. PXT-1419.
     "sentence-transformers>=5.4",
-    "transformers",        # clip
+    # clip. transformers 5 returns a BaseModelOutputWithPooling from get_image_features
+    # rather than a tensor, and pixeltable's own source records that top-k results are
+    # wrong there. Same floor as compute-service, so all three embed identically.
+    "transformers<5",
     "torch",
     "scenedetect",         # video.scene_detect_content
     "llama-cpp-python",    # the agent's local chat model

@@ -57,6 +57,23 @@ TRANSCRIPT_QUERIES = [
 ]
 
 
+# The libraries that decide what the numbers mean. Pixeltable runs the models in its own
+# process; compute-service runs the same ones for the other two, from this environment.
+TRACKED_PACKAGES = ('pixeltable', 'sentence-transformers', 'transformers', 'torch', 'openai-whisper')
+
+
+def versions() -> dict[str, str]:
+    import importlib.metadata as md
+
+    found = {}
+    for name in TRACKED_PACKAGES:
+        try:
+            found[name] = md.version(name)
+        except md.PackageNotFoundError:
+            found[name] = 'not installed'
+    return found
+
+
 def percentile(values: list[float], p: float) -> float:
     """Nearest-rank percentile. No interpolation, so every number is one observed run."""
     ordered = sorted(values)
@@ -196,14 +213,14 @@ def main() -> int:
         result['corpus'] = corpus(client, args.impl)
 
     existing = json.loads(OUT.read_text()) if OUT.exists() else {}
-    existing.setdefault(
-        'host',
-        {
-            'platform': platform.platform(),
-            'machine': platform.machine(),
-            'python': platform.python_version(),
-        },
-    )
+    # Rewritten every run rather than set once: a timing is only reproducible alongside
+    # the library versions that produced it, and those move.
+    existing['host'] = {
+        'platform': platform.platform(),
+        'machine': platform.machine(),
+        'python': platform.python_version(),
+        'versions': versions(),
+    }
     existing[args.impl] = result
     OUT.write_text(json.dumps(existing, indent=2) + '\n')
     print(f'wrote {OUT.relative_to(ROOT)}')

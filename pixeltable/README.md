@@ -57,22 +57,23 @@ answers `no primary key defined`. The column is the way in here.
 
 ## One error worth recognising
 
-`pip install -e .` into a fresh environment works: it resolves `pixeltable[serve]` 0.7.8
-and `sentence-transformers` 6.0.1, and `pxt schema update` creates all four tables and
-both embedding indexes.
+`pip install -e .` into a fresh environment works, and this app runs on the released
+package with no patch of any kind.
 
 Into an environment that already holds `sentence-transformers` older than 5.4, the same
-command leaves the old one in place and `pxt schema check` fails before any table exists:
+command leaves the old one in place, and `pxt schema check` fails before any table exists:
 
 ```
 pxt: 422 error loading app.py: 'SentenceTransformer' object has no attribute 'get_embedding_dimension'
 ```
 
-`pip install -U 'sentence-transformers>=5.4'` fixes it. The message is misleading rather
-than the problem: Pixeltable needs `sentence-transformers` 5.4 or newer, and the code path
-that resolves an index's dimension calls the new method without the version check that
-every other path performs, so a version mismatch surfaces as a missing attribute instead
-of the readable error Pixeltable already knows how to print. Tracked as PXT-1419.
+`pip install -U 'sentence-transformers>=5.4'` fixes it, and the floor is declared in
+`pyproject.toml` so a fresh resolve cannot land there. The message is the problem rather
+than the requirement: Pixeltable does need 5.4 or newer, and says so clearly everywhere
+except the one path that resolves an index's dimension, which calls the new method with no
+version check. Tracked as [PXT-1421](https://pixeltable.atlassian.net/browse/PXT-1421),
+with the missing dependency floor as
+[PXT-1422](https://pixeltable.atlassian.net/browse/PXT-1422).
 
 ## Two things that look odd, and why
 

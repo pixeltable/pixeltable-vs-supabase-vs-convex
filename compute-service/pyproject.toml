@@ -7,10 +7,16 @@ dependencies = [
     "fastapi>=0.110",
     "uvicorn[standard]",
     "Pillow",
-    "transformers",
+    # transformers 5 changed CLIP: get_image_features and get_text_features return a
+    # BaseModelOutputWithPooling instead of a tensor, so the `feats.norm(...)` in app.py raises,
+    # and the pooled output is not the projected embedding the 4.x call returned. All
+    # three implementations have to embed with the same semantics or the comparison is
+    # meaningless, so the floor stays under 5 until that is settled for all of them.
+    "transformers<5",
     "torch",
     "openai-whisper",
-    "sentence-transformers",
+    # 5.4 is where get_embedding_dimension arrives, which pixeltable requires.
+    "sentence-transformers>=5.4",
     "llama-cpp-python",
 ]
 

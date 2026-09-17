@@ -2,35 +2,42 @@
   "host": {
     "platform": "macOS-26.6.1-arm64-arm-64bit",
     "machine": "arm64",
-    "python": "3.12.7"
+    "python": "3.12.7",
+    "versions": {
+      "pixeltable": "0.7.8",
+      "sentence-transformers": "5.7.0",
+      "transformers": "4.57.6",
+      "torch": "2.8.0",
+      "openai-whisper": "20250625"
+    }
   },
   "pixeltable": {
     "tier": "large",
-    "measured_at": "2026-09-16T23:10:25+00:00",
+    "measured_at": "2026-09-17T00:42:44+00:00",
     "ingest": {
       "videos": 20,
       "ingested": 20,
       "failed_attempts": [],
       "seconds_of_video": 603.7,
-      "wall_sec": 79.1,
-      "first_video_sec": 4.6,
-      "median_video_sec": 3.7,
-      "realtime_factor": 7.64
+      "wall_sec": 66.7,
+      "first_video_sec": 5.3,
+      "median_video_sec": 3.1,
+      "realtime_factor": 9.04
     },
     "search": {
       "frames": {
         "samples": 30,
-        "p50_ms": 55.3,
-        "p95_ms": 60.8,
-        "min_ms": 51.5,
-        "max_ms": 61.2
+        "p50_ms": 39.0,
+        "p95_ms": 42.9,
+        "min_ms": 33.3,
+        "max_ms": 43.1
       },
       "transcripts": {
         "samples": 30,
-        "p50_ms": 21.2,
-        "p95_ms": 24.3,
-        "min_ms": 16.6,
-        "max_ms": 24.6
+        "p50_ms": 18.5,
+        "p95_ms": 21.6,
+        "min_ms": 14.6,
+        "max_ms": 35.5
       }
     },
     "corpus": {
@@ -40,31 +47,31 @@
   },
   "convex": {
     "tier": "large",
-    "measured_at": "2026-09-16T22:52:57+00:00",
+    "measured_at": "2026-09-17T00:44:48+00:00",
     "ingest": {
       "videos": 20,
       "ingested": 20,
       "failed_attempts": [],
       "seconds_of_video": 603.7,
-      "wall_sec": 56.9,
-      "first_video_sec": 5.3,
-      "median_video_sec": 2.5,
-      "realtime_factor": 10.6
+      "wall_sec": 53.7,
+      "first_video_sec": 3.2,
+      "median_video_sec": 2.4,
+      "realtime_factor": 11.25
     },
     "search": {
       "frames": {
         "samples": 30,
-        "p50_ms": 29.8,
-        "p95_ms": 37.8,
-        "min_ms": 26.9,
-        "max_ms": 38.9
+        "p50_ms": 26.6,
+        "p95_ms": 40.7,
+        "min_ms": 23.0,
+        "max_ms": 61.1
       },
       "transcripts": {
         "samples": 30,
-        "p50_ms": 14.5,
-        "p95_ms": 21.1,
-        "min_ms": 12.0,
-        "max_ms": 62.6
+        "p50_ms": 11.8,
+        "p95_ms": 17.7,
+        "min_ms": 10.0,
+        "max_ms": 18.4
       }
     },
     "corpus": {
@@ -74,31 +81,31 @@
   },
   "supabase": {
     "tier": "large",
-    "measured_at": "2026-09-16T23:08:28+00:00",
+    "measured_at": "2026-09-17T00:43:53+00:00",
     "ingest": {
       "videos": 20,
       "ingested": 20,
       "failed_attempts": [],
       "seconds_of_video": 603.7,
-      "wall_sec": 53.5,
-      "first_video_sec": 3.3,
-      "median_video_sec": 2.4,
-      "realtime_factor": 11.29
+      "wall_sec": 51.8,
+      "first_video_sec": 4.1,
+      "median_video_sec": 2.1,
+      "realtime_factor": 11.64
     },
     "search": {
       "frames": {
         "samples": 30,
-        "p50_ms": 35.7,
-        "p95_ms": 40.2,
-        "min_ms": 31.4,
-        "max_ms": 40.8
+        "p50_ms": 26.1,
+        "p95_ms": 30.5,
+        "min_ms": 22.9,
+        "max_ms": 34.0
       },
       "transcripts": {
         "samples": 30,
-        "p50_ms": 17.2,
-        "p95_ms": 22.7,
-        "min_ms": 14.7,
-        "max_ms": 23.6
+        "p50_ms": 13.7,
+        "p95_ms": 16.3,
+        "min_ms": 12.7,
+        "max_ms": 30.1
       }
     },
     "corpus": {

@@ -14,7 +14,9 @@ python harness/benchmark.py --impl supabase --base-url http://127.0.0.1:54321 --
 python harness/benchmark.py --impl convex --base-url http://127.0.0.1:3211 --tier large
 ```
 
-Raw output is [`benchmarks.json`](benchmarks.json). Nothing below is typed by hand.
+Raw output is [`benchmarks.json`](benchmarks.json), which records the library versions
+alongside the timings, because a timing without them is not reproducible. Nothing below is
+typed by hand.
 
 ## Ingest
 
@@ -23,18 +25,18 @@ finished 20 of 20 with no failed attempts.
 
 | | Wall time | Faster than realtime | First video | Median video |
 |---|---|---|---|---|
-| Pixeltable | 79.1s | 7.64x | 4.6s | 3.7s |
-| Supabase | **53.5s** | **11.29x** | 3.3s | **2.4s** |
-| Convex | 56.9s | 10.6x | 5.3s | 2.5s |
+| Pixeltable | 66.7s | 9.04x | 5.3s | 3.1s |
+| Supabase | **51.8s** | **11.64x** | 4.1s | **2.1s** |
+| Convex | 53.7s | 11.25x | **3.2s** | 2.4s |
 
-**Pixeltable is the slowest of the three here, by about 1.4x.** The first video is
+**Pixeltable is the slowest of the three here, by about 1.3x.** The first video is
 reported separately because it pays for loading CLIP, Whisper and the embedding model.
 
 Ingest is asynchronous on Pixeltable, which answers with a job, and synchronous on the
 other two. The harness waits for completion either way, so the column compares the same
-thing. It polls every 50ms; at the 2s interval used for seeding, every Pixeltable ingest
-rounds up to the next 2s and the wall time reads 90.5s instead of 79.1s. That is the
-harness, not the platform, and it is worth saying because it was in an earlier number.
+thing. It polls every 50ms. At the 2s interval used for seeding, every Pixeltable ingest
+would round up to the next 2s and the wall time would read about 14s higher: the harness,
+not the platform.
 
 ## Search
 
@@ -43,16 +45,16 @@ correctness suites assert on. Six passes, one untimed warm-up, 23 videos in the 
 
 | | Frame search p50 | p95 | Transcript search p50 | p95 |
 |---|---|---|---|---|
-| Pixeltable | 55.3ms | 60.8ms | 21.2ms | 24.3ms |
-| Supabase | 35.7ms | 40.2ms | 17.2ms | 22.7ms |
-| Convex | **29.8ms** | **37.8ms** | **14.5ms** | **21.1ms** |
+| Pixeltable | 39.0ms | 42.9ms | 18.5ms | 21.6ms |
+| Supabase | 26.1ms | **30.5ms** | 13.7ms | **16.3ms** |
+| Convex | **26.6ms** | 40.7ms | **11.8ms** | 17.7ms |
 
-**Pixeltable is the slowest here too**, by about 1.9x on frame search.
+**Pixeltable is the slowest here too**, by about 1.5x on frame search.
 
 Most of every number is embedding the query, not searching. Measured directly against
-`compute-service`, one CLIP text embedding is 22.2ms and one MiniLM embedding is 8.8ms.
-Subtract those and Convex's frame search is about 8ms of vector search, hydration and
-HTTP, Supabase's about 14ms, and Pixeltable's about 33ms of everything it does in
+`compute-service`, one CLIP text embedding is 19.9ms and one MiniLM embedding is 6.4ms.
+Subtract those and Supabase's and Convex's frame searches are each about 6ms of vector
+search, hydration and HTTP, where Pixeltable's is about 19ms of everything it does in
 process. At 603 vectors no index is working hard; this compares the code around the
 index, not the index.
 
@@ -60,7 +62,11 @@ index, not the index.
 
 - **One laptop, one run, CPU only, local models.** They compare the three against each
   other on identical work, which is the question this repo asks. They are not a capacity
-  estimate for anyone's production.
+  estimate for anyone's production, and they move: the same three measured on a busier
+  machine were 20% slower across the board with the same ordering. Read the gaps, not the
+  milliseconds.
+- **One set of library versions**, recorded in `benchmarks.json` beside the timings.
+  Pixeltable 0.7.8, sentence-transformers 5.7.0, transformers 4.57.6, torch 2.8.0.
 - **603 vectors is not a vector benchmark.** HNSW and Convex's vector index are both
   well inside the range where a linear scan would also be fast. Nothing here says
   anything about recall or latency at a million rows.

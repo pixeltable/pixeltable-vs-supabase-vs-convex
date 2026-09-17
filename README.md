@@ -33,9 +33,9 @@ scored zero.
 | HTTP routes written by hand | 1 | 1 | 5 |
 
 Those are properties of the code. Speed is not one of them, and on speed Pixeltable
-loses: over 20 videos and 10 minutes of footage it ingests at 7.6x realtime against
-Supabase's 11.3x, and answers a frame search in 55ms against Convex's 30ms. Measured, with
-the method and the caveats, in [docs/SCALE.md](docs/SCALE.md).
+loses: over 20 videos and 10 minutes of footage it ingests at 9.04x realtime against
+Supabase's 11.64x, and answers a frame search in 39ms against Supabase's 26ms. Measured,
+with the method, the library versions and the caveats, in [docs/SCALE.md](docs/SCALE.md).
 
 **Read [docs/TRADEOFFS.md](docs/TRADEOFFS.md) before the rest.** It says which stack wins
 under which conditions, using even swaps, and it concedes the cases where Pixeltable

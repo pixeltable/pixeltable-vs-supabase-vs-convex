@@ -194,10 +194,10 @@ claim from "it runs on the author's machine".
 | Supabase | Yes. `supabase start`, migrations, one Edge Function. |
 | Convex | Yes. `npx convex dev` gives an anonymous local backend, no account. |
 | compute-service | Yes. |
-| Pixeltable | Yes. A fresh venv, `pip install -e .`, `pxt init`, `pxt schema update`: four tables and both embedding indexes created, on released 0.7.8 with no patch and no source install. |
+| Pixeltable | Yes, on released 0.7.8 with no patch and no source install. A fresh venv, `pip install -e .`, `pxt init`, `pxt schema update`: four tables and both embedding indexes. Then a video ingested and a transcript similarity query answered from it, so the check covers running the pipeline and not only creating it. |
 
 The Pixeltable row is the one that was checked hardest, because this repo carried the
-opposite claim. `pixeltable[serve]` needs `sentence-transformers` 5.4 or newer and a clean
+opposite claim, and `pyproject.toml` now pins the two dependencies that decide it. `pixeltable[serve]` needs `sentence-transformers` 5.4 or newer and a clean
 install resolves 6.0.1, where everything works. An environment that already holds an older
 one keeps it, and the code path that resolves an index's dimension then calls a method
 that version does not define, so the failure reads as a missing attribute rather than the
