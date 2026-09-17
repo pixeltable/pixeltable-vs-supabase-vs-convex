@@ -1,0 +1,7 @@
+    status: v.string(), // 'processing' | 'ready' | 'error'
+    createdAt: v.number(),
+  }),
+---
+    status: v.string(), // 'processing' | 'ready' | 'error'
+    createdAt: v.number(),
+  }).searchIndex("by_title", { searchField: "title" }),

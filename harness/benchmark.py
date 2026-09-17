@@ -189,7 +189,7 @@ def main() -> int:
     parser.add_argument('--impl', required=True, choices=sorted(PATHS))
     parser.add_argument('--base-url', default='')
     parser.add_argument('--auth-token', default='')
-    parser.add_argument('--tier', default='large', choices=['small', 'large'])
+    parser.add_argument('--tier', default='large', choices=['small', 'large', 'xl'])
     parser.add_argument('--iterations', type=int, default=6, help='passes over the query set')
     parser.add_argument('--skip-ingest', action='store_true', help='measure search only')
     args = parser.parse_args()
@@ -221,7 +221,13 @@ def main() -> int:
         'python': platform.python_version(),
         'versions': versions(),
     }
-    existing[args.impl] = result
+    # Keyed by implementation then tier, so tiers accumulate instead of overwriting each
+    # other. A flat entry from a single-tier run is migrated into its own tier first.
+    entry = existing.get(args.impl, {})
+    if 'tier' in entry:
+        entry = {entry['tier']: entry}
+    entry[args.tier] = result
+    existing[args.impl] = entry
     OUT.write_text(json.dumps(existing, indent=2) + '\n')
     print(f'wrote {OUT.relative_to(ROOT)}')
     return 0

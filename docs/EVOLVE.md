@@ -24,12 +24,34 @@ change is applied, timed, and reverted. The diffs are in
 |---|---|---|---|---|---|
 | Pixeltable | 3.88s | same step | 3.88s | **1** | **1** |
 | Supabase | 0.07s | 1.52s | **1.6s** | 24 | 2 |
-| Convex | 5.98s | 1.39s | 7.37s | 53 | 2 |
+| Convex | 5.98s | 1.91s | 7.89s | 53 | 2 |
 
 **Supabase is the fastest, and Pixeltable is not.** At two dozen rows the backfill is one
 batched embedding call and a couple of dozen updates, so wall time is dominated by what
 surrounds it: building an HNSW index, or pushing a deployment. Anyone quoting these
 seconds as a scaling result is quoting noise.
+
+### The same question asked the cheap way
+
+Those numbers are the price of *semantic* title search, where the other two must compute a
+vector per row. Ask only for text search and Convex answers in one line with no backfill
+and no reverse migration, because `searchIndex` builds over a field the documents already
+carry:
+
+```ts
+  }).searchIndex("by_title", { searchField: "title" }),
+```
+
+| | Total | Lines written | Files touched |
+|---|---|---|---|
+| Convex, `vectorIndex` (semantic, same feature as the other two) | 7.89s | 53 | 2 |
+| Convex, `searchIndex` (lexical) | **1.55s** | **1** | **1** |
+
+Both are measured and both are in [`evolve.json`](evolve.json). Postgres has the same
+cheap answer in a GIN index over `to_tsvector(title)`, and Pixeltable in a `BtreeIndex`.
+So read the 24 and the 53 as what semantic parity costs, not as what it costs to make a
+title searchable. The row that survives either reading is Pixeltable's 1 line, which buys
+the semantic version.
 
 The column that is not noise is the last two. Pixeltable's entire change:
 
@@ -70,7 +92,9 @@ export const backfillTitleEmbeddings = internalAction({ ... });
 index. Supabase drops the column and the index. Convex needs **a second migration**:
 pushing a schema that no longer declares `titleEmbedding` is rejected while documents
 still carry it, so the field has to be unset on every row first. That reverse migration is
-17 of Convex's 53 lines and exists only to undo the forward one.
+17 of Convex's 53 lines and exists only to undo the forward one. The `searchIndex` variant
+has no such problem: nothing was written to the rows, so dropping the index from the schema
+is the whole rollback.
 
 **Pixeltable's running service has to be restarted.** After `pxt schema update` changes a
 table, an insert against the already-registered route answers

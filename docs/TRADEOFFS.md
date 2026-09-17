@@ -79,7 +79,23 @@ proportional to the table and an incremental backfill is work proportional to th
 That is a structural claim this repo does not measure at a size where it bites, which is
 why it belongs in the conditional answer rather than the headline.
 
-Throughput is not in the swaps below because it has its own measurement:
+**Swap 5: equalise the app shape.** Every swap above trades one attribute. This one trades
+the premise. The contract is single-tenant, stateless, request/response and write-once:
+`harness/api_contract.py` has no `PUT`, no `PATCH`, no `DELETE`, no user or tenant on any
+row, no pagination, and a client that never uploads bytes. Give the benchmark a second
+shape instead, a multi-tenant application with subscriptions, and the table inverts. Convex
+gets reactivity back, which is the reason to choose it and which `http.ts` exists only to
+throw away. Supabase gets Auth and RLS policies, which is the reason a large share of its
+users are there at all. Pixeltable has no answer to either and would need one of them
+underneath it.
+
+Price of the swap: a second contract, three more implementations, and a second set of
+suites. This repo has not paid it, so the swap **cannot be struck out** and the column it
+would move is not measured anywhere here. That is the largest single caveat on everything
+above, larger than any number in the table, and it is why this page recommends
+conditionally rather than declaring a winner.
+
+Throughput is not in the swaps because it has its own measurement:
 [SCALE.md](SCALE.md), where Supabase ingests fastest and Convex searches fastest. If speed
 at this scale is your binding constraint, that page decides it and this one does not.
 
@@ -118,6 +134,47 @@ for a team that already runs one of those it is likely the cheaper answer than m
 
 ## What this benchmark does not measure
 
-Cost in dollars. Auth and multi-tenancy. Realtime and reactivity. Managed operations,
-uptime and on-call. Cold starts and p99 latency. Team familiarity. Migration cost from
-whatever you run today. Any of these can outweigh everything in the table above.
+Cost in dollars. Managed operations, uptime and on-call. Cold starts and p99 latency. Team
+familiarity. Migration cost from whatever you run today. Any of these can outweigh
+everything in the table above.
+
+Then there is a larger omission, which is that both competitors are used here in a shape
+their vendors would not call typical. Every line below was checked by grep against
+`supabase-app/supabase/` and `convex-app/convex/`, so it is a statement about this repo,
+not an opinion about the platforms.
+
+### Supabase, as it is normally used
+
+| | Used here? |
+|---|---|
+| Auth plus per-tenant RLS policies | **No.** RLS is enabled on all five tables and **zero policies are written**; every request runs on a service-role key that bypasses RLS. `CREATE POLICY` and `auth.uid()` appear nowhere outside a comment. |
+| Realtime | **No.** No `[realtime]` stanza in `config.toml`, no table added to the `supabase_realtime` publication, no `.channel(` anywhere. |
+| PostgREST called directly from a client | **No.** Every query goes through one Edge Function. PostgREST would serve `GET /videos` and both searches with no handler code at all. |
+| Storage policies, signed URLs, image transforms | **No.** One public bucket, service-role uploads, `getPublicUrl`. |
+| `pg_cron`, `pg_net`, queues, database triggers | **No.** Zero hits for each; `db_triggers` is a measured 0. |
+| Branching, PITR | **No.** |
+
+The first row is the one that matters. Auth plus RLS is the reason a large share of teams
+choose Supabase at all, and this benchmark cannot express it: the contract has no user, no
+tenant, and no owned row, so there is nothing for a policy to be about.
+
+### Convex, as it is normally used
+
+| | Used here? |
+|---|---|
+| Reactive queries | **No, and by construction.** There is no client in the repo: zero hits for `convex/react`, `useQuery`, `ConvexProvider`. A REST contract discards reactivity, which is why most teams pick Convex. |
+| Optimistic updates | **No.** They are a reactive-client feature and there is no client. |
+| Scheduled functions and crons | **No.** No `ctx.scheduler`, no `convex/crons.ts`. `harness/metrics.py` counts `scheduler.runAfter(` as an orchestration hop and matches nothing. |
+| Components (`@convex-dev/*`) | **No.** No `convex.config.ts`, so none can be installed. The only `@convex-dev` dependency is their ESLint plugin. |
+| `searchIndex` | **No** in the app. Priced separately in [EVOLVE.md](EVOLVE.md), where it turns a 53-line change into a 1-line one. |
+| Convex Auth | **No.** All five routes are unauthenticated. |
+| `generateUploadUrl` | **No.** Frames are base64'd through the compute service and uploaded server-side. |
+| Transactional multi-table mutations | **Not as a design point.** Ingest splits writes across four separate `ctx.runMutation` calls, each its own transaction. |
+
+### Pixeltable, as it is normally used
+
+This *is* the shape. A multimodal pipeline with computed columns, indexes and a REST
+surface is the thing Pixeltable is for, which is why it wins here. What the contract leaves
+out for Pixeltable is listed in
+[METHODOLOGY.md](METHODOLOGY.md#pixeltable-capabilities-the-contract-leaves-out): hosted
+model scheduling, five of seven iterators, and the dashboard.

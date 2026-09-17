@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-09-17T04:23:32+00:00",
+  "measured_at": "2026-09-17T18:55:07+00:00",
   "pixeltable": {
     "schema_change_sec": 3.88,
     "backfill_sec": 0.0,
@@ -27,14 +27,25 @@
   },
   "convex": {
     "schema_change_sec": 5.98,
-    "backfill_sec": 1.39,
-    "total_sec": 7.37,
+    "backfill_sec": 1.91,
+    "total_sec": 7.89,
     "lines_written": 53,
     "files_touched": 2,
     "note": "a push, then an action that pages rows through a query and a mutation",
     "output": [
-      "  \"backfilled\": 23",
+      "  \"backfilled\": 3",
       "}"
+    ]
+  },
+  "convex-searchindex": {
+    "schema_change_sec": 1.55,
+    "backfill_sec": 0.0,
+    "total_sec": 1.55,
+    "lines_written": 1,
+    "files_touched": 1,
+    "note": "lexical, not semantic: searchIndex builds over an existing field, so no backfill",
+    "output": [
+      "no backfill step"
     ]
   }
 }

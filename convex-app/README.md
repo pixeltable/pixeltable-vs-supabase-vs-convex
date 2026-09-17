@@ -54,5 +54,14 @@ respectively, and the compute service must be reachable from Convex's cloud, so
 
 Reactivity is the reason most teams choose Convex, and a REST contract discards it
 entirely: with the reactive client, `http.ts` disappears and the UI re-renders on write.
-Transactional mutations, end-to-end types from schema to client, and the retry and
-workflow components are all unused here. See [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md).
+
+Absent, by grep of `convex/`: `convex/react`, `useQuery` or any client at all, so
+reactivity and optimistic updates are structurally unreachable here; `ctx.scheduler` and
+`convex/crons.ts`; `convex.config.ts`, without which no `@convex-dev/*` component can be
+installed; `searchIndex`, priced against the vector equivalent in
+[../docs/EVOLVE.md](../docs/EVOLVE.md); Convex Auth; and `generateUploadUrl`, so frames
+are base64'd through the compute service rather than uploaded straight from a client.
+Ingest also splits its writes across four separate `ctx.runMutation` calls, each its own
+transaction, where a single transactional mutation is the product's actual guarantee.
+
+Priced in [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).

@@ -24,7 +24,11 @@ from harness.conftest import PATHS, auth_headers  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 TIMEOUT = 900.0
 
-TIERS = {'small': ROOT / 'fixtures' / 'videos', 'large': ROOT / 'fixtures' / 'videos' / 'large'}
+TIERS = {
+    'small': ROOT / 'fixtures' / 'videos',
+    'large': ROOT / 'fixtures' / 'videos' / 'large',
+    'xl': ROOT / 'fixtures' / 'videos' / 'xl',
+}
 
 
 def videos_for(tier: str) -> list[Path]:

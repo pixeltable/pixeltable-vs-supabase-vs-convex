@@ -142,12 +142,11 @@ re-run against the live catalog:
 Throughput and latency are measured separately, over a 20-video tier, in
 [SCALE.md](SCALE.md). Pixeltable is the slowest of the three on both.
 
-## Capabilities the contract leaves out
+## Pixeltable capabilities the contract leaves out
 
-The contract fixes what all three must do, so a Pixeltable capability outside it is absent
-from every number here. Listed so the tables are not mistaken for the whole picture. The
-decision axes this benchmark ignores entirely are in
-[TRADEOFFS.md](TRADEOFFS.md#what-this-benchmark-does-not-measure).
+Pixeltable only. The same accounting for Supabase and Convex, which is the longer list, is
+in [TRADEOFFS.md](TRADEOFFS.md#what-this-benchmark-does-not-measure), along with the app
+shape that decides all of it.
 
 - **Hosted-model scheduling.** Eighteen provider modules (`openai`, `anthropic`, `gemini`,
   `groq`, `mistralai`, `together`, `voyageai`, `jina`, `fireworks`, `deepseek`, `nebius`,
@@ -167,6 +166,7 @@ decision axes this benchmark ignores entirely are in
   lineage graphs, version history, and a data browser that renders frames and video.
   Supabase Studio and the Convex dashboard both ship too, and are also unmeasured; the
   part with no counterpart is the lineage, because the other two record nothing to draw.
+
 One of them is measured rather than listed: adding a column to a populated table, in
 [EVOLVE.md](EVOLVE.md). Each platform's change is applied, timed and reverted, and nothing
 is committed to the implementations, so the line counts above keep measuring the

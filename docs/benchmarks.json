@@ -12,105 +12,213 @@
     }
   },
   "pixeltable": {
-    "tier": "large",
-    "measured_at": "2026-09-17T00:42:44+00:00",
-    "ingest": {
-      "videos": 20,
-      "ingested": 20,
-      "failed_attempts": [],
-      "seconds_of_video": 603.7,
-      "wall_sec": 66.7,
-      "first_video_sec": 5.3,
-      "median_video_sec": 3.1,
-      "realtime_factor": 9.04
-    },
-    "search": {
-      "frames": {
-        "samples": 30,
-        "p50_ms": 39.0,
-        "p95_ms": 42.9,
-        "min_ms": 33.3,
-        "max_ms": 43.1
+    "large": {
+      "tier": "large",
+      "measured_at": "2026-09-17T00:42:44+00:00",
+      "ingest": {
+        "videos": 20,
+        "ingested": 20,
+        "failed_attempts": [],
+        "seconds_of_video": 603.7,
+        "wall_sec": 66.7,
+        "first_video_sec": 5.3,
+        "median_video_sec": 3.1,
+        "realtime_factor": 9.04
       },
-      "transcripts": {
-        "samples": 30,
-        "p50_ms": 18.5,
-        "p95_ms": 21.6,
-        "min_ms": 14.6,
-        "max_ms": 35.5
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 39.0,
+          "p95_ms": 42.9,
+          "min_ms": 33.3,
+          "max_ms": 43.1
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 18.5,
+          "p95_ms": 21.6,
+          "min_ms": 14.6,
+          "max_ms": 35.5
+        }
+      },
+      "corpus": {
+        "videos_listed": 23,
+        "seconds_listed": 647.6
       }
     },
-    "corpus": {
-      "videos_listed": 23,
-      "seconds_listed": 647.6
+    "xl": {
+      "tier": "xl",
+      "measured_at": "2026-09-17T19:16:27+00:00",
+      "ingest": {
+        "videos": 100,
+        "ingested": 100,
+        "failed_attempts": [],
+        "seconds_of_video": 3778.3,
+        "wall_sec": 469.8,
+        "first_video_sec": 4.3,
+        "median_video_sec": 4.7,
+        "realtime_factor": 8.04
+      },
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 47.0,
+          "p95_ms": 55.4,
+          "min_ms": 42.5,
+          "max_ms": 61.1
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 17.7,
+          "p95_ms": 21.7,
+          "min_ms": 14.7,
+          "max_ms": 21.9
+        }
+      },
+      "corpus": {
+        "videos_listed": 203,
+        "seconds_listed": 7597.4
+      }
     }
   },
   "convex": {
-    "tier": "large",
-    "measured_at": "2026-09-17T00:44:48+00:00",
-    "ingest": {
-      "videos": 20,
-      "ingested": 20,
-      "failed_attempts": [],
-      "seconds_of_video": 603.7,
-      "wall_sec": 53.7,
-      "first_video_sec": 3.2,
-      "median_video_sec": 2.4,
-      "realtime_factor": 11.25
-    },
-    "search": {
-      "frames": {
-        "samples": 30,
-        "p50_ms": 26.6,
-        "p95_ms": 40.7,
-        "min_ms": 23.0,
-        "max_ms": 61.1
+    "large": {
+      "tier": "large",
+      "measured_at": "2026-09-17T00:44:48+00:00",
+      "ingest": {
+        "videos": 20,
+        "ingested": 20,
+        "failed_attempts": [],
+        "seconds_of_video": 603.7,
+        "wall_sec": 53.7,
+        "first_video_sec": 3.2,
+        "median_video_sec": 2.4,
+        "realtime_factor": 11.25
       },
-      "transcripts": {
-        "samples": 30,
-        "p50_ms": 11.8,
-        "p95_ms": 17.7,
-        "min_ms": 10.0,
-        "max_ms": 18.4
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 26.6,
+          "p95_ms": 40.7,
+          "min_ms": 23.0,
+          "max_ms": 61.1
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 11.8,
+          "p95_ms": 17.7,
+          "min_ms": 10.0,
+          "max_ms": 18.4
+        }
+      },
+      "corpus": {
+        "videos_listed": 23,
+        "seconds_listed": 648.2
       }
     },
-    "corpus": {
-      "videos_listed": 23,
-      "seconds_listed": 648.2
+    "xl": {
+      "tier": "xl",
+      "measured_at": "2026-09-17T19:29:03+00:00",
+      "ingest": {
+        "videos": 100,
+        "ingested": 100,
+        "failed_attempts": [],
+        "seconds_of_video": 3778.3,
+        "wall_sec": 290.1,
+        "first_video_sec": 3.0,
+        "median_video_sec": 2.9,
+        "realtime_factor": 13.02
+      },
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 27.9,
+          "p95_ms": 34.3,
+          "min_ms": 23.5,
+          "max_ms": 35.1
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 12.5,
+          "p95_ms": 16.5,
+          "min_ms": 11.4,
+          "max_ms": 17.2
+        }
+      },
+      "corpus": {
+        "videos_listed": 203,
+        "seconds_listed": 7603.9
+      }
     }
   },
   "supabase": {
-    "tier": "large",
-    "measured_at": "2026-09-17T00:43:53+00:00",
-    "ingest": {
-      "videos": 20,
-      "ingested": 20,
-      "failed_attempts": [],
-      "seconds_of_video": 603.7,
-      "wall_sec": 51.8,
-      "first_video_sec": 4.1,
-      "median_video_sec": 2.1,
-      "realtime_factor": 11.64
-    },
-    "search": {
-      "frames": {
-        "samples": 30,
-        "p50_ms": 26.1,
-        "p95_ms": 30.5,
-        "min_ms": 22.9,
-        "max_ms": 34.0
+    "large": {
+      "tier": "large",
+      "measured_at": "2026-09-17T00:43:53+00:00",
+      "ingest": {
+        "videos": 20,
+        "ingested": 20,
+        "failed_attempts": [],
+        "seconds_of_video": 603.7,
+        "wall_sec": 51.8,
+        "first_video_sec": 4.1,
+        "median_video_sec": 2.1,
+        "realtime_factor": 11.64
       },
-      "transcripts": {
-        "samples": 30,
-        "p50_ms": 13.7,
-        "p95_ms": 16.3,
-        "min_ms": 12.7,
-        "max_ms": 30.1
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 26.1,
+          "p95_ms": 30.5,
+          "min_ms": 22.9,
+          "max_ms": 34.0
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 13.7,
+          "p95_ms": 16.3,
+          "min_ms": 12.7,
+          "max_ms": 30.1
+        }
+      },
+      "corpus": {
+        "videos_listed": 23,
+        "seconds_listed": 648.2
       }
     },
-    "corpus": {
-      "videos_listed": 23,
-      "seconds_listed": 648.2
+    "xl": {
+      "tier": "xl",
+      "measured_at": "2026-09-17T19:24:23+00:00",
+      "ingest": {
+        "videos": 100,
+        "ingested": 100,
+        "failed_attempts": [],
+        "seconds_of_video": 3778.3,
+        "wall_sec": 274.3,
+        "first_video_sec": 3.2,
+        "median_video_sec": 2.7,
+        "realtime_factor": 13.78
+      },
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 34.5,
+          "p95_ms": 38.0,
+          "min_ms": 30.5,
+          "max_ms": 44.4
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 16.0,
+          "p95_ms": 18.2,
+          "min_ms": 14.4,
+          "max_ms": 18.4
+        }
+      },
+      "corpus": {
+        "videos_listed": 203,
+        "seconds_listed": 7603.9
+      }
     }
   }
 }

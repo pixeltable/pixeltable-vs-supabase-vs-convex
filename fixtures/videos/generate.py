@@ -5,18 +5,23 @@ Every video is colour cards with text drawn on them (so CLIP has something to ma
 synthesised speech (so Whisper has something to transcribe), and colour changes (so the
 scene detectors have something to find).
 
-Two tiers:
+Three tiers:
   small   3 videos, ~15s each. The correctness fixtures. Every equivalence, differential
           and resilience test runs against these.
   large   20 videos, ~30s each. The scale fixtures, in large/. Nothing asserts against
           them; they exist so ingest throughput and search latency are measured rather
           than extrapolated from 45 rows.
+  xl      100 videos, ~30s each, in xl/. The same 20 areas crossed with 5 aspects, so a
+          run answers whether the large-tier ordering is a property of the platforms or
+          of a small corpus. Near-duplicate topics within an area are deliberate: they
+          are the hard case for vector search.
 
 Requires: ffmpeg on PATH, pip install gTTS
 
 Run from the repo root:
     python fixtures/videos/generate.py                # small
     python fixtures/videos/generate.py --tier large   # large
+    python fixtures/videos/generate.py --tier xl      # xl
 """
 
 from __future__ import annotations
@@ -30,6 +35,7 @@ from pathlib import Path
 
 VIDEOS_DIR = Path(__file__).resolve().parent
 LARGE_DIR = VIDEOS_DIR / 'large'
+XL_DIR = VIDEOS_DIR / 'xl'
 
 
 def _has_ffmpeg() -> bool:
@@ -170,6 +176,35 @@ def _large_speech(title: str, subject: str) -> str:
     )
 
 
+# Five angles on each area, so 20 areas make 100 videos whose speech stays distinct
+# without hand-writing 80 more topic rows.
+XL_ASPECTS = [
+    ('fundamentals', 'the definition and the cost model'),
+    ('in_practice', 'what it looks like in production code'),
+    ('failure_modes', 'the ways it goes wrong under load'),
+    ('measurement', 'how to measure it instead of guessing'),
+    ('alternatives', 'when to reach for something else entirely'),
+]
+
+
+def _generate_xl() -> None:
+    total = len(LARGE_TOPICS) * len(XL_ASPECTS)
+    print(f'Generating {total} xl-tier videos in {XL_DIR.relative_to(VIDEOS_DIR.parent.parent)}...')
+    for slug, title, colour, subject in LARGE_TOPICS:
+        for aspect_slug, aspect in XL_ASPECTS:
+            _generate_video(
+                f'{slug}__{aspect_slug}.mp4',
+                segments=[
+                    {'color': colour, 'text': title},
+                    {'color': '#212121', 'text': aspect_slug.replace('_', ' ').title()},
+                    {'color': colour, 'text': 'Worked Example'},
+                    {'color': '#212121', 'text': 'Summary'},
+                ],
+                speech_text=_large_speech(f'{title}, {aspect_slug.replace("_", " ")}', f'{subject}, {aspect}'),
+                outdir=XL_DIR,
+            )
+
+
 def _generate_large() -> None:
     print(f'Generating {len(LARGE_TOPICS)} scale-tier videos in {LARGE_DIR.relative_to(VIDEOS_DIR.parent.parent)}...')
     for slug, title, colour, subject in LARGE_TOPICS:
@@ -188,15 +223,15 @@ def _generate_large() -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--tier', choices=['small', 'large'], default='small')
+    parser.add_argument('--tier', choices=['small', 'large', 'xl'], default='small')
     args = parser.parse_args()
 
     if not _has_ffmpeg():
         print('ffmpeg not found on PATH. Install ffmpeg first.')
         sys.exit(1)
 
-    if args.tier == 'large':
-        _generate_large()
+    if args.tier in ('large', 'xl'):
+        (_generate_large if args.tier == 'large' else _generate_xl)()
         print('Done.')
         return
 

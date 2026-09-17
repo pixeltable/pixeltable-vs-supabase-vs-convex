@@ -96,6 +96,14 @@ cost of the fix, and it is in `002_search_functions.sql`.
 
 ## What this benchmark does not use, and should be counted in Supabase's favour
 
-PostgREST would serve `GET /videos` and both searches with no handler code at all.
-Realtime, Auth and row-level security, Storage image transforms, point-in-time recovery
-and database branching are all absent here. See [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md).
+PostgREST would serve `GET /videos` and both searches with no handler code at all, and
+every query here goes through the Edge Function instead.
+
+Absent, by grep of `supabase/`: any `CREATE POLICY` (RLS is on for five tables with zero
+policies, and the service-role key bypasses it), `auth.uid()`, a `[realtime]` stanza or any
+table in the `supabase_realtime` publication, `pg_cron`, `pg_net`, a queue, a trigger,
+Storage policies or image transforms. Auth plus per-tenant RLS is the reason a large share
+of teams are on Supabase, and this contract has no user, no tenant and no owned row, so
+there is nothing for a policy to be about.
+
+Priced in [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).

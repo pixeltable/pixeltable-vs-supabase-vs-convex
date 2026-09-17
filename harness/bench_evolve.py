@@ -87,11 +87,23 @@ def evolve_pixeltable() -> dict:
 
 
 def loc_of_patch(patch_file: Path) -> int:
-    """Lines the patch adds, ignoring the context it anchors on."""
+    """Lines the patch writes, ignoring the context it anchors on.
+
+    A changed line counts the same as an added one: replacing `})` with
+    `}).searchIndex(...)` is a line you write, and a length difference of zero would say
+    otherwise.
+    """
     before, after = patch_file.read_text().split('\n---\n')
-    before_lines = [line for line in before.splitlines() if line.strip()]
-    after_lines = [line for line in after.splitlines() if line.strip()]
-    return len(after_lines) - len(before_lines)
+    unchanged = [line for line in before.splitlines() if line.strip()]
+    written = 0
+    for line in after.splitlines():
+        if not line.strip():
+            continue
+        if line in unchanged:
+            unchanged.remove(line)
+        else:
+            written += 1
+    return written
 
 
 # ------------------------------------------------------------------- supabase
@@ -190,12 +202,44 @@ def evolve_convex() -> dict:
     }
 
 
+def evolve_convex_searchindex() -> dict:
+    """The same task answered with Convex's built-in full-text index instead.
+
+    `searchIndex` builds over a field the documents already carry, so there is no backfill
+    and no reverse migration. It is not the same feature: this is lexical search over the
+    title, where the other two embed it. Measured so the vector number can be read for what
+    it is, the price of semantic parity rather than the price of searching a title.
+    """
+    app = ROOT / 'convex-app'
+    schema = app / 'convex' / 'schema.ts'
+    original = schema.read_text()
+    _stop_convex_watcher()
+    try:
+        patch(schema, EVOLVE / 'convex_schema_searchindex.patch')
+        started = time.monotonic()
+        run(['npx', 'convex', 'dev', '--once'], cwd=app)
+        schema_sec = time.monotonic() - started
+    finally:
+        schema.write_text(original)
+        run(['npx', 'convex', 'dev', '--once'], cwd=app)
+        _start_convex_watcher(app)
+    return {
+        'schema_change_sec': round(schema_sec, 2),
+        'backfill_sec': 0.0,
+        'total_sec': round(schema_sec, 2),
+        'lines_written': loc_of_patch(EVOLVE / 'convex_schema_searchindex.patch'),
+        'files_touched': 1,
+        'note': 'lexical, not semantic: searchIndex builds over an existing field, so no backfill',
+        'output': ['no backfill step'],
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--supabase-token', default='')
-    parser.add_argument('--only', choices=['pixeltable', 'supabase', 'convex'], action='append')
+    parser.add_argument('--only', choices=['pixeltable', 'supabase', 'convex', 'convex-searchindex'], action='append')
     args = parser.parse_args()
-    wanted = args.only or ['pixeltable', 'supabase', 'convex']
+    wanted = args.only or ['pixeltable', 'supabase', 'convex', 'convex-searchindex']
 
     results: dict = {'measured_at': datetime.now(UTC).isoformat(timespec='seconds')}
     for name in wanted:
@@ -203,9 +247,11 @@ def main() -> int:
         if name == 'supabase' and not args.supabase_token:
             print('  skipped: --supabase-token required')
             continue
-        result = {'pixeltable': evolve_pixeltable, 'convex': evolve_convex}.get(
-            name, lambda: evolve_supabase(args.supabase_token)
-        )()
+        result = {
+            'pixeltable': evolve_pixeltable,
+            'convex': evolve_convex,
+            'convex-searchindex': evolve_convex_searchindex,
+        }.get(name, lambda: evolve_supabase(args.supabase_token))()
         results[name] = result
         print(
             f'  schema {result["schema_change_sec"]}s + backfill {result["backfill_sec"]}s '
