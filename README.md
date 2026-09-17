@@ -32,11 +32,13 @@ scored zero.
 | Orchestration hops | **3** | 12 | 9 |
 | HTTP routes written by hand | 1 | 1 | 5 |
 
-Those are properties of the code. Speed is not one of them, and on speed Pixeltable
-loses at both sizes measured. Over 100 videos and 63 minutes of footage it ingests at
-8.04x realtime against Supabase's 13.78x, and answers a frame search in 47.0ms against
-Convex's 27.9ms. The gap widens with scale rather than closing. Measured, with the method,
-the library versions and the caveats, in [docs/SCALE.md](docs/SCALE.md).
+Those are properties of the code. Speed is not one of them, and on speed Pixeltable is
+last at both sizes measured: over 100 videos it ingests at 8.04x realtime against
+Supabase's 13.78x. On search the ranking is the same and the stakes are not, with every
+implementation under 56ms and 19ms between them. Both measured on one machine, where the
+other two reach their compute service over loopback for free; in a deployment those 8
+round trips and 0.90 MB per video cross a network, and that is not measured anywhere.
+Method, versions and caveats in [docs/SCALE.md](docs/SCALE.md).
 
 **Read [docs/TRADEOFFS.md](docs/TRADEOFFS.md) before the rest.** It says which stack wins
 under which conditions, using even swaps, and it concedes the cases where Pixeltable
@@ -283,8 +285,8 @@ python harness/bench_evolve.py --supabase-token $SECRET
 ## Reading the rest
 
 - [docs/TRADEOFFS.md](docs/TRADEOFFS.md): even swaps, and which stack wins when.
-- [docs/SCALE.md](docs/SCALE.md): ingest throughput and search latency over 20 videos,
-  where Pixeltable is the slowest of the three.
+- [docs/SCALE.md](docs/SCALE.md): ingest throughput and search latency over 20 and 100
+  videos, and what the single-machine setup hides.
 - [docs/EVOLVE.md](docs/EVOLVE.md): adding a column to live data, run on all three, with
   the code each one required and the costs the clock does not show.
 - [docs/METHODOLOGY.md](docs/METHODOLOGY.md): what is measured, what is a judgment call,

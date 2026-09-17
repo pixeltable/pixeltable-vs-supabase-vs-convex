@@ -49,6 +49,11 @@ That is the answer to the question the large tier could not settle: the ordering
 property of the implementations, not of a small corpus, and on ingest the distance grows
 with the data rather than shrinking.
 
+One asymmetry sits underneath it. Supabase and Convex reach `compute-service` over
+loopback here, 8 requests and 0.90 MB per video that cost nothing on one machine and
+would not be free in a deployment. Their column is a lower bound; Pixeltable's is what it
+is. See the last caveat below.
+
 ## Search
 
 Ten queries, five visual and five spoken, none of them the fixture queries the correctness
@@ -64,14 +69,16 @@ suites assert on. Six passes, one untimed warm-up. Large was measured over 23 vi
 | Convex | large | 26.6ms | 40.7ms | 11.8ms | 17.7ms |
 | | **xl** | **27.9ms** | **34.3ms** | **12.5ms** | **16.5ms** |
 
-**Pixeltable is the slowest at both tiers**, and the ordering is unchanged. What did change
-is how each one absorbed 12x the vectors: Convex's frame search grew 5%, Pixeltable's 21%,
-Supabase's HNSW 32%. Convex's vector index scaled best of the three here.
+The ordering is unchanged: Pixeltable is last at both tiers. Read the size of that before
+reading the rank. Every implementation answers every query in under 56ms at 7,689 vectors,
+the whole spread at xl is 19ms, and around 20ms of every one of these numbers is the query
+embedding rather than the search. Measured directly against `compute-service`, one CLIP
+text embedding is 19.9ms and one MiniLM embedding is 6.4ms. Nobody picks a database on
+19ms, and this table is not a reason to.
 
-Most of every number is still embedding the query, not searching. Measured directly against
-`compute-service`, one CLIP text embedding is 19.9ms and one MiniLM embedding is 6.4ms.
-Subtract those and at xl the frame search itself is roughly 8ms on Convex, 15ms on
-Supabase, and 27ms on Pixeltable.
+What is worth reading is how each absorbed 12x the vectors: Convex's frame search grew 5%,
+Pixeltable's 21%, Supabase's HNSW 32%. On that axis, the one the index is actually
+responsible for, Convex scales best and Supabase worst, and Pixeltable sits between them.
 
 ## What these numbers are not
 
@@ -86,6 +93,19 @@ Supabase, and 27ms on Pixeltable.
   both well inside the range where a linear scan would also be fast, and nothing here
   measures recall. The tiers answer whether the ordering survives 12x, not what happens at
   a million rows.
+- **Everything here runs on one machine, which is the assumption most favourable to the
+  two that need a second service.** `compute-service` answers on `127.0.0.1`, so its
+  round trips cost nothing. Measured on one 31-second video, a Supabase or Convex ingest
+  makes **8 requests to it and moves 0.90 MB across that boundary, 2.9x the size of the
+  source file**, because the frames come down base64-encoded and go straight back up to be
+  embedded, and the audio is re-sent once per transcript chunk. Pixeltable makes zero
+  requests and moves zero bytes: the models run in its own process.
+
+  In a deployment those 8 round trips cross a network. Convex actions run on Convex's
+  infrastructure and Supabase Edge Functions on Supabase's, so neither can reach a compute
+  service on `127.0.0.1` at all, which `convex-app/README.md` already says. What that
+  costs is not measured here and would not favour the two making the calls. Read the
+  ingest numbers as a lower bound for them and an accurate figure for Pixeltable.
 - **Not a cost comparison.** Two of the three are also paying for a second Python
   process, and none of this measures what any of it costs to run.
 
