@@ -85,6 +85,33 @@ What is worth reading is how each absorbed 12x the vectors: Convex's frame searc
 Pixeltable's 21%, Supabase's HNSW 32%. On that axis, the one the index is actually
 responsible for, Convex scales best and Supabase worst, and Pixeltable sits between them.
 
+## The agent
+
+The most expensive operation in the app, and the one where the three differ most. A
+question goes in, both indexes are searched, the hits become a prompt, and
+Qwen2.5-1.5B-Instruct writes an answer. Same model everywhere: in Pixeltable's own process
+through `create_chat_completion`, and behind `compute-service` for the other two.
+
+Measured on the 3-video baseline, because the retrieval inside it is a fixed top-4 from
+each index regardless of how large the corpus is, so the number is dominated by generation
+rather than by corpus size. Four passes over three questions.
+
+| | p50 | p95 |
+|---|---|---|
+| Pixeltable | **292.6ms** | **815.1ms** |
+| Supabase | 1311.6ms | 1898.9ms |
+| Convex | 979.7ms | 1281.5ms |
+
+**Pixeltable is 4.5x faster than Supabase and 3.3x faster than Convex here**, and all three
+return the same answer from the same weights. This is the one measurement in this repo
+where the architecture shows up directly in the clock rather than in the line count: one
+agent query costs Supabase and Convex three round trips to `compute-service`, one to embed
+the question for the frame index, one for the transcript index, and one to generate.
+Pixeltable makes none, because the model runs where the data is.
+
+It is also the operation this benchmark had never measured, in a repo that measures
+everything else.
+
 ## What these numbers are not
 
 - **One laptop, one run, CPU only, local models.** They compare the three against each

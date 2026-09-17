@@ -48,6 +48,15 @@ FRAME_QUERIES = [
     'a diagram on a green background',
     'text reading worked example',
 ]
+# The agent is the expensive one: two retrievals and a 1.5B model generating an answer.
+# Separate from the search queries because the route takes a question, not a query and a
+# limit, and because it is slow enough that it needs its own iteration count.
+AGENT_QUESTIONS = [
+    'What is the time complexity of quicksort?',
+    'What did the speaker say about measuring instead of guessing?',
+    'Which video covers database indexes?',
+]
+
 TRANSCRIPT_QUERIES = [
     'measuring is better than guessing',
     'the common mistake is ignoring constant factors',
@@ -180,6 +189,34 @@ def latency(client: httpx.Client, impl: str, iterations: int) -> dict:
     return out
 
 
+def agent_latency(client: httpx.Client, impl: str, iterations: int) -> dict:
+    """Time the whole retrieval-and-answer path, which no other measurement covers.
+
+    Same model everywhere: Qwen2.5-1.5B-Instruct GGUF, in Pixeltable's own process and
+    behind `compute-service` for the other two. Answers are not scored here; equivalence
+    already asserts that all three answer and keep their evidence.
+    """
+    method, path = PATHS[impl]['agent']
+    client.request(method, path, json={'question': AGENT_QUESTIONS[0]})  # untimed warm-up
+
+    samples = []
+    for _ in range(iterations):
+        for question in AGENT_QUESTIONS:
+            started = time.monotonic()
+            response = client.request(method, path, json={'question': question})
+            response.raise_for_status()
+            samples.append((time.monotonic() - started) * 1000)
+    out = {
+        'samples': len(samples),
+        'p50_ms': round(percentile(samples, 50), 1),
+        'p95_ms': round(percentile(samples, 95), 1),
+        'min_ms': round(min(samples), 1),
+        'max_ms': round(max(samples), 1),
+    }
+    print(f'  agent: p50 {out["p50_ms"]}ms  p95 {out["p95_ms"]}ms  (n={len(samples)})')
+    return out
+
+
 def corpus(client: httpx.Client, impl: str) -> dict:
     method, path = PATHS[impl]['list']
     rows = client.request(method, path).json()['rows']
@@ -193,6 +230,9 @@ def main() -> int:
     parser.add_argument('--auth-token', default='')
     parser.add_argument('--tier', default='large', choices=['small', 'large', 'xl'])
     parser.add_argument('--iterations', type=int, default=6, help='passes over the query set')
+    parser.add_argument(
+        '--agent-iterations', type=int, default=4, help='passes over the agent questions, which are slower'
+    )
     parser.add_argument('--skip-ingest', action='store_true', help='measure search only')
     args = parser.parse_args()
 
@@ -212,6 +252,7 @@ def main() -> int:
             result['ingest'] = ingest(client, args.impl, args.tier)
         print(f'search ({args.impl}):')
         result['search'] = latency(client, args.impl, args.iterations)
+        result['agent'] = agent_latency(client, args.impl, args.agent_iterations)
         result['corpus'] = corpus(client, args.impl)
 
     existing = json.loads(OUT.read_text()) if OUT.exists() else {}

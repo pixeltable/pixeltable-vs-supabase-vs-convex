@@ -140,7 +140,8 @@ re-run against the live catalog:
   without an explicit flag. Priced against the other two in [EVOLVE.md](EVOLVE.md).
 
 Throughput and latency are measured separately, over two tiers, in [SCALE.md](SCALE.md).
-Pixeltable is last on both, by a margin that matters on ingest and by 19ms on search.
+Pixeltable is last on ingest by a margin that matters, last on search by 19ms, and 4.5x
+faster than Supabase on the agent query.
 
 ## Pixeltable capabilities the contract leaves out
 
