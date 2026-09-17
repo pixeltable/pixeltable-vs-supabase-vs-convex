@@ -179,6 +179,11 @@ whole picture.
 - **Auth, realtime, multi-tenancy and cost.** See below and
   [TRADEOFFS.md](TRADEOFFS.md).
 
+One capability outside the contract is measured rather than listed: adding a column to a
+populated table, in [EVOLVE.md](EVOLVE.md). Each platform's change is applied, timed and
+reverted, and nothing is committed to the implementations, so the line counts above keep
+measuring the contract.
+
 ## Where this is favourable to Pixeltable
 
 Stated so you do not have to find it yourself.

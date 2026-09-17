@@ -1,0 +1,11 @@
+    status: v.string(), // 'processing' | 'ready' | 'error'
+    createdAt: v.number(),
+  }),
+---
+    status: v.string(), // 'processing' | 'ready' | 'error'
+    createdAt: v.number(),
+    titleEmbedding: v.optional(v.array(v.float64())),
+  }).vectorIndex("by_title_embedding", {
+    vectorField: "titleEmbedding",
+    dimensions: 384,
+  }),

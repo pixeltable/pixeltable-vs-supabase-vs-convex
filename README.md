@@ -108,8 +108,10 @@ On a populated catalog that is 1.4 seconds, and no transcription re-runs. Removi
 column again is refused as `DESTRUCTIVE` until you pass a flag. On the other two it is a
 migration plus a backfill script.
 
-The largest catalog measured here is 648 frames, where this costs nothing either way. The
-claim past that is structural, not measured: what backfills incrementally stays
+Measured on a populated catalog in [docs/EVOLVE.md](docs/EVOLVE.md), against what the
+other two must write for the same feature: **1 line in 1 file, against 24 and 53**.
+Supabase is the fastest of the three in wall time, and at two dozen rows that is noise.
+The claim past this corpus is structural, not measured: what backfills incrementally stays
 proportional to the rows that changed, and what re-runs a script does not.
 
 **Processing fires for any writer.** A row inserted into a Pixeltable table by anything
@@ -283,6 +285,8 @@ python harness/benchmark.py --impl pixeltable --tier large
 - [docs/TRADEOFFS.md](docs/TRADEOFFS.md): even swaps, and which stack wins when.
 - [docs/SCALE.md](docs/SCALE.md): ingest throughput and search latency over 20 videos,
   where Pixeltable is the slowest of the three.
+- [docs/EVOLVE.md](docs/EVOLVE.md): adding a column to live data, run on all three, with
+  the code each one required and the costs the clock does not show.
 - [docs/METHODOLOGY.md](docs/METHODOLOGY.md): what is measured, what is a judgment call,
   which implementations were executed, and where this is favourable to Pixeltable.
 - [docs/JOURNEY.md](docs/JOURNEY.md): the same ten steps on all three, with the code.
