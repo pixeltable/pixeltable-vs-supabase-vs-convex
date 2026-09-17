@@ -44,7 +44,21 @@ curl -X POST $URL/search/transcripts -H 'Content-Type: application/json' \
 pxt ls -l media
 pxt describe media/frames
 pxt history media/videos
+pxt columns media/frames     # every column beside the expression that computes it
+pxt idxs media/frames        # index, metric, and the model expression behind it
+pxt dashboard                # local UI: lineage graphs, history, a data browser
 ```
+
+`pxt columns` is the lineage, in text:
+
+```
+/media/frames  still        Image[(320, 180)]  computed  resize(frame, [320, 180])
+/media/frames  audio        Audio | None       computed  extract_audio(video, format='mp3')
+/media/frames  scene_count  Int                computed  count_items(scenes)
+```
+
+`still` is the view's own column; `audio` and `scene_count` are inherited from `videos`,
+and the expression comes with them.
 
 A failed cell keeps its own error beside the value, so you read it as a column:
 

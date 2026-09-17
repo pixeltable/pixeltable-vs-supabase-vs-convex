@@ -23,7 +23,7 @@ end to end: see [METHODOLOGY.md](METHODOLOGY.md).
 | 7. Agent | Strong: retrieval is a column | Adequate: assembled by hand | Adequate: assembled by hand |
 | 8. Serve | Strong: declared routes | Strong: one function, or PostgREST | Weak for REST, strong for reactive |
 | 9. Evolve | Strong: incremental backfill | Weak: migration plus backfill | Weak: migration action |
-| 10. Inspect | Strong: per-cell errors, revert | Adequate: PITR, branching | Adequate: snapshot export |
+| 10. Inspect | Strong: per-cell errors, lineage, revert | Adequate: PITR, branching | Adequate: snapshot export |
 
 ---
 
@@ -222,11 +222,13 @@ the `@convex-dev/migrations` component.
 
 ## 10. Inspect and recover
 
-**Pixeltable.** Per-cell errors, schema history, and a way back.
+**Pixeltable.** Per-cell errors, schema history, lineage, and a way back.
 
 ```bash
 pxt history media/videos
 pxt revert media/videos --steps 3 -f
+pxt columns media/frames     # each column beside the expression that computes it
+pxt dashboard                # the same thing as a graph, locally, no deploy
 ```
 
 ```python
@@ -242,3 +244,6 @@ database branching and versioned migrations, which are coarser but cover more.
 
 **Convex.** Same lack of per-cell state, with snapshot export and import, and a dashboard
 with function logs and a data browser.
+
+All three ship a local UI. Only one of them can draw what produced a column, because only
+one of them recorded it.

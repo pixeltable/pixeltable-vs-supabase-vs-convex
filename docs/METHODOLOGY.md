@@ -139,6 +139,33 @@ range silently answers a request for zero rows with one.
 Throughput and latency are measured separately, over a 20-video tier, in
 [SCALE.md](SCALE.md). Pixeltable is the slowest of the three on both.
 
+## What this benchmark does not exercise
+
+The contract fixes what all three must do, which means Pixeltable capabilities outside it
+are absent from every number in this repo. Stated so the tables are not mistaken for the
+whole picture.
+
+- **Hosted-model scheduling.** Eighteen provider modules (`openai`, `anthropic`, `gemini`,
+  `groq`, `mistralai`, `together`, `voyageai`, `jina`, `fireworks`, `deepseek`, `nebius`,
+  `openrouter`, `replicate`, `runwayml`, `twelvelabs`, `bfl`, `fal`, `fabric`) declare a
+  resource pool. `RateLimitsScheduler` reads the limits a provider reports, keeps requests
+  under them, and retries with exponential backoff up to ten times; `RequestRateScheduler`
+  covers providers that report nothing, with three. Configuration is per provider
+  (`openai.rate_limits`, `openai.max_connections`, `gemini.rate_limits`). Every model in
+  this benchmark is local, so none of that runs, and none of it is measured. On Supabase
+  and Convex the equivalent is code in the ingest path.
+- **Iterators beyond two.** `FrameIterator` and `AudioSplitter` are used here.
+  `VideoSplitter`, `DocumentSplitter`, `StringSplitter`, `TileIterator` and
+  `ComponentIterator` also ship and go unmeasured.
+- **The dashboard.** `pxt dashboard` serves a local UI with no deploy and no account:
+  directories, tables and views with version and error counts, every column beside the
+  expression that computes it, indexes with their metric and model, table and column
+  lineage graphs, version history, and a data browser that renders frames and video.
+  Supabase Studio and the Convex dashboard both ship too, and are also unmeasured; the
+  part with no counterpart is the lineage, because the other two record nothing to draw.
+- **Auth, realtime, multi-tenancy and cost.** See below and
+  [TRADEOFFS.md](TRADEOFFS.md).
+
 ## Where this is favourable to Pixeltable
 
 Stated so you do not have to find it yourself.

@@ -128,6 +128,43 @@ column; the dimension is the only guard, and 384 equals 384.
 key, which this schema does not declare, so here the column is the way in. Elsewhere a
 failed step leaves a NULL and finding out which rows are affected is a query you write.
 
+**Lineage is in the catalog, not in a diagram somebody maintains.** Every computed column
+carries the expression that produced it, and a view carries its base's:
+
+```
+$ pxt columns media/frames
+/media/frames  still        Image[(320, 180)]  computed  resize(frame, [320, 180])
+/media/frames  audio        Audio | None       computed  extract_audio(video, format='mp3')
+/media/frames  scene_count  Int                computed  count_items(scenes)
+
+$ pxt idxs media/frames
+/media/frames  idx0  embedding  frame  cosine  clip(frame, model_id='openai/clip-vit-base-patch32')
+```
+
+`pxt dashboard` draws the same thing: a local UI, no deploy and no account, with a column
+lineage graph, a table lineage graph, per-version history and a data browser that renders
+the frames. Supabase Studio and the Convex dashboard are both good and both ship in this
+benchmark; neither knows what produced a column, because on those stacks nothing recorded
+it.
+
+**A `Json` column is queryable, not a blob.** Paths, negative indices, slices and wildcards
+are expressions, so `scenes` needs no parsing step:
+
+```python
+Videos.select(first=Videos.scenes[0].start_time, every=Videos.scenes['*'].start_time)
+```
+
+Seven iterators ship (`FrameIterator`, `AudioSplitter`, `VideoSplitter`, `DocumentSplitter`,
+`StringSplitter`, `TileIterator`, `ComponentIterator`); this app uses two.
+
+**Model calls are scheduled, not looped.** Eighteen provider modules declare a resource
+pool, and the scheduler reads the rate limits the provider reports, stays under them, and
+retries with exponential backoff. Configuration is per provider: `openai.rate_limits`,
+`anthropic.api_key`, `gemini.rate_limits`, `openai.max_connections`. **This benchmark does
+not exercise any of it**, because every model here is local. Swap one line to a hosted
+model and the concurrency, the rate limiting and the retries arrive with it; on the other
+two they are yours to write.
+
 **Rejecting a bad request is free on one and hand-written on two.** `add_query_route`
 derives the route signature from the query function, so a missing `query` or a negative
 `limit` is a 422 before any handler runs. Deno has no request-validation layer, and
