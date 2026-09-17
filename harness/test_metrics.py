@@ -63,6 +63,16 @@ class TestCountLines:
         path = write(tmp_path, 'a.ts', 'const url = "http://x"; // not a comment until here\n')
         assert count_lines(path) == 1
 
+    def test_toml_comments_are_comments(self, tmp_path):
+        """Config files carry explanatory comments; counting them inflates config LOC."""
+        path = write(tmp_path, 'pyproject.toml', '# why this dep\n[project]\nname = "x"\n\n# note\n')
+        assert count_lines(path) == 2
+
+    def test_env_example_is_matched_by_name(self, tmp_path):
+        """`.env.example` has the suffix `.example`, which says nothing about comments."""
+        path = write(tmp_path, '.env.example', '# what this is for\nFOO=bar\n')
+        assert count_lines(path) == 1
+
     def test_unreadable_file_counts_zero(self, tmp_path):
         assert count_lines(tmp_path / 'missing.py') == 0
 

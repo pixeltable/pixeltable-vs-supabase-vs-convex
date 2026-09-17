@@ -32,13 +32,21 @@ extraction and scene detection are ffmpeg.
 
 ## Setup
 
+`../compute-service/` has to be running on port 9000 first.
+
 ```bash
-supabase start                  # local Docker, 12 containers, or use hosted
-supabase db reset               # 001_schema, 002_search_functions, 003_storage
-supabase functions deploy api
+cp .env.example .env.local      # COMPUTE_SERVICE_URL, reachable from inside the runtime
+supabase start                  # local Docker, 12 containers; applies all four migrations
+supabase functions serve --env-file .env.local
 ```
 
-Also required: `../compute-service/` running on port 9000.
+`--env-file` is not optional. The Function reads `COMPUTE_SERVICE_URL` and falls back to
+`http://localhost:9000`, which inside the Edge Runtime container is the container, so
+every ingest fails at the first media call. `host.docker.internal` is the host from
+there.
+
+`supabase functions deploy` is the hosted path and needs a linked project; `serve` is the
+local one, and it is what this benchmark runs.
 
 ## Endpoints
 

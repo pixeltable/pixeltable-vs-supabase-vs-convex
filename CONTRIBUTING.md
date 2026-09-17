@@ -24,12 +24,29 @@ Concretely, we want to hear about:
    which implementations were actually executed.
 5. Keep each implementation idiomatic for its platform. The point is the contrast, not a
    strawman.
+6. **Timings come from `harness/benchmark.py`**, land in `docs/benchmarks.json`, and
+   publish their failures. See [docs/SCALE.md](docs/SCALE.md).
 
 ## Checks
+
+These need nothing running, and CI gates on all of them:
 
 ```bash
 ruff check pixeltable/ compute-service/ harness/ fixtures/
 ruff format --check pixeltable/ compute-service/ harness/ fixtures/
-python harness/run_comparison.py
-python harness/run_comparison.py --test --impl pixeltable --base-url http://127.0.0.1:PORT
+python harness/run_comparison.py          # must leave docs/metrics.json unchanged
+python -m pytest harness/test_metrics.py  # the measuring code has its own tests
+cd supabase-app && deno lint supabase/functions/
+cd convex-app && npx eslint convex/ && npx tsc --noEmit
+```
+
+These need the implementation running. Pixeltable is auto-discovered; the other two take
+a `--base-url`:
+
+```bash
+python -m pytest harness/test_equivalence.py --impl pixeltable
+python -m pytest harness/test_differential.py --compare pixeltable \
+  --compare supabase=$SUPABASE_URL --compare convex=$CONVEX_SITE_URL --auth-token "$SECRET"
+python -m pytest harness/test_resilience.py --compare pixeltable \
+  --compare supabase=$SUPABASE_URL --compare convex=$CONVEX_SITE_URL --auth-token "$SECRET"
 ```

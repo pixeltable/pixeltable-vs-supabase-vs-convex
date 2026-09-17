@@ -16,8 +16,10 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Comment syntax per language. Counting one language's comment marker as code inflates
 # that language, so each extension gets its own rule.
-LINE_COMMENTS = {'.py': ('#',), '.ts': ('//',), '.tsx': ('//',), '.sql': ('--',)}
+LINE_COMMENTS = {'.py': ('#',), '.ts': ('//',), '.tsx': ('//',), '.sql': ('--',), '.toml': ('#',)}
 BLOCK_COMMENTS = {'.ts': ('/*', '*/'), '.tsx': ('/*', '*/'), '.sql': ('/*', '*/')}
+# `.env.example` has no useful suffix to key on, so it is matched by name.
+NAME_COMMENTS = {'.env.example': ('#',)}
 
 CONFIG_NAMES = {
     'package.json',
@@ -168,7 +170,7 @@ def count_lines(path: Path) -> int:
     except OSError:
         return 0
 
-    markers = LINE_COMMENTS.get(path.suffix, ())
+    markers = NAME_COMMENTS.get(path.name) or LINE_COMMENTS.get(path.suffix, ())
     block = BLOCK_COMMENTS.get(path.suffix)
     count, in_block = 0, False
 

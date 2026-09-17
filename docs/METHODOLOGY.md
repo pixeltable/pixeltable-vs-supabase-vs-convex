@@ -32,9 +32,10 @@ videos, same frame rate, same chunk length, same scene threshold.
 table. Nothing in that table is typed by hand.
 
 **Lines of code.** Non-blank, non-comment, using the comment syntax of each language:
-`#` for Python, `//` and `/* */` for TypeScript, `--` for SQL. Counting a comment marker
-as code inflates whichever language uses it, so each language gets its own rule. Lock
-files are counted nowhere; `package.json`, `pyproject.toml`, `tsconfig.json`,
+`#` for Python, `//` and `/* */` for TypeScript, `--` for SQL, `#` for TOML and for
+`.env.example`, which is matched by name because its suffix says nothing. Counting a
+comment marker as code inflates whichever language uses it, so each gets its own rule.
+Lock files are counted nowhere; `package.json`, `pyproject.toml`, `tsconfig.json`,
 `config.toml` and `.env.example` are counted separately as config.
 
 **Architecture.** Tables, views, vector indexes, foreign keys, database triggers,
