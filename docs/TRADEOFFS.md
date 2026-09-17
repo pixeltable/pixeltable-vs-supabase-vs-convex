@@ -60,7 +60,7 @@ Pixeltable and Convex endpoints in this repo are open, and the harness has to se
 only to Supabase. To equalise you would put a gateway in front of the other two and write
 the check yourself. Price: code you did not have to write on Supabase.
 
-Row-level security is now enabled on all five Supabase tables and an anonymous client
+Row-level security is enabled on all five Supabase tables and an anonymous client
 gets an empty result from a direct table read. That is a real protection Pixeltable and
 Convex do not have here. Per-tenant policies against `auth.uid()` are still unwritten, so
 multi-tenant authorization proper remains unmeasured, and for a multi-tenant product it is
@@ -75,7 +75,7 @@ proportional to the table and an incremental backfill is work proportional to th
 and that is a structural claim this repo does not measure at a size where it bites. It
 belongs in the conditional answer rather than the headline for exactly that reason.
 
-Throughput is not in the swaps below because it now has its own measurement:
+Throughput is not in the swaps below because it has its own measurement:
 [SCALE.md](SCALE.md), where Supabase ingests fastest and Convex searches fastest. If speed
 at this scale is your binding constraint, that page decides it and this one does not.
 

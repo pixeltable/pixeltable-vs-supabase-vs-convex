@@ -169,9 +169,12 @@ api.add_query_route(path='/search/frames', query=search_frames, method='post')
 api.add_query_route(path='/search/transcripts', query=search_transcripts, method='post')
 
 
-# The one route written by hand. `add_insert_route` resolves its target model eagerly and
-# cannot target a model whose columns call a query, which Conversations does. The table
-# still does the work; only the plumbing is manual.
+# The one route written by hand. Declaring it instead, as
+# `add_insert_route(Conversations, path='/agent/query', inputs=[Conversations.question])`,
+# fails to load: `A query over model 'Frames' cannot be serialized; bind it to a table
+# first`. A route is built before the models bind to tables, and `visual` and `spoken`
+# below are queries over `Frames` and `Chunks`. The table still does the work; only the
+# plumbing is manual.
 @api.post('/agent/query')
 def ask(question: str = Body(..., embed=True)) -> dict:
     conversations = pxt.get_table(f'{CATALOG}.conversations')

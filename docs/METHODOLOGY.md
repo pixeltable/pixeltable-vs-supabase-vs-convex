@@ -196,13 +196,20 @@ claim from "it runs on the author's machine".
 | compute-service | Yes. |
 | Pixeltable | Yes, on released 0.7.8 with no patch and no source install. A fresh venv, `pip install -e .`, `pxt init`, `pxt schema update`: four tables and both embedding indexes. Then a video ingested and a transcript similarity query answered from it, so the check covers running the pipeline and not only creating it. |
 
-The Pixeltable row is the one that was checked hardest, because this repo carried the
-opposite claim, and `pyproject.toml` now pins the two dependencies that decide it. `pixeltable[serve]` needs `sentence-transformers` 5.4 or newer and a clean
-install resolves 6.0.1, where everything works. An environment that already holds an older
-one keeps it, and the code path that resolves an index's dimension then calls a method
-that version does not define, so the failure reads as a missing attribute rather than the
-version error Pixeltable prints everywhere else. That is PXT-1419, and it is a confusing
+The Pixeltable row is the one checked hardest, and `pyproject.toml` pins the two
+dependencies that decide it. `pixeltable[serve]` needs `sentence-transformers` 5.4 or
+newer, where the index-dimension call it makes exists; a clean install of this app
+resolves 5.7.0. An environment that already holds an older one keeps it, and that call
+site has no version check, so the failure reads as a missing attribute rather than the
+version error Pixeltable prints everywhere else. That is
+[PXT-1421](https://pixeltable.atlassian.net/browse/PXT-1421), with the absent dependency
+floor as [PXT-1422](https://pixeltable.atlassian.net/browse/PXT-1422). It is a confusing
 message on a stale environment, not a broken release.
+
+`transformers` is pinned under 5 for a different reason: 5.x returns a
+`BaseModelOutputWithPooling` from CLIP's `get_image_features` rather than a tensor, which
+`compute-service` does not handle, and Pixeltable's own source records that top-k results
+are wrong there. All three implementations have to embed with the same semantics.
 
 ## Fairness rules
 

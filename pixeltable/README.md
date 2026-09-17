@@ -77,11 +77,13 @@ with the missing dependency floor as
 
 ## Two things that look odd, and why
 
-`/agent/query` is the one route written by hand. `add_insert_route` resolves its target
-model eagerly and cannot target a model whose columns call a `@pxt.query`, which the
-`Conversations` table does.
+`/agent/query` is the one route written by hand. Declaring it instead fails to load with
+`A query over model 'Frames' cannot be serialized; bind it to a table first`: a route is
+built before models bind to tables, and `Conversations.visual` and `Conversations.spoken`
+are queries over other models.
 
-`scene_count` is a one-line UDF rather than `pxtf.json.len()`.
+`scene_count` is a one-line UDF because `pxtf.json.len()` raises `AssertionError` when
+it is evaluated.
 
 A column whose value is a `@pxt.query` can only be declared when the table is created.
 Adding one to a table that already exists answers `500 A query over model 'Frames' cannot

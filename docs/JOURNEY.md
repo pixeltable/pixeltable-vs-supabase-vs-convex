@@ -47,8 +47,9 @@ install of the three.
 
 ## 2. Schema
 
-**Pixeltable.** One table and two views derived from it, in the same file as everything
-else. A view carries its base's columns, so `Frames.title` is just there.
+**Pixeltable.** Two tables and two views, in the same file as everything else. `Videos`
+carries the pipeline, `Conversations` carries the agent, and the two views are derived
+from `Videos`. A view carries its base's columns, so `Frames.title` is just there.
 
 ```python
 class Frames(TableModel, name='frames', base=Videos,
@@ -62,8 +63,8 @@ CREATE INDEX IF NOT EXISTS frames_embedding_idx ON frames
     USING hnsw (embedding vector_cosine_ops);
 ```
 
-**Convex.** Five tables and two vector indexes. Because ingest now writes complete rows,
-nothing needs `v.optional()` any more:
+**Convex.** Five tables and two vector indexes. Ingest writes complete rows, so no field
+needs `v.optional()`:
 
 ```ts
   frames: defineTable({
@@ -166,9 +167,9 @@ class Conversations(TableModel, name='conversations'):
     spoken = search_transcripts(question, limit=4)
 ```
 
-**Supabase and Convex.** Both now persist the conversation too, because not doing so was
-a choice this benchmark had made for them, not a platform limit. The difference is that
-they assemble and write it:
+**Supabase and Convex.** Both persist the conversation too, because not doing so would be
+a choice this benchmark imposed rather than a platform limit. The difference is that they
+assemble and write it:
 
 ```ts
   const { error } = await supabase.from("conversations").insert({
@@ -195,19 +196,22 @@ REST. Convex's actual interface is a reactive client where the UI re-renders on 
 
 This is the one that compounds.
 
-**Pixeltable.** Adding `scene_count` and `still` to a populated catalog, observed here:
+**Pixeltable.** Adding one computed column to `Videos` on a populated catalog, timed at
+1.4 seconds:
 
 ```
-$ pxt schema update app.py media -f
+$ pxt schema update app.py media
 updated   media/videos
-updated   media/frames
+unchanged media/frames
 unchanged media/chunks
+unchanged media/conversations
 ```
 
-Existing rows kept, only the new columns computed, no transcription re-run.
+Existing rows kept, only the new column computed, no transcription re-run. Removing it
+again is refused as `DESTRUCTIVE` until you pass a flag.
 
-Not free: `still` changed a query's return type, which changed the inferred type of the
-one column that calls it, and that table had to be dropped and recreated.
+Not every column: one whose value is a `@pxt.query` cannot be added to a table that
+already exists. See the footnote in [TRADEOFFS.md](TRADEOFFS.md).
 
 **Supabase.** A migration, a backfill script, and a decision about the rows already
 there. `ALTER TABLE ADD COLUMN` is instant; filling it is not. A generated column or a
