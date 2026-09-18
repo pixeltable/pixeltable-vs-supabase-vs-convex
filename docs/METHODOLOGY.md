@@ -108,8 +108,11 @@ out Pixeltable's asynchronous job and the other two's synchronous pipelines alik
 
 **Differential** runs three explicit tiers, because the three are not expected to agree on
 everything. Identical: same videos listed, same top hit for every query. Tolerance:
-durations within 0.1s, top-1 similarities within 0.05, transcript token overlap at least
-90%, which covers the audio boundary. Known divergence: rank ordering below the top hit,
+durations within 0.25s, top-1 similarities within 0.05, transcript token overlap at least
+80%, which covers the audio boundary. The bounds are fitted to the spread between two
+machines' ffmpeg and Whisper builds, and both observations are recorded beside each
+constant in `test_differential.py`, because a bound fitted to one machine is not a bound.
+Known divergence: rank ordering below the top hit,
 and the two scene detectors, recorded rather than asserted.
 
 **Resilience** sends a missing field, a negative `limit`, a query that is a number, a body
