@@ -1,7 +1,7 @@
 // Writes and reads. An action cannot touch the database directly, so every write from
 // `ingest` goes through one of these. Batched: one mutation per table, not one per row.
 
-import { internalMutation, internalQuery, query } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
 /** Bounded read. Convex advises against unbounded .collect() in a query. */

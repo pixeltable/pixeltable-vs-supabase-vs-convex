@@ -25,7 +25,7 @@ scored zero.
 |---|---|---|---|
 | App code you maintain | **129** | 294 | 425 |
 | Plus the shared compute service | **0** | 246 | 246 |
-| **Total** | **129** | **546** | **681** |
+| **Total** | **129** | **540** | **671** |
 | Files you open to read the backend | **1** | 7 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
@@ -63,9 +63,9 @@ can re-run the claim:
 Two workflows. `ci.yml` is the fast gate on every push: those checkers, the metrics
 self-test, and a drift check on `docs/metrics.json`. `live.yml` runs on pull requests and
 nightly, and is the one that matters for the claims here: it stands up all three
-implementations and the compute service, seeds the same fixtures into each, and runs the
-every suite in [docs/METHODOLOGY.md](docs/METHODOLOGY.md) against all three. A change that makes the three disagree cannot reach main
-green.
+implementations and the compute service, seeds the same fixtures into each, and runs
+every suite in [docs/METHODOLOGY.md](docs/METHODOLOGY.md) against all three. A change
+that makes the three disagree cannot reach main green.
 
 Supabase follows [develop few large functions, rather than many small
 ones](https://supabase.com/docs/guides/functions/development-tips), the documented

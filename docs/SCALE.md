@@ -133,7 +133,7 @@ everything else.
   embedded, and the audio is re-sent once per transcript chunk. Pixeltable makes zero
   requests and moves zero bytes: the models run in its own process.
 
-  In a deployment those 8 round trips cross a network. Convex actions run on Convex's
+  In a deployment those 9 round trips cross a network. Convex actions run on Convex's
   infrastructure and Supabase Edge Functions on Supabase's, so neither can reach a compute
   service on `127.0.0.1` at all, which `convex-app/README.md` already says. What that
   costs is not measured here and would not favour the two making the calls. Read the
