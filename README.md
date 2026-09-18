@@ -60,6 +60,13 @@ can re-run the claim:
 | Convex | `@convex-dev/eslint-plugin`, `tsc --noEmit` | Their own best-practice rules against real generated code |
 | Pixeltable | `ruff` | Generic Python. Pixeltable ships no conformance checker, so it has the weakest automated proof of the three. |
 
+Two workflows. `ci.yml` is the fast gate on every push: those checkers, the metrics
+self-test, and a drift check on `docs/metrics.json`. `live.yml` runs on pull requests and
+nightly, and is the one that matters for the claims here: it stands up all three
+implementations and the compute service, seeds the same fixtures into each, and runs the
+98 tests that compare them. A change that makes the three disagree cannot reach main
+green.
+
 Supabase follows [develop few large functions, rather than many small
 ones](https://supabase.com/docs/guides/functions/development-tips), the documented
 handler shape, `npm:` and `jsr:` specifiers with pinned versions, RLS on every table, and

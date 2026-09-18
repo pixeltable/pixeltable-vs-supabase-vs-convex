@@ -29,7 +29,7 @@ Concretely, we want to hear about:
 
 ## Checks
 
-These need nothing running, and CI gates on all of them:
+`ci.yml` runs these on every push, in about a minute. They need nothing running:
 
 ```bash
 ruff check pixeltable/ compute-service/ harness/ fixtures/
@@ -40,8 +40,10 @@ cd supabase-app && deno lint supabase/functions/
 cd convex-app && npx eslint convex/ && npx tsc --noEmit
 ```
 
-These need the implementation running. Pixeltable is auto-discovered; the other two take
-a `--base-url`:
+`live.yml` runs the rest on pull requests to main and nightly: it brings up all three
+implementations plus the compute service, seeds the same fixtures into each, and runs
+every suite below. Locally, Pixeltable is auto-discovered and the other two take a
+`--base-url`:
 
 ```bash
 python -m pytest harness/test_equivalence.py --impl pixeltable

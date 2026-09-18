@@ -1,0 +1,182 @@
+# The suites that need all three implementations running at once.
+#
+# ci.yml is the fast gate: linters, typecheckers, the metrics self-test and a collection
+# pass, about a minute. It cannot catch the three disagreeing with each other, because
+# that needs them alive. This workflow brings up Pixeltable, a full Supabase stack, a
+# Convex local backend and the compute service, seeds the same fixtures into all three,
+# and runs the suites that compare them.
+#
+# Not on every push: it is 20-40 minutes, most of it downloading models. On pull requests
+# to main, on a nightly schedule, and on demand.
+
+name: Live
+
+on:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  three-stacks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            compute-service/pyproject.toml
+            pixeltable/pyproject.toml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.117.0
+
+      - name: ffmpeg, which the fixtures and the compute service both need
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      # CLIP, MiniLM, Whisper base.en and a Qwen GGUF are about 2 GB between them and are
+      # the bulk of this job's wall time on a cold cache.
+      - name: Cache the model weights
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/huggingface
+            ~/.cache/whisper
+          key: models-${{ runner.os }}-v1
+
+      - name: Install the compute service and the harness
+        run: |
+          pip install -e compute-service/
+          pip install pytest httpx pydantic gTTS
+
+      - name: Install Pixeltable
+        run: pip install -e pixeltable/
+
+      - name: Generate the fixtures
+        # .mp4 is gitignored, so every run builds them from the same script and the same
+        # text. gTTS needs network.
+        run: python fixtures/videos/generate.py
+
+      - name: Start the compute service
+        # Bound to 0.0.0.0 because Supabase's Edge Runtime reaches it from inside a
+        # container. Pixeltable does not call it at all and Convex's backend is a host
+        # process, so only Supabase needs this.
+        run: |
+          (cd compute-service && nohup python -m uvicorn app:app --host 0.0.0.0 --port 9000 > /tmp/compute.log 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:9000/docs > /dev/null && break || sleep 2
+          done
+          curl -sf http://127.0.0.1:9000/docs > /dev/null
+
+      - name: Start Pixeltable
+        id: pixeltable
+        working-directory: pixeltable
+        run: |
+          pxt init
+          pxt schema update app.py media -f
+          pxt service update app.py media -f
+          sleep 10
+          URL=$(pxt service list | awk '/^media\/api/{print $2}')
+          test -n "$URL"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Start Supabase
+        id: supabase
+        working-directory: supabase-app
+        run: |
+          supabase start -x studio,realtime,imgproxy,inbucket,logflare,vector
+          # `.env.example` names host.docker.internal, which Docker Desktop provides and a
+          # Linux runner does not. Resolve the bridge gateway instead, so the Edge Runtime
+          # container can reach the compute service on the host either way.
+          GATEWAY=$(docker network inspect bridge -f '{{(index .IPAM.Config 0).Gateway}}')
+          test -n "$GATEWAY"
+          echo "COMPUTE_SERVICE_URL=http://${GATEWAY}:9000" > .env.local
+          nohup supabase functions serve --env-file .env.local --no-verify-jwt > /tmp/functions.log 2>&1 &
+          SECRET=$(supabase status -o env | grep '^SECRET_KEY=' | cut -d= -f2- | tr -d '"')
+          test -n "$SECRET"
+          echo "::add-mask::$SECRET"
+          echo "secret=$SECRET" >> "$GITHUB_OUTPUT"
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X POST \
+              http://127.0.0.1:54321/functions/v1/api/search/frames \
+              -H 'content-type: application/json' -H "apikey: $SECRET" \
+              -d '{"query":"warm","limit":1}')
+            [ "$code" = "200" ] && break || sleep 5
+          done
+
+      - name: Start Convex
+        id: convex
+        working-directory: convex-app
+        run: |
+          npm install
+          nohup npx convex dev > /tmp/convex.log 2>&1 &
+          for i in $(seq 1 60); do
+            grep -q CONVEX_SITE_URL .env.local 2>/dev/null && break || sleep 5
+          done
+          URL=$(grep '^CONVEX_SITE_URL=' .env.local | cut -d= -f2- | tr -d '"')
+          test -n "$URL"
+          npx convex env set COMPUTE_SERVICE_URL http://127.0.0.1:9000
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Seed the same fixtures into all three
+        env:
+          PXT: ${{ steps.pixeltable.outputs.url }}
+          SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
+          CONVEX: ${{ steps.convex.outputs.url }}
+        run: |
+          python harness/seed.py --impl pixeltable --base-url "$PXT"
+          python harness/seed.py --impl supabase --base-url http://127.0.0.1:54321 --auth-token "$SUPA_SECRET"
+          python harness/seed.py --impl convex --base-url "$CONVEX"
+
+      - name: Each implementation satisfies the contract
+        env:
+          PXT: ${{ steps.pixeltable.outputs.url }}
+          SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
+          CONVEX: ${{ steps.convex.outputs.url }}
+        run: |
+          python -m pytest harness/test_equivalence.py -q --impl pixeltable --base-url "$PXT"
+          python -m pytest harness/test_equivalence.py -q --impl supabase \
+            --base-url http://127.0.0.1:54321 --auth-token "$SUPA_SECRET"
+          python -m pytest harness/test_equivalence.py -q --impl convex --base-url "$CONVEX"
+
+      - name: The three agree with each other, and refuse what they should
+        env:
+          PXT: ${{ steps.pixeltable.outputs.url }}
+          SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
+          CONVEX: ${{ steps.convex.outputs.url }}
+        run: |
+          python -m pytest harness/test_differential.py harness/test_resilience.py -q \
+            --compare pixeltable="$PXT" \
+            --compare supabase=http://127.0.0.1:54321 \
+            --compare convex="$CONVEX" \
+            --auth-token "$SUPA_SECRET"
+
+      # test_recovery.py writes to the corpus and none of the three has a delete route, so
+      # it runs last: nothing after it can rely on the fixtures being clean.
+      - name: A failed or concurrent ingest leaves nothing behind
+        env:
+          PXT: ${{ steps.pixeltable.outputs.url }}
+          SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
+          CONVEX: ${{ steps.convex.outputs.url }}
+        run: |
+          python -m pytest harness/test_recovery.py -q --destructive \
+            --compare pixeltable="$PXT" \
+            --compare supabase=http://127.0.0.1:54321 \
+            --compare convex="$CONVEX" \
+            --auth-token "$SUPA_SECRET"
+
+      - name: Logs
+        if: failure()
+        run: |
+          echo '--- compute-service ---';  tail -50 /tmp/compute.log   || true
+          echo '--- supabase functions ---'; tail -50 /tmp/functions.log || true
+          echo '--- convex ---';           tail -50 /tmp/convex.log    || true
+          echo '--- pixeltable ---';       (cd pixeltable && pxt service logs media/api 2>&1 | tail -50) || true
