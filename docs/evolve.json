@@ -1,9 +1,9 @@
 {
-  "measured_at": "2026-09-17T18:55:07+00:00",
+  "measured_at": "2026-09-18T21:10:54+00:00",
   "pixeltable": {
-    "schema_change_sec": 3.88,
+    "schema_change_sec": 9.06,
     "backfill_sec": 0.0,
-    "total_sec": 3.88,
+    "total_sec": 9.06,
     "lines_written": 1,
     "files_touched": 1,
     "note": "one command; the schema change and the backfill are the same step",
@@ -15,9 +15,9 @@
     ]
   },
   "supabase": {
-    "schema_change_sec": 0.07,
-    "backfill_sec": 1.52,
-    "total_sec": 1.6,
+    "schema_change_sec": 0.08,
+    "backfill_sec": 1.38,
+    "total_sec": 1.45,
     "lines_written": 24,
     "files_touched": 2,
     "note": "ALTER TABLE is instant; the backfill reads, embeds and writes every row",
@@ -26,21 +26,21 @@
     ]
   },
   "convex": {
-    "schema_change_sec": 5.98,
-    "backfill_sec": 1.91,
-    "total_sec": 7.89,
+    "schema_change_sec": 5.94,
+    "backfill_sec": 1.09,
+    "total_sec": 7.03,
     "lines_written": 53,
     "files_touched": 2,
     "note": "a push, then an action that pages rows through a query and a mutation",
     "output": [
-      "  \"backfilled\": 3",
+      "  \"backfilled\": 23",
       "}"
     ]
   },
   "convex-searchindex": {
-    "schema_change_sec": 1.55,
+    "schema_change_sec": 1.35,
     "backfill_sec": 0.0,
-    "total_sec": 1.55,
+    "total_sec": 1.35,
     "lines_written": 1,
     "files_touched": 1,
     "note": "lexical, not semantic: searchIndex builds over an existing field, so no backfill",

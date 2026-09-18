@@ -8,10 +8,8 @@ already exist, and an embedding is not derivable in SQL, so every existing row h
 read, sent to a model, and written back. That is the shape of every real schema change on
 a populated table.
 
-**The corpus.** The 20-video tier on top of the fixtures: 24 videos on Pixeltable, 23 on
-Supabase. The recorded Convex run predates the full corpus there and backfilled 3 rows, so
-its wall time is the least comparable of the three; the structure, not the clock, is the
-finding. The backfill touches one row per video.
+**The corpus.** The 20-video tier on top of the fixtures: 23 videos on all three. The
+backfill touches one row per video.
 
 **What is committed.** Nothing. The contract does not need title search, so putting it in
 all three would inflate every line count in the repo with a feature nobody calls. Each
@@ -24,9 +22,9 @@ change is applied, timed, and reverted. The diffs are in
 
 | | Schema change | Backfill | Total | Lines written | Files touched |
 |---|---|---|---|---|---|
-| Pixeltable | 3.88s | same step | 3.88s | **1** | **1** |
-| Supabase | 0.07s | 1.52s | **1.6s** | 24 | 2 |
-| Convex | 5.98s | 1.91s | 7.89s | 53 | 2 |
+| Pixeltable | 9.06s | same step | 9.06s | **1** | **1** |
+| Supabase | 0.08s | 1.38s | **1.45s** | 24 | 2 |
+| Convex | 5.94s | 1.09s | 7.03s | 53 | 2 |
 
 **Supabase is the fastest, and Pixeltable is not.** At two dozen rows the backfill is one
 batched embedding call and a couple of dozen updates, so wall time is dominated by what
@@ -46,8 +44,8 @@ carry:
 
 | | Total | Lines written | Files touched |
 |---|---|---|---|
-| Convex, `vectorIndex` (semantic, same feature as the other two) | 7.89s | 53 | 2 |
-| Convex, `searchIndex` (lexical) | **1.55s** | **1** | **1** |
+| Convex, `vectorIndex` (semantic, same feature as the other two) | 7.03s | 53 | 2 |
+| Convex, `searchIndex` (lexical) | **1.35s** | **1** | **1** |
 
 Both are measured and both are in [`evolve.json`](evolve.json). Postgres has the same
 cheap answer in a GIN index over `to_tsvector(title)`, and Pixeltable in a `BtreeIndex`.
@@ -106,7 +104,7 @@ catalog is updated and correct, and reads keep working; new writes need
 resolve the table on every request. This is a real cost and it is not in the table above.
 
 **Backfill time is the part that scales, and it is the part this corpus cannot show.**
-1.5 seconds for 23 rows says nothing about 23 million. The structural claim stands on its
+1.4 seconds for 23 rows says nothing about 23 million. The structural claim stands on its
 shape rather than these numbers: Pixeltable's backfill is work proportional to the rows
 that changed and is the same command as the schema change, while a backfill script is
 work proportional to the table and a separate thing to write, run, monitor and retry. This

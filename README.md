@@ -33,8 +33,8 @@ scored zero.
 | HTTP routes written by hand | 1 | 1 | 5 |
 
 Those are properties of the code. Speed splits three ways. Pixeltable is last on ingest
-at both sizes measured, 8.04x realtime over 100 videos against Supabase's 13.78x. It is
-last on search too, by 19ms with every implementation under 56ms. And it is **4.5x faster
+at both sizes measured, 10.59x realtime over 100 videos against Supabase's 17.71x. It is
+last on search too, by 9ms with every implementation under 26ms. And it is **3x faster
 than Supabase on the agent query**, the most expensive operation in the app, because
 answering one costs the other two three round trips to their compute service and costs
 Pixeltable none. All measured on one machine, which is the assumption most favourable to

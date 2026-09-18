@@ -29,26 +29,26 @@ Two tiers, each ingested on top of the corpus the previous one left. Large is 20
 and 10 minutes of footage into a table holding 3; xl is 100 videos and 63 minutes into a
 table holding 103. All three finished every video at both tiers with no failed attempts.
 
-**Faster than realtime** is seconds of footage divided by seconds spent: at 8.04x,
-Pixeltable chewed through 63 minutes of video in 7.8 minutes. It is here because the two
+**Faster than realtime** is seconds of footage divided by seconds spent: at 10.59x,
+Pixeltable chewed through 63 minutes of video in 5.9 minutes. It is here because the two
 tiers hold different amounts of footage, 10 minutes against 63, so wall times are not
 comparable between them and this is. Higher is faster.
 
 | | Tier | Wall time | Faster than realtime | Median video |
 |---|---|---|---|---|
-| Pixeltable | large | 66.7s | 9.04x | 3.1s |
-| | **xl** | **469.8s** | **8.04x** | **4.7s** |
-| Supabase | large | 51.8s | 11.64x | 2.1s |
-| | **xl** | **274.3s** | **13.78x** | **2.7s** |
-| Convex | large | 53.7s | 11.25x | 2.4s |
-| | **xl** | **290.1s** | **13.02x** | **2.9s** |
+| Pixeltable | large | 62.0s | 9.73x | 2.8s |
+| | **xl** | **356.9s** | **10.59x** | **3.5s** |
+| Supabase | large | 51.4s | 11.75x | 2.1s |
+| | **xl** | **213.4s** | **17.71x** | **2.1s** |
+| Convex | large | 45.8s | 13.19x | 2.0s |
+| | **xl** | **220.7s** | **17.12x** | **2.2s** |
 
-**The ordering holds and the gap widens.** Pixeltable was 1.29x slower than the fastest of
-the other two at the large tier; at xl it is 1.71x slower. Per video, its median grew 52%
-between tiers where Supabase's grew 29% and Convex's 21%, which is what index maintenance
-on a growing table looks like. Supabase and Convex both got *faster* per second of footage
-as the tier grew, because the xl videos are longer and the per-request overhead is amortised
-over more work.
+**The ordering holds and the gap widens.** Pixeltable was 1.35x slower than the fastest of
+the other two at the large tier; at xl it is 1.67x slower. Per video, its median grew 25%
+between tiers where Supabase's held flat and Convex's grew 10%, which is what index
+maintenance on a growing table looks like. All three got *faster* per second of footage
+as the tier grew, because the xl videos are longer and the per-request overhead is
+amortised over more work, but Pixeltable's gain was the smallest.
 
 That is the answer to the question the large tier could not settle: the ordering is a
 property of the implementations, not of a small corpus, and on ingest the distance grows
@@ -67,23 +67,24 @@ suites assert on. Six passes, one untimed warm-up. Large was measured over 23 vi
 
 | | Tier | Frame search p50 | p95 | Transcript search p50 | p95 |
 |---|---|---|---|---|---|
-| Pixeltable | large | 39.0ms | 42.9ms | 18.5ms | 21.6ms |
-| | **xl** | **47.0ms** | **55.4ms** | **17.7ms** | **21.7ms** |
-| Supabase | large | 26.1ms | 30.5ms | 13.7ms | 16.3ms |
-| | **xl** | **34.5ms** | **38.0ms** | **16.0ms** | **18.2ms** |
-| Convex | large | 26.6ms | 40.7ms | 11.8ms | 17.7ms |
-| | **xl** | **27.9ms** | **34.3ms** | **12.5ms** | **16.5ms** |
+| Pixeltable | large | 22.9ms | 26.4ms | 17.2ms | 29.6ms |
+| | **xl** | **22.4ms** | **23.3ms** | **19.3ms** | **20.2ms** |
+| Supabase | large | 22.5ms | 41.5ms | 15.5ms | 18.7ms |
+| | **xl** | **16.9ms** | **25.6ms** | **15.8ms** | **20.1ms** |
+| Convex | large | 17.3ms | 21.4ms | 14.2ms | 18.2ms |
+| | **xl** | **14.1ms** | **17.8ms** | **10.1ms** | **13.7ms** |
 
 The ordering is unchanged: Pixeltable is last at both tiers. Read the size of that before
-reading the rank. Every implementation answers every query in under 56ms at 7,689 vectors,
-the whole spread at xl is 19ms, and around 20ms of every one of these numbers is the query
-embedding rather than the search. Measured directly against `compute-service` on this machine, one CLIP
-text embedding is about 20ms and one MiniLM embedding about 17ms. Nobody picks a database on
-19ms, and this table is not a reason to.
+reading the rank. Every implementation answers every query in under 26ms at 7,689 vectors,
+the whole spread at xl is 9ms, and much of every one of these numbers is the query
+embedding rather than the search: measured directly against `compute-service` on this machine,
+one CLIP text embedding is about 10ms and one MiniLM embedding about 7ms. Nobody picks a
+database on 9ms, and this table is not a reason to.
 
-What is worth reading is how each absorbed 12x the vectors: Convex's frame search grew 5%,
-Pixeltable's 21%, Supabase's HNSW 32%. On that axis, the one the index is actually
-responsible for, Convex scales best and Supabase worst, and Pixeltable sits between them.
+How each absorbed 12x the vectors is not readable in this table: the frame-search p50s all
+fell between tiers and the transcript p50s moved within 5ms in both directions. At this
+size the index is a rounding error next to the embedding and the request path, which is
+why the caveats below call this an ordering check and not a vector benchmark.
 
 ## The agent
 
@@ -98,11 +99,11 @@ rather than by corpus size. Four passes over three questions.
 
 | | p50 | p95 |
 |---|---|---|
-| Pixeltable | **292.6ms** | **815.1ms** |
-| Supabase | 1311.6ms | 1898.9ms |
-| Convex | 979.7ms | 1281.5ms |
+| Pixeltable | **230.9ms** | **358.8ms** |
+| Supabase | 702.4ms | 1057.4ms |
+| Convex | 711.8ms | 1742.4ms |
 
-**Pixeltable is 4.5x faster than Supabase and 3.3x faster than Convex here**, and all three
+**Pixeltable is 3.0x faster than Supabase and 3.1x faster than Convex here**, and all three
 return the same answer from the same weights. This is the one measurement in this repo
 where the architecture shows up directly in the clock rather than in the line count: one
 agent query costs Supabase and Convex three round trips to `compute-service`, one to embed
@@ -120,7 +121,7 @@ everything else.
   machine were 20% slower across the board with the same ordering. Read the gaps, not the
   milliseconds.
 - **One set of library versions**, recorded in `benchmarks.json` beside the timings.
-  Pixeltable 0.7.8, sentence-transformers 5.7.0, transformers 4.57.6, torch 2.8.0.
+  Pixeltable 0.7.8, sentence-transformers 5.7.0, transformers 4.57.6, torch 2.14.0.
 - **7,689 vectors is still not a vector benchmark.** HNSW and Convex's vector index are
   both well inside the range where a linear scan would also be fast, and nothing here
   measures recall. The tiers answer whether the ordering survives 12x, not what happens at

@@ -37,8 +37,28 @@ from harness.metrics import count_lines  # noqa: E402
 
 EVOLVE = ROOT / 'harness' / 'evolve'
 OUT = ROOT / 'docs' / 'evolve.json'
-with open(ROOT / 'supabase-app' / 'supabase' / 'config.toml', 'rb') as f:
-    DB_CONTAINER = f'supabase_db_{tomllib.load(f)["project"]["id"]}'
+
+
+def db_container() -> str:
+    """Name of the running Postgres container for the local stack.
+
+    `supabase start` names it `supabase_db_<project id>`, but a stack brought up before
+    the id was set in config.toml keeps the name the directory gave it. Ask docker what
+    is running and fall back to the config only when nothing answers.
+    """
+    proc = subprocess.run(
+        ['docker', 'ps', '--format', '{{.Names}}', '--filter', 'name=supabase_db_'],
+        capture_output=True,
+        text=True,
+    )
+    names = [line for line in proc.stdout.splitlines() if line.startswith('supabase_db_')]
+    if names:
+        return names[0]
+    with open(ROOT / 'supabase-app' / 'supabase' / 'config.toml', 'rb') as f:
+        return f'supabase_db_{tomllib.load(f)["project"]["id"]}'
+
+
+DB_CONTAINER = db_container()
 
 
 def run(cmd: list[str], cwd: Path | None = None, env: dict | None = None, timeout: int = 1800) -> str:
