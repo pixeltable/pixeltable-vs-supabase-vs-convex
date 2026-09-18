@@ -39,7 +39,7 @@ extraction and scene detection are ffmpeg.
 
 ```bash
 cp .env.example .env.local      # COMPUTE_SERVICE_URL, reachable from inside the runtime
-supabase start                  # local Docker, 12 containers; applies all four migrations
+supabase start                  # local Docker, 12 containers; applies all five migrations
 supabase functions serve --env-file .env.local
 ```
 

@@ -15,7 +15,7 @@ Pixeltable also sponsors this repo, which is why the methodology below is writte
 attacked, and why every implementation here is held to its own vendor's checker.
 
 Same contract, same fixtures, same models. All three run locally with no API key and no
-account, and all three were executed end to end: 10 contract tests each, then 20
+account, and all three were executed end to end: 11 contract tests each, then 20
 differential tests comparing them against each other and 32 resilience tests running
 against all three at once. Every number here is produced by `harness/run_comparison.py`
 reading the source; `n/a` means a metric does not apply to that platform, never that it
