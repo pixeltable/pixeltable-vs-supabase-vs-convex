@@ -141,6 +141,29 @@ class TestRouterExclusion:
         assert metrics.http_routes_written_by_hand == 1
         assert metrics.app_loc == 4
 
+    def test_a_comment_or_redefinition_is_not_an_object(self, tmp_path):
+        """Migration 005's bug, pinned: one view, three statements that mention CREATE VIEW.
+
+        `CREATE OR REPLACE VIEW` redefines `video_summary`, it does not make a second one,
+        and a `--` comment naming the DDL is not an object at all. Counting either reports
+        3 views where the database holds 1.
+        """
+        write(
+            tmp_path,
+            'm.sql',
+            'CREATE OR REPLACE VIEW video_summary AS\nSELECT 1;\n'
+            '-- CREATE OR REPLACE VIEW keeps the options of the existing view, but\n'
+            'ALTER VIEW video_summary SET (security_invoker = true);\n',
+        )
+        config = {
+            'dir': tmp_path,
+            'extensions': {'.sql'},
+            'exclude_patterns': set(),
+            'languages': ['SQL'],
+            'router_files': set(),
+        }
+        assert collect_metrics('supabase', config).views == 1
+
 
 class TestPatternsAreWellFormed:
     @pytest.mark.parametrize('impl', sorted(PATTERNS))

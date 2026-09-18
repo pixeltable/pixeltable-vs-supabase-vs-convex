@@ -37,7 +37,7 @@
       "SQL"
     ],
     "tables": 5,
-    "views": 3,
+    "views": 1,
     "vector_indexes": 2,
     "foreign_keys": 3,
     "db_triggers": 0,

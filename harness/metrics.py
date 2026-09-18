@@ -69,6 +69,11 @@ IMPLEMENTATIONS = {
 # each Deno.serve handler holds its own logic.
 ROUTER_ONLY_METRICS = {'orchestration_hops'}
 
+# A `CREATE OR REPLACE` redefines the same object, so view patterns capture the object's
+# name and count distinct names, not statements. Without it, migration 005 counts the one
+# `video_summary` view a second time.
+DISTINCT_METRICS = {'views'}
+
 # Written by hand, reported as hand-classified, never presented as a measurement.
 CLASSIFIED = {
     'pixeltable': {
@@ -111,7 +116,7 @@ CLASSIFIED = {
 PATTERNS = {
     'pixeltable': {
         'tables': r'class \w+\(\s*TableModel(?![^)]*base=)',
-        'views': r'class \w+\(\s*\n?\s*TableModel,[^)]*base=',
+        'views': r'class (\w+)\(\s*\n?\s*TableModel,[^)]*base=',
         'vector_indexes': r'pxt\.EmbeddingIndex\(',
         # The declared routes do no orchestration. The one hand-written route does:
         # it resolves a table, inserts, and reads the row back. That is 3, not 0.
@@ -120,7 +125,7 @@ PATTERNS = {
     },
     'supabase': {
         'tables': r'CREATE TABLE',
-        'views': r'CREATE (?:OR REPLACE )?VIEW',
+        'views': r'CREATE (?:OR REPLACE )?VIEW (\w+)',
         'vector_indexes': r'USING hnsw',
         'foreign_keys': r'REFERENCES \w+\(',
         'db_triggers': r'CREATE TRIGGER',
@@ -163,16 +168,16 @@ class ImplMetrics:
     classified: dict = field(default_factory=dict)
 
 
-def count_lines(path: Path) -> int:
-    """Non-blank, non-comment lines, using the comment syntax of the file's language."""
+def code_lines(path: Path) -> list[str]:
+    """Lines of code with blanks and comments removed, per the file's language."""
     try:
         text = path.read_text()
     except OSError:
-        return 0
+        return []
 
     markers = NAME_COMMENTS.get(path.name) or LINE_COMMENTS.get(path.suffix, ())
     block = BLOCK_COMMENTS.get(path.suffix)
-    count, in_block = 0, False
+    lines, in_block = [], False
 
     for raw in text.splitlines():
         line = raw.strip()
@@ -188,15 +193,13 @@ def count_lines(path: Path) -> int:
             continue
         if any(line.startswith(m) for m in markers):
             continue
-        count += 1
-    return count
+        lines.append(line)
+    return lines
 
 
-def _read(path: Path) -> str:
-    try:
-        return path.read_text()
-    except OSError:
-        return ''
+def count_lines(path: Path) -> int:
+    """Non-blank, non-comment lines, using the comment syntax of the file's language."""
+    return len(code_lines(path))
 
 
 def collect_metrics(name: str, config: dict) -> ImplMetrics:
@@ -226,7 +229,10 @@ def collect_metrics(name: str, config: dict) -> ImplMetrics:
     router_files = config.get('router_files', set())
     for field_name, pattern in PATTERNS.get(name, {}).items():
         paths = [p for p in sources if not (field_name in ROUTER_ONLY_METRICS and p.name in router_files)]
-        setattr(metrics, field_name, sum(len(re.findall(pattern, _read(p), re.MULTILINE)) for p in paths))
+        # Patterns match the code the LOC counter sees: a comment naming DDL is not an
+        # object, and counting it inflates the metric the way comment lines inflate LOC.
+        matches = [m for p in paths for m in re.findall(pattern, '\n'.join(code_lines(p)), re.MULTILINE)]
+        setattr(metrics, field_name, len(set(matches)) if field_name in DISTINCT_METRICS else len(matches))
 
     return metrics
 
