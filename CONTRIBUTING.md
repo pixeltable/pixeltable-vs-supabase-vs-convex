@@ -15,17 +15,10 @@ Concretely, we want to hear about:
 
 ## Rules
 
-1. **Never type a number into a doc.** Run `python harness/run_comparison.py`; every
-   figure comes from `docs/metrics.json`, and CI fails if it goes stale.
-2. **A metric with no pattern for a platform renders `n/a`, never `0`.**
-3. **Change the contract and you change all three** implementations plus the path map in
-   `harness/conftest.py`.
-4. **Do not claim runtime behaviour you did not observe.** `docs/METHODOLOGY.md` records
-   which implementations were actually executed.
-5. Keep each implementation idiomatic for its platform. The point is the contrast, not a
-   strawman.
-6. **Timings come from `harness/benchmark.py`**, land in `docs/benchmarks.json`, and
-   publish their failures. See [docs/SCALE.md](docs/SCALE.md).
+The working rules live in [AGENTS.md](AGENTS.md): numbers come from
+`harness/run_comparison.py`, `n/a` never renders as `0`, one contract across all three
+implementations, and only observed behaviour gets claimed. Keep each implementation
+idiomatic for its platform; the point is the contrast, not a strawman.
 
 ## Checks
 
@@ -37,7 +30,7 @@ ruff format --check pixeltable/ compute-service/ harness/ fixtures/
 python harness/run_comparison.py          # must leave docs/metrics.json unchanged
 python -m pytest harness/test_metrics.py  # the measuring code has its own tests
 cd supabase-app && deno lint supabase/functions/
-cd convex-app && npx eslint convex/ && npx tsc --noEmit
+cd convex-app && npx eslint convex/ && npx convex dev --once && npx tsc --noEmit
 ```
 
 `live.yml` runs the rest on pull requests to main and nightly: it brings up all three

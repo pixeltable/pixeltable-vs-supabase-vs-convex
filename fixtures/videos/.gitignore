@@ -1,4 +1,0 @@
-# Generated test videos -- recreate with: python fixtures/videos/generate.py
-*.mp4
-*.webm
-*.avi

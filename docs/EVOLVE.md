@@ -9,7 +9,9 @@ read, sent to a model, and written back. That is the shape of every real schema 
 a populated table.
 
 **The corpus.** The 20-video tier on top of the fixtures: 24 videos on Pixeltable, 23 on
-the other two. The backfill touches one row per video.
+Supabase. The recorded Convex run predates the full corpus there and backfilled 3 rows, so
+its wall time is the least comparable of the three; the structure, not the clock, is the
+finding. The backfill touches one row per video.
 
 **What is committed.** Nothing. The contract does not need title search, so putting it in
 all three would inflate every line count in the repo with a feature nobody calls. Each
@@ -92,7 +94,7 @@ export const backfillTitleEmbeddings = internalAction({ ... });
 index. Supabase drops the column and the index. Convex needs **a second migration**:
 pushing a schema that no longer declares `titleEmbedding` is rejected while documents
 still carry it, so the field has to be unset on every row first. That reverse migration is
-17 of Convex's 53 lines and exists only to undo the forward one. The `searchIndex` variant
+11 of Convex's 53 lines and exists only to undo the forward one. The `searchIndex` variant
 has no such problem: nothing was written to the rows, so dropping the index from the schema
 is the whole rollback.
 

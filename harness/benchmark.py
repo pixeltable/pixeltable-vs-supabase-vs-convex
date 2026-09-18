@@ -28,7 +28,7 @@ import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from harness.conftest import PATHS, auth_headers  # noqa: E402
-from harness.seed import videos_for, wait_for_job  # noqa: E402
+from harness.seed import TIERS, videos_for, wait_for_job  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'docs' / 'benchmarks.json'
@@ -228,7 +228,7 @@ def main() -> int:
     parser.add_argument('--impl', required=True, choices=sorted(PATHS))
     parser.add_argument('--base-url', default='')
     parser.add_argument('--auth-token', default='')
-    parser.add_argument('--tier', default='large', choices=['small', 'large', 'xl'])
+    parser.add_argument('--tier', default='large', choices=sorted(TIERS))
     parser.add_argument('--iterations', type=int, default=6, help='passes over the query set')
     parser.add_argument(
         '--agent-iterations', type=int, default=4, help='passes over the agent questions, which are slower'

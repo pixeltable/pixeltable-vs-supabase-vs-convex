@@ -1,6 +1,0 @@
-[project]
-name = "platform-comparison-harness"
-version = "0.3.0"
-description = "Cross-platform equivalence tests and measurements for the video intelligence benchmark."
-requires-python = ">=3.11"
-dependencies = ["httpx", "pydantic>=2.0", "pytest"]

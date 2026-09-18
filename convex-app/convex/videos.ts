@@ -102,11 +102,6 @@ export const saveConversation = internalMutation({
   },
 });
 
-export const getVideo = internalQuery({
-  args: { videoId: v.id("videos") },
-  handler: async (ctx, args) => await ctx.db.get("videos", args.videoId),
-});
-
 export const listVideos = query({
   args: {},
   handler: async (ctx) => {

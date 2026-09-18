@@ -18,11 +18,6 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
-class VideoIngestRequest(BaseModel):
-    video: str = Field(..., description='URL or local path to a video file')
-    title: str = Field(..., description='Human-readable title')
-
-
 class IngestAck(BaseModel):
     """What POST /videos returns. Deliberately not a VideoRow.
 
@@ -38,15 +33,6 @@ class IngestAck(BaseModel):
     job_url: str | None = Field(None, description='Pixeltable: poll until status is done')
     video_title: str | None = None
     status: Literal['processing', 'ready', 'error'] | None = None
-
-
-class SearchRequest(BaseModel):
-    query: str = Field(..., description='Natural-language query')
-    limit: int = Field(10, ge=1, le=100)
-
-
-class AgentRequest(BaseModel):
-    question: str = Field(..., description='Question to answer from the videos')
 
 
 class VideoRow(BaseModel):
@@ -90,8 +76,8 @@ class Rows(BaseModel):
     rows: list[dict]
 
 
-# POST /videos            VideoIngestRequest -> IngestAck | Rows[IngestAck]
-# GET  /videos                              -> Rows[VideoRow]
-# POST /search/frames     SearchRequest      -> Rows[FrameRow]
-# POST /search/transcripts SearchRequest     -> Rows[TranscriptRow]
-# POST /agent/query       AgentRequest       -> Rows[AgentRow]
+# POST /videos            {video, title}   -> IngestAck | Rows[IngestAck]
+# GET  /videos                             -> Rows[VideoRow]
+# POST /search/frames     {query, limit?}  -> Rows[FrameRow]
+# POST /search/transcripts {query, limit?} -> Rows[TranscriptRow]
+# POST /agent/query       {question}       -> Rows[AgentRow]

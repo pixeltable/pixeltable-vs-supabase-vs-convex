@@ -26,7 +26,6 @@ CONFIG_NAMES = {
     'pyproject.toml',
     'tsconfig.json',
     'config.toml',
-    'pixeltable.toml',
     '.env.example',
 }
 LOCK_NAMES = {'package-lock.json', 'uv.lock', 'poetry.lock'}  # generated, counted nowhere
@@ -42,7 +41,7 @@ IMPLEMENTATIONS = {
     'supabase': {
         'dir': ROOT / 'supabase-app',
         'extensions': {'.ts', '.sql'},
-        'exclude_patterns': {'node_modules', '_generated'},
+        'exclude_patterns': {'node_modules', '_generated', '.temp', '.branches'},
         'languages': ['TypeScript', 'SQL'],
         'router_files': set(),  # the one handler holds both the routing and the logic
     },

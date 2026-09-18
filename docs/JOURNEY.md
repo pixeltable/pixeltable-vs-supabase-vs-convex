@@ -15,7 +15,7 @@ end to end: see [METHODOLOGY.md](METHODOLOGY.md).
 | Step | Pixeltable | Supabase | Convex |
 |---|---|---|---|
 | 1. Install | Adequate: big Python deps | Weak: Docker, or managed | Strong: one command, no account |
-| 2. Schema | Strong: 2 tables, 2 views | Adequate: 5 tables, 3 FKs | Adequate: optional-free schema |
+| 2. Schema | Strong: 2 tables, 2 views | Adequate: 5 tables, 3 FKs | Adequate: fields optional where ingest writes late |
 | 3. Ingest | Strong: one insert | Adequate: 67-line function | Adequate: 61 lines plus mutations |
 | 4. Process | Strong: it is the schema | Weak: lives in the ingest path | Weak: lives in the ingest path |
 | 5. Embed | Strong: one line | Weak: second service | Weak: second service |
@@ -63,8 +63,8 @@ CREATE INDEX IF NOT EXISTS frames_embedding_idx ON frames
     USING hnsw (embedding vector_cosine_ops);
 ```
 
-**Convex.** Five tables and two vector indexes. Ingest writes complete rows, so no field
-needs `v.optional()`:
+**Convex.** Five tables and two vector indexes. Ingest writes the row before processing
+runs, so the fields it fills later are `v.optional()`:
 
 ```ts
   frames: defineTable({
@@ -90,7 +90,7 @@ one insert per table.
     const { embeddings } = await compute("/embed-clip", { images_b64: frames });
 ```
 
-**Convex.** 61 lines of the same shape, plus 109 lines of mutations in `videos.ts`,
+**Convex.** 61 lines of the same shape, plus 105 lines of mutations in `videos.ts`,
 because an action cannot write to the database directly.
 
 ```ts

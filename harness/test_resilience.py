@@ -29,9 +29,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from harness.conftest import PATHS, auth_headers
-
-TIMEOUT = 600.0
+from harness.conftest import PATHS
 
 # Valid bodies whose extreme values still have one right answer.
 WELL_FORMED = [
@@ -62,23 +60,22 @@ DEGENERATE = [
 ]
 
 
-@pytest.fixture(scope='session')
-def clients(comparands: dict[str, str], request: pytest.FixtureRequest):
-    if not comparands:
-        pytest.skip('needs at least one --compare IMPL=URL')
-    token = str(request.config.getoption('--auth-token'))
-    opened = {
-        impl: httpx.Client(base_url=url, headers=auth_headers(impl, token), timeout=TIMEOUT)
-        for impl, url in comparands.items()
-    }
-    yield opened
-    for client in opened.values():
-        client.close()
-
-
 def post(client: httpx.Client, impl: str, route: str, body) -> httpx.Response:
     method, path = PATHS[impl][route]
     return client.request(method, path, json=body)
+
+
+def test_missing_credentials(comparands: dict[str, str]):
+    """Only Supabase authenticates at the edge. With no token it answers 401; the other
+    two answer the list route as if the request were authenticated. The asymmetry is a
+    published finding (see the auth row in docs/TRADEOFFS.md), so it gets a pin."""
+    if not comparands:
+        pytest.skip('needs at least one --compare IMPL=URL')
+    for impl, url in comparands.items():
+        method, path = PATHS[impl]['list']
+        resp = httpx.request(method, f'{url}{path}', timeout=30)
+        expected = 401 if impl == 'supabase' else 200
+        assert resp.status_code == expected, f'{impl} answered {resp.status_code} to a request with no credentials'
 
 
 class TestMalformedRequestsAreClientErrors:

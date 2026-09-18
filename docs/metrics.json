@@ -30,7 +30,7 @@
   "supabase": {
     "name": "supabase",
     "app_loc": 294,
-    "config_loc": 30,
+    "config_loc": 22,
     "app_files": 7,
     "languages": [
       "TypeScript",
@@ -65,7 +65,7 @@
   },
   "convex": {
     "name": "convex",
-    "app_loc": 429,
+    "app_loc": 425,
     "config_loc": 35,
     "app_files": 7,
     "languages": [
@@ -85,7 +85,7 @@
       "convex/ingest.ts": 61,
       "convex/schema.ts": 50,
       "convex/search.ts": 76,
-      "convex/videos.ts": 109
+      "convex/videos.ts": 105
     },
     "classified": {
       "runtimes_to_operate": [
@@ -100,7 +100,7 @@
   },
   "compute-service": {
     "name": "compute-service",
-    "app_loc": 252,
+    "app_loc": 246,
     "config_loc": 17,
     "app_files": 1,
     "languages": [
@@ -114,7 +114,7 @@
     "orchestration_hops": null,
     "http_routes_written_by_hand": 7,
     "file_breakdown": {
-      "app.py": 252
+      "app.py": 246
     },
     "classified": {
       "runtimes_to_operate": [

@@ -12,6 +12,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
+import httpx
 import pytest
 
 # Each platform serves the same five operations at its own paths.
@@ -67,6 +68,21 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line('markers', 'destructive: writes to the corpus; needs --destructive')
+
+
+@pytest.fixture(scope='session')
+def clients(comparands: dict[str, str], request: pytest.FixtureRequest):
+    """One HTTP client per --compare implementation, closed at session end."""
+    if not comparands:
+        pytest.skip('needs at least one --compare IMPL=URL')
+    token = str(request.config.getoption('--auth-token'))
+    opened = {
+        impl: httpx.Client(base_url=url, headers=auth_headers(impl, token), timeout=900.0)
+        for impl, url in comparands.items()
+    }
+    yield opened
+    for client in opened.values():
+        client.close()
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:

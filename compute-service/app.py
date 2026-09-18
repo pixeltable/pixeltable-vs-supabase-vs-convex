@@ -115,15 +115,8 @@ class TranscribeRequest(BaseModel):
     end_sec: float | None = Field(None, description='Transcribe only up to this offset')
 
 
-class TranscriptSegment(BaseModel):
-    start: float
-    end: float
-    text: str
-
-
 class TranscribeResponse(BaseModel):
     text: str
-    segments: list[TranscriptSegment] = Field(default_factory=list)
 
 
 class EmbedClipRequest(BaseModel):
@@ -259,8 +252,7 @@ async def transcribe(req: TranscribeRequest):
         if clip_path is not None:
             Path(clip_path).unlink(missing_ok=True)
 
-    segments = [{'start': s['start'], 'end': s['end'], 'text': s['text']} for s in result.get('segments', [])]
-    return TranscribeResponse(text=result['text'], segments=segments)
+    return TranscribeResponse(text=result['text'])
 
 
 @app.post('/embed-clip', response_model=EmbedResponse)

@@ -56,17 +56,13 @@ jobs:
       - name: Convex's own ESLint plugin, so "idiomatic" is not our opinion
         working-directory: convex-app
         run: npx eslint convex/
-      - name: Typecheck, minus the generated code a Convex account would provide
+      - name: Generate the code tsc checks against
         working-directory: convex-app
-        run: |
-          # convex/_generated/ needs an authenticated deployment, so every error that
-          # mentions it, and every implicit-any it causes, is expected here.
-          npx tsc --noEmit 2>&1 | tee /tmp/tsc.log || true
-          if grep -v '_generated' /tmp/tsc.log | grep -v "implicitly has an 'any' type" | grep -q 'error TS'; then
-            echo 'unexpected TypeScript errors:'
-            grep -v '_generated' /tmp/tsc.log | grep -v "implicitly has an 'any' type"
-            exit 1
-          fi
+        # Anonymous local deployment, no account needed; the same thing live.yml runs.
+        run: npx convex dev --once
+      - name: Typecheck against the generated code
+        working-directory: convex-app
+        run: npx tsc --noEmit
 
   supabase-advisors:
     # Supabase's own security and performance checks, against a real database.

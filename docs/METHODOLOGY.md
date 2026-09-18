@@ -36,7 +36,9 @@ table. Nothing in that table is typed by hand.
 `.env.example`, which is matched by name because its suffix says nothing. Counting a
 comment marker as code inflates whichever language uses it, so each gets its own rule.
 Lock files are counted nowhere; `package.json`, `pyproject.toml`, `tsconfig.json`,
-`config.toml` and `.env.example` are counted separately as config.
+`config.toml` and `.env.example` are counted separately as config. Toolchain manifests
+no implementation can avoid (`deno.json`, `eslint.config.js`) are counted nowhere, as is
+this repo's own lint configuration.
 
 **Architecture.** Tables, views, vector indexes, foreign keys, database triggers,
 orchestration hops, and hand-written HTTP routes are counted by pattern per
@@ -100,7 +102,7 @@ out Pixeltable's asynchronous job and the other two's synchronous pipelines alik
 
 | Suite | Tests | Needs | Asks |
 |---|---|---|---|
-| [`test_metrics.py`](../harness/test_metrics.py) | 29 | nothing running | does the measuring code measure what it claims? |
+| [`test_metrics.py`](../harness/test_metrics.py) | 30 | nothing running | does the measuring code measure what it claims? |
 | [`test_equivalence.py`](../harness/test_equivalence.py) | 11 | one implementation | does it satisfy the contract, and rank the right video first? |
 | [`test_differential.py`](../harness/test_differential.py) | 20 | all three | do they agree with each other? |
 | [`test_resilience.py`](../harness/test_resilience.py) | 32 | all three | what do they do with a request they should refuse? |

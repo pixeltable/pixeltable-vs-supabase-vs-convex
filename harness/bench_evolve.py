@@ -31,16 +31,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+import tomllib  # noqa: E402
+
+from harness.metrics import count_lines  # noqa: E402
+
 EVOLVE = ROOT / 'harness' / 'evolve'
 OUT = ROOT / 'docs' / 'evolve.json'
-DB_CONTAINER = 'supabase_db_supabase-app'
-
-
-def loc(path: Path) -> int:
-    """Non-blank, non-comment lines, by the same rule as harness/metrics.py."""
-    from harness.metrics import count_lines
-
-    return count_lines(path)
+with open(ROOT / 'supabase-app' / 'supabase' / 'config.toml', 'rb') as f:
+    DB_CONTAINER = f'supabase_db_{tomllib.load(f)["project"]["id"]}'
 
 
 def run(cmd: list[str], cwd: Path | None = None, env: dict | None = None, timeout: int = 1800) -> str:
@@ -139,7 +137,7 @@ def evolve_supabase(token: str) -> dict:
         'schema_change_sec': round(schema_sec, 2),
         'backfill_sec': round(backfill_sec, 2),
         'total_sec': round(schema_sec + backfill_sec, 2),
-        'lines_written': loc(backfill) + loc(EVOLVE / 'supabase.sql'),
+        'lines_written': count_lines(backfill) + count_lines(EVOLVE / 'supabase.sql'),
         'files_touched': 2,
         'note': 'ALTER TABLE is instant; the backfill reads, embeds and writes every row',
         'output': out.strip().splitlines()[-2:],
@@ -195,7 +193,7 @@ def evolve_convex() -> dict:
         'schema_change_sec': round(schema_sec, 2),
         'backfill_sec': round(backfill_sec, 2),
         'total_sec': round(schema_sec + backfill_sec, 2),
-        'lines_written': loc(EVOLVE / 'convex_migrations.ts') + loc_of_patch(EVOLVE / 'convex_schema.patch'),
+        'lines_written': count_lines(EVOLVE / 'convex_migrations.ts') + loc_of_patch(EVOLVE / 'convex_schema.patch'),
         'files_touched': 2,
         'note': 'a push, then an action that pages rows through a query and a mutation',
         'output': out.strip().splitlines()[-2:],

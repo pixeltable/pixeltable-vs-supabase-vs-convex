@@ -39,7 +39,7 @@ respectively, and the compute service must be reachable from Convex's cloud, so
 ## Known limits, stated rather than hidden
 
 - An action cannot write to the database, so every write goes through a mutation.
-  `videos.ts` is 109 of this implementation's 429 lines for that reason.
+  `videos.ts` is 105 of this implementation's 425 lines for that reason.
 - `vectorSearch` returns ids and scores, so rows are fetched in a second query.
 - `listVideos` filters to `status === "ready"`. An action cannot write, so ingest inserts
   the video through a mutation before processing it, and a failed media step leaves that
@@ -61,7 +61,7 @@ reactivity and optimistic updates are structurally unreachable here; `ctx.schedu
 installed; `searchIndex`, priced against the vector equivalent in
 [../docs/EVOLVE.md](../docs/EVOLVE.md); Convex Auth; and `generateUploadUrl`, so frames
 are base64'd through the compute service rather than uploaded straight from a client.
-Ingest also splits its writes across four separate `ctx.runMutation` calls, each its own
+Ingest also splits its writes across a separate `ctx.runMutation` call per table write, each its own
 transaction, where a single transactional mutation is the product's actual guarantee.
 
 Priced in [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).

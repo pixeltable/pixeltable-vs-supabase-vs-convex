@@ -11,8 +11,8 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 129 | 294 | 429 |
-| Plus the shared compute service | 0 | 252 | 252 |
+| App code you maintain | 129 | 294 | 425 |
+| Plus the shared compute service | 0 | 246 | 246 |
 | Files you open to read the backend | 1 | 7 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Orchestration hops | 3 | 12 | 9 |
@@ -100,7 +100,7 @@ Throughput is not in the swaps because it has its own measurement:
 at this scale is your binding constraint, that page decides it and this one does not.
 
 **What survives every swap**: lines of code and files to open (129/1 against 294/7 and
-429/7), orchestration hops (3 against 12 and 9), and where media processing runs.
+425/7), orchestration hops (3 against 12 and 9), and where media processing runs.
 
 ## The conditional recommendation
 
@@ -120,8 +120,8 @@ the trade.
 
 **Pick Convex** when reactivity is the point. It also has the easiest install of the
 three: `npx convex dev` gives you a working local backend with no account and no Docker.
-Its 429 lines here are the worst showing in the table, and they are mostly two taxes this
-contract imposes: `videos.ts` (109 lines) because an action cannot write to the database
+Its 425 lines here are the worst showing in the table, and they are mostly two taxes this
+contract imposes: `videos.ts` (105 lines) because an action cannot write to the database
 directly, and `http.ts` (90 lines) because we asked for REST and then had to validate
 request bodies there by hand. Build the same app with Convex's reactive client instead of
 five REST endpoints and `http.ts` disappears along with both taxes, the client re-renders
@@ -169,7 +169,7 @@ tenant, and no owned row, so there is nothing for a policy to be about.
 | `searchIndex` | **No** in the app. Priced separately in [EVOLVE.md](EVOLVE.md), where it turns a 53-line change into a 1-line one. |
 | Convex Auth | **No.** All five routes are unauthenticated. |
 | `generateUploadUrl` | **No.** Frames are base64'd through the compute service and uploaded server-side. |
-| Transactional multi-table mutations | **Not as a design point.** Ingest splits writes across four separate `ctx.runMutation` calls, each its own transaction. |
+| Transactional multi-table mutations | **Not as a design point.** Ingest splits writes across a separate `ctx.runMutation` call per table write, each its own transaction. |
 
 ### Pixeltable, as it is normally used
 

@@ -55,7 +55,7 @@ property of the implementations, not of a small corpus, and on ingest the distan
 with the data rather than shrinking.
 
 One asymmetry sits underneath it. Supabase and Convex reach `compute-service` over
-loopback here, 8 requests and 0.90 MB per video that cost nothing on one machine and
+loopback here, 9 requests and 1.07 MB per video that cost nothing on one machine and
 would not be free in a deployment. Their column is a lower bound; Pixeltable's is what it
 is. See the last caveat below.
 
@@ -77,8 +77,8 @@ suites assert on. Six passes, one untimed warm-up. Large was measured over 23 vi
 The ordering is unchanged: Pixeltable is last at both tiers. Read the size of that before
 reading the rank. Every implementation answers every query in under 56ms at 7,689 vectors,
 the whole spread at xl is 19ms, and around 20ms of every one of these numbers is the query
-embedding rather than the search. Measured directly against `compute-service`, one CLIP
-text embedding is 19.9ms and one MiniLM embedding is 6.4ms. Nobody picks a database on
+embedding rather than the search. Measured directly against `compute-service` on this machine, one CLIP
+text embedding is about 20ms and one MiniLM embedding about 17ms. Nobody picks a database on
 19ms, and this table is not a reason to.
 
 What is worth reading is how each absorbed 12x the vectors: Convex's frame search grew 5%,
@@ -128,7 +128,7 @@ everything else.
 - **Everything here runs on one machine, which is the assumption most favourable to the
   two that need a second service.** `compute-service` answers on `127.0.0.1`, so its
   round trips cost nothing. Measured on one 31-second video, a Supabase or Convex ingest
-  makes **8 requests to it and moves 0.90 MB across that boundary, 2.9x the size of the
+  makes **9 requests to it and moves 1.07 MB across that boundary, 3.4x the size of the
   source file**, because the frames come down base64-encoded and go straight back up to be
   embedded, and the audio is re-sent once per transcript chunk. Pixeltable makes zero
   requests and moves zero bytes: the models run in its own process.

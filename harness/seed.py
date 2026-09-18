@@ -19,6 +19,7 @@ from pathlib import Path
 import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from harness.api_contract import IngestAck  # noqa: E402
 from harness.conftest import PATHS, auth_headers  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -68,8 +69,11 @@ def seed(impl: str, base_url: str, auth_token: str = '', tier: str = 'small') ->
             response = client.request(method, path, json={'video': str(video), 'title': video.name})
             response.raise_for_status()
             body = response.json()
-            if job_url := body.get('job_url'):
-                wait_for_job(client, job_url, started + TIMEOUT)
+            # The ack shape is part of the contract; parse it here because the one test
+            # that validates it skips whenever the target is already seeded.
+            ack = IngestAck(**body if 'rows' not in body else body['rows'][0])
+            if ack.job_url:
+                wait_for_job(client, ack.job_url, started + TIMEOUT)
             print(f'  {video.name} ({time.monotonic() - started:.1f}s)')
 
         list_resp = client.request(*paths['list'])

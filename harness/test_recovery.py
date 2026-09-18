@@ -7,7 +7,7 @@
 
 Every other suite reads. This one writes, and none of the three exposes a delete route,
 so a run leaves rows in the corpus and the fixtures have to be re-seeded afterwards. That
-is why it is behind `--destructive` and why CI only collects it.
+is why it is behind `--destructive` and why CI runs it last.
 
 What it asserts:
 
@@ -30,25 +30,10 @@ from pathlib import Path
 import httpx
 import pytest
 
-from harness.conftest import PATHS, auth_headers
+from harness.conftest import PATHS
 
-TIMEOUT = 900.0
 ROOT = Path(__file__).resolve().parent.parent
 GOOD_VIDEO = ROOT / 'fixtures' / 'videos' / 'lecture_data_structures.mp4'
-
-
-@pytest.fixture(scope='session')
-def clients(comparands: dict[str, str], request: pytest.FixtureRequest):
-    if not comparands:
-        pytest.skip('needs at least one --compare IMPL=URL')
-    token = str(request.config.getoption('--auth-token'))
-    opened = {
-        impl: httpx.Client(base_url=url, headers=auth_headers(impl, token), timeout=TIMEOUT)
-        for impl, url in comparands.items()
-    }
-    yield opened
-    for client in opened.values():
-        client.close()
 
 
 @pytest.fixture(scope='session')
