@@ -12,8 +12,12 @@ them against each other, which is where a divergence nobody intended shows up.
 Three tiers, because they are not expected to agree on everything:
 
   identical   same ffmpeg, same Whisper, same spans. A difference is a bug in one.
-  tolerance   floating point and chunk boundaries, bounded and stated.
+  tolerance   floating point, chunk boundaries and the machine, bounded and stated.
   divergent   genuinely different algorithms. Asserted to differ, and why.
+
+The tolerance bounds cover two machines, a laptop and a GitHub runner, because ffmpeg and
+Whisper builds differ between them by more than either differs from itself. Each constant
+records both observations, so widening one is an evidence question rather than a taste.
 """
 
 from __future__ import annotations
@@ -31,9 +35,12 @@ ROOT = Path(__file__).resolve().parent.parent
 QUERIES = json.loads((ROOT / 'fixtures' / 'queries' / 'test_queries.json').read_text())
 
 # Pixeltable reports the video container's duration; the other two report the duration of
-# the audio track they extracted. On these fixtures those differ by around 20ms. They
-# would differ by much more on a video whose audio is shorter than its picture.
-DURATION_TOLERANCE_SEC = 0.1
+# the audio track they extracted. Those are different quantities, and how far apart they
+# land depends on the ffmpeg build: 0.02s on one machine, 0.104s on a GitHub runner, for
+# the same fixture. The bound covers that spread rather than the tightest one observed,
+# because a bound fitted to one machine is not a bound. It still catches what it is for: a
+# wrong video, or a truncated ingest, moves this by seconds.
+DURATION_TOLERANCE_SEC = 0.25
 
 # Same model weights on both sides, but Pixeltable embeds through its own index while the
 # other two call compute-service, so the two paths post-process vectors differently.
@@ -41,11 +48,16 @@ DURATION_TOLERANCE_SEC = 0.1
 SIMILARITY_TOLERANCE = 0.05
 
 # Pixeltable's audio_splitter cuts spans from the decoded audio; the other two do
-# arithmetic on the duration ffprobe reports. The spans differ by about 8ms, so Whisper
-# sees a slightly different window at each boundary and renders it differently:
+# arithmetic on the duration ffprobe reports. The spans differ by a few milliseconds, so
+# Whisper sees a slightly different window at each boundary and renders it differently:
 # 'Deletion.' against 'deletion.', 'O of N log N' against 'O of n log n'. The words are
 # the same; the casing and the boundary fragment are not.
-TRANSCRIPT_MIN_OVERLAP = 0.9
+#
+# How different depends on the machine as well as the boundary: 1.0 overlap on one, 0.86
+# on a GitHub runner, for the same fixture and the same weights. The bound covers both.
+# At 0.8 it still fails on what it is for: the wrong video transcribed, an empty
+# transcript, or the same text written to every chunk.
+TRANSCRIPT_MIN_OVERLAP = 0.8
 
 
 @pytest.fixture(scope='session')
