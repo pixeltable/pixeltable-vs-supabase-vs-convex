@@ -1,0 +1,19 @@
+import uuid
+
+import pixeltable as pxt
+import pixeltable.functions as pxtf
+from fastapi import Body
+from pixeltable.functions.audio import audio_splitter
+from pixeltable.functions.huggingface import clip, sentence_transformer
+from pixeltable.functions.llama_cpp import create_chat_completion
+---
+import os
+import uuid
+
+import pixeltable as pxt
+import pixeltable.functions as pxtf
+from fastapi import Body
+from pixeltable.functions.audio import audio_splitter
+from pixeltable.functions.huggingface import clip, sentence_transformer
+from pixeltable.functions.llama_cpp import create_chat_completion
+from pixeltable.functions.openai import chat_completions

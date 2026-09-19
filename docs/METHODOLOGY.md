@@ -82,7 +82,7 @@ Stated per implementation, because "it typechecks" and "it ran" are different cl
 |---|---|---|
 | **Pixeltable** | Yes | Catalog created, three videos ingested over HTTP with background jobs, contract suite green against the live service |
 | **compute-service** | Yes | All seven endpoints exercised against the fixture videos |
-| **Supabase** | Yes | `supabase start` applied all five migrations, the `api` Edge Function served under `supabase functions serve`, three videos ingested, 45/45 frames and 6/6 chunks embedded, contract suite green. Also `deno lint` and `deno check` clean. |
+| **Supabase** | Yes | `supabase start` applied all five migrations, the `api` Edge Function served by the stack's edge-runtime container behind Kong at :54321, three videos ingested, 45/45 frames and 6/6 chunks embedded, contract suite green. Also `deno lint` and `deno check` clean. |
 | **Convex** | Yes | `npx convex dev` (anonymous local backend, no account), three videos ingested over its HTTP actions port, contract suite green, and `tsc --noEmit` clean against real generated code. |
 
 All three produce the same counts from the same fixtures: 3 videos, 45 frames
@@ -146,7 +146,22 @@ re-run against the live catalog:
 
 Throughput and latency are measured separately, over two tiers, in [SCALE.md](SCALE.md).
 Pixeltable is last on ingest by a margin that matters, last on search by 9ms, and 3x
-faster than Supabase on the agent query.
+faster than Supabase on the agent query. Three more measurements live there now:
+
+- **Reads.** `GET /videos` list latency plus a real fetch of one returned `frame_url`
+  per tier - the URL must resolve and serve media bytes, which is what caught a local
+  Supabase stack emitting `kong:8000` URLs to clients. `test_equivalence.py` fetches a
+  returned URL on every run as the regression guard.
+- **Load.** The same ten search queries fired with eight persistent clients in flight
+  (`--workers`), reported as concurrent p50/p95 and wall time. Kept deliberately
+  separate from serial latency: it measures degradation under contention, not speed.
+- **Hosted agent.** `harness/bench_hosted.py` swaps each implementation's local chat
+  model for the same hosted model over an OpenAI-compatible endpoint and fires the
+  agent questions concurrently. On Pixeltable the swap is a schema change and the
+  OpenAI function's rate-limit scheduler does pacing and retries; on the other two the
+  retry loop is application code and its lines are counted. Gated on
+  `OPENROUTER_API_KEY`, which reaches each service through its own config path and is
+  never written to the repo or the report. Results in `docs/hosted.json`.
 
 ## Pixeltable capabilities the contract leaves out
 

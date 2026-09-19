@@ -1,0 +1,3 @@
+  handler: async (ctx, args): Promise<{ rows: { answer: string; visual: unknown[]; spoken: unknown[] }[] }> => {
+---
+  handler: async (ctx, args): Promise<{ rows: { answer: string; visual: unknown[]; spoken: unknown[]; attempts: number }[] }> => {

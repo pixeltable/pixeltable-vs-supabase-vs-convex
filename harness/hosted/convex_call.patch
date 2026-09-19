@@ -1,0 +1,13 @@
+    const chat = await compute("/chat", {
+      messages: [{
+        role: "user",
+        content: `Answer the question using only the retrieved context. Be brief.\n\n` +
+          `## Seen in the videos\n${seen}\n\n## Said in the videos\n${heard}\n\n` +
+          `## Question\n${args.question}`,
+      }],
+    });
+---
+    const prompt = `Answer the question using only the retrieved context. Be brief.\n\n` +
+      `## Seen in the videos\n${seen}\n\n## Said in the videos\n${heard}\n\n` +
+      `## Question\n${args.question}`;
+    const chat = await chatHosted([{ role: "user", content: prompt }]);

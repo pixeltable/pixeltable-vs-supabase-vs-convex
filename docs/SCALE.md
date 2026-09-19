@@ -113,6 +113,61 @@ Pixeltable makes none, because the model runs where the data is.
 It is also the operation this benchmark had never measured, in a repo that measures
 everything else.
 
+## Reads
+
+The contract's fifth operation: what it costs to read back what was ingested. Two
+measurements per tier - `GET /videos` list latency, and fetching a real `frame_url`
+the API returned (an end-to-end media fetch, not a string check). Added after the
+suites had passed for months without anyone fetching one: a local Supabase stack was
+returning `kong:8000` URLs no client could resolve until the ingest code was taught
+to rebuild the public origin from Kong's `X-Forwarded-*` headers. The regression
+guard in `test_equivalence.py` now fetches a returned URL on every run.
+
+| | Tier | `GET /videos` p50 | p95 | Frame fetch p50 | p95 |
+|---|---|---|---|---|---|
+| Pixeltable | small / 3 videos | 1.8ms | 2.0ms | 0.6ms | 1.0ms |
+| | large / 23 | 6.1ms | 8.4ms | 1.7ms | 2.5ms |
+| | **xl / 203** | **5.1ms** | **6.8ms** | **0.7ms** | **0.9ms** |
+| Supabase | small / 3 videos | 6.8ms | 12.9ms | 2.8ms | 4.2ms |
+| | large / 23 | 6.4ms | 20.1ms | 2.8ms | 11.6ms |
+| | **xl / 203** | **7.8ms** | **17.6ms** | **2.1ms** | **3.0ms** |
+| Convex | small / 3 videos | 1.4ms | 2.2ms | 0.4ms | 0.8ms |
+| | large / 23 | 1.9ms | 4.8ms | 0.4ms | 1.0ms |
+| | **xl / 203** | **2.4ms** | **12.9ms** | **0.4ms** | **0.9ms** |
+
+Convex wins the read path outright: the query layer lists 203 rows in ~2ms and its
+object store answers frames in 0.4ms. Pixeltable's list cost grows with rows (the
+JSON it assembles per row does), landing between the other two; its media serving is
+fast. Supabase is slowest on both - every request traverses Kong into Postgres, and
+media bytes traverse Kong again into the storage service. All three are still
+single-digit-to-low-double-digit milliseconds; this is an ordering table, not a
+problem for anyone.
+
+## Under load
+
+Same ten search queries, but eight clients in flight at once (`--workers 8`, one
+persistent connection each, 48 requests total). This measures how the serial numbers
+degrade, which is a different question than latency.
+
+| | Tier | Concurrent p50 | p95 | vs serial p50 |
+|---|---|---|---|---|
+| Pixeltable | small | 121.3ms | 174.1ms | ~6x |
+| | large | 173.6ms | 264.6ms | ~8x |
+| | **xl** | **119.5ms** | **173.7ms** | ~6x |
+| Supabase | small | 59.4ms | 138.9ms | ~3x |
+| | large | 64.9ms | 197.3ms | ~3x |
+| | **xl** | **67.0ms** | **123.9ms** | ~4x |
+| Convex | small | 64.3ms | 124.4ms | ~4.5x |
+| | large | 63.1ms | 72.9ms | ~4x |
+| | **xl** | **65.2ms** | **72.8ms** | ~4.5x |
+
+The property that wins Pixeltable the agent query loses it this one: its embedding
+model lives in the request path, so eight concurrent searches queue behind one
+in-process CLIP and MiniLM. The other two hand the same work to `compute-service`,
+whose own throughput is shared between them here - and still hold ~60-67ms because
+the edge function and the action layers are stateless and parallel. Invert it again
+on cost: the two that scale better are paying for a second process to do it.
+
 ## What these numbers are not
 
 - **One laptop, one run, CPU only, local models.** They compare the three against each

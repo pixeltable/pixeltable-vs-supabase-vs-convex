@@ -43,16 +43,29 @@ async function ingest(req: Request, supabase: SupabaseClient): Promise<Response>
     const { frames } = await compute("/extract-frames", { video_url, fps: FRAME_FPS });
     const { embeddings } = await compute("/embed-clip", { images_b64: frames });
 
+    // getPublicUrl derives its origin from SUPABASE_URL and req.url is the internal hop
+    // behind Kong - both resolve to the docker network on a local stack. The origin the
+    // client actually used rides in the forwarded headers Kong sets on the request, and
+    // on a deployed project they carry the public project URL, so both work.
+    const { protocol, host: internalHost } = new URL(req.url);
+    const proto = req.headers.get("x-forwarded-proto") ?? protocol.slice(0, -1);
+    const host = req.headers.get("x-forwarded-host") ?? internalHost;
+    const port = req.headers.get("x-forwarded-port");
+    const origin = `${proto}://${host}${
+      port && !host.includes(":") && port !== (proto === "https" ? "443" : "80") ? `:${port}` : ""
+    }`;
+
     const frameRows = await Promise.all(frames.map(async (b64: string, i: number) => {
       const path = `videos/${videoId}/frame_${i.toString().padStart(4, "0")}.jpg`;
       const { error: upErr } = await supabase.storage
         .from("frames")
         .upload(path, decodeBase64(b64), { contentType: "image/jpeg", upsert: true });
       if (upErr) throw new Error(`frame upload failed: ${upErr.message}`);
+      const publicPath = new URL(supabase.storage.from("frames").getPublicUrl(path).data.publicUrl).pathname;
       return {
         video_id: videoId,
         frame_idx: i,
-        frame_url: supabase.storage.from("frames").getPublicUrl(path).data.publicUrl,
+        frame_url: `${origin}${publicPath}`,
         embedding: embeddings[i],
       };
     }));

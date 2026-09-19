@@ -29,7 +29,7 @@
   },
   "supabase": {
     "name": "supabase",
-    "app_loc": 294,
+    "app_loc": 302,
     "config_loc": 22,
     "app_files": 7,
     "languages": [
@@ -45,7 +45,7 @@
     "http_routes_written_by_hand": 1,
     "file_breakdown": {
       "supabase/functions/_shared/client.ts": 31,
-      "supabase/functions/api/index.ts": 141,
+      "supabase/functions/api/index.ts": 149,
       "supabase/migrations/001_schema.sql": 47,
       "supabase/migrations/002_search_functions.sql": 52,
       "supabase/migrations/003_storage.sql": 3,

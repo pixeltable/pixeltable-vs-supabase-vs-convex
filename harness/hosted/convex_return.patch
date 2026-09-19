@@ -1,0 +1,3 @@
+    return { rows: [{ answer: chat.content, visual, spoken }] };
+---
+    return { rows: [{ answer: chat.content, visual, spoken, attempts: chat.attempts }] };

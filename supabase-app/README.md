@@ -38,15 +38,17 @@ extraction and scene detection are ffmpeg.
 `../compute-service/` has to be running on port 9000 first.
 
 ```bash
-cp .env.example .env.local      # COMPUTE_SERVICE_URL, reachable from inside the runtime
-supabase start                  # local Docker, 12 containers; applies all five migrations
-supabase functions serve --env-file .env.local
+cp .env.example supabase/functions/.env   # COMPUTE_SERVICE_URL, readable inside the runtime
+supabase start                            # local Docker, 12 containers; applies all five migrations
 ```
 
-`--env-file` is not optional. The Function reads `COMPUTE_SERVICE_URL` and falls back to
-`http://localhost:9000`, which inside the Edge Runtime container is the container, so
-every ingest fails at the first media call. `host.docker.internal` is the host from
-there.
+The Function reads `COMPUTE_SERVICE_URL` and falls back to `http://localhost:9000`,
+which inside the Edge Runtime container is the container, so every ingest fails at
+the first media call. `host.docker.internal` is the host from there. The stack's
+edge-runtime container reads `supabase/functions/.env` at creation - changing it
+takes `supabase stop && supabase start`, not a reload. (The standalone alternative is
+`supabase functions serve --env-file .env.local`, which serves on the host and is not
+what this benchmark runs.)
 
 `supabase functions deploy` is the hosted path and needs a linked project; `serve` is the
 local one, and it is what this benchmark runs.

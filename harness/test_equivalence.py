@@ -140,6 +140,19 @@ class TestSearch:
     def test_limit_is_respected(self, client, paths):
         assert len(call(client, paths, 'frames', query='whiteboard', limit=2)['rows']) <= 2
 
+    def test_frame_url_is_servable(self, client, paths):
+        """The contract calls frame_url a servable URL, so fetch it.
+
+        Written after a local Supabase stack returned kong:8000 URLs that no client could
+        resolve: every suite passed while nothing could fetch a frame.
+        """
+        rows = call(client, paths, 'frames', query='whiteboard', limit=1)['rows']
+        assert rows, 'frame search returned nothing'
+        url = rows[0]['frame_url']
+        response = client.get(url)
+        assert response.status_code == 200, f'frame_url did not serve: {url} -> {response.status_code}'
+        assert len(response.content) > 0, f'frame_url served no bytes: {url}'
+
 
 class TestAgent:
     def test_agent_answers_and_keeps_its_evidence(self, client, paths):

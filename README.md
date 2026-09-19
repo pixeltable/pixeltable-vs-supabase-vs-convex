@@ -23,23 +23,27 @@ scored zero.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | **129** | 294 | 425 |
+| App code you maintain | **129** | 302 | 425 |
 | Plus the shared compute service | **0** | 246 | 246 |
-| **Total** | **129** | **540** | **671** |
+| **Total** | **129** | **548** | **671** |
 | Files you open to read the backend | **1** | 7 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
 | Orchestration hops | **3** | 12 | 9 |
 | HTTP routes written by hand | 1 | 1 | 5 |
 
-Those are properties of the code. Speed splits three ways. Pixeltable is last on ingest
+Those are properties of the code. Speed splits four ways. Pixeltable is last on ingest
 at both sizes measured, 10.59x realtime over 100 videos against Supabase's 17.71x. It is
 last on search too, by 9ms with every implementation under 26ms. And it is **3x faster
 than Supabase on the agent query**, the most expensive operation in the app, because
 answering one costs the other two three round trips to their compute service and costs
-Pixeltable none. All measured on one machine, which is the assumption most favourable to
-the two that need that service. Method, versions and caveats in
-[docs/SCALE.md](docs/SCALE.md).
+Pixeltable none. On the read path Convex is fastest on both `GET /videos` (1.4-2.4ms)
+and frame fetches (0.4ms), with Supabase slowest on media bytes (2.1-2.8ms). Under 8
+concurrent search clients the ordering inverts: Pixeltable's in-process model
+serializes the query embedding (p50 120-174ms) while the other two hold ~60-67ms -
+the same property that wins the agent serially loses it under load. All measured on
+one machine, which is the assumption most favourable to the two that need that
+service. Method, versions and caveats in [docs/SCALE.md](docs/SCALE.md).
 
 **Read [docs/TRADEOFFS.md](docs/TRADEOFFS.md) before the rest.** It says which stack wins
 under which conditions, using even swaps, and it concedes the cases where Pixeltable

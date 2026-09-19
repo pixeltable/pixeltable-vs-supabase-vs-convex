@@ -1,0 +1,35 @@
+async function agent(req: Request, supabase: SupabaseClient): Promise<Response> {
+---
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+// The call the agent makes when the model is a hosted API with rate limits. On
+// Pixeltable this is a computed column and pacing plus retries are the scheduler's job;
+// here it is code. Retry-After is honoured when the API sends it, exponential backoff
+// otherwise, six attempts before the request is failed.
+async function chatHosted(messages: unknown[]): Promise<{ content: string; attempts: number }> {
+  const key = Deno.env.get("OPENROUTER_API_KEY");
+  if (!key) throw new Error("OPENROUTER_API_KEY is not set");
+  const model = Deno.env.get("HOSTED_MODEL") ?? "meta-llama/llama-3.3-8b-instruct:free";
+  for (let attempt = 1; attempt <= 6; attempt++) {
+    const resp = await fetch(OPENROUTER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({ model, messages, max_tokens: 256, temperature: 0.2 }),
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      return { content: data.choices?.[0]?.message?.content ?? "", attempts: attempt };
+    }
+    if (resp.status !== 429 && resp.status < 500) {
+      throw new Error(`chat failed: ${resp.status} ${(await resp.text()).slice(0, 200)}`);
+    }
+    const retryAfter = Number(resp.headers.get("retry-after"));
+    const delaySec = Number.isFinite(retryAfter) && retryAfter > 0
+      ? retryAfter
+      : Math.min(2 ** (attempt - 1) * 2, 30);
+    await new Promise((resolve) => setTimeout(resolve, delaySec * 1000));
+  }
+  throw new Error("chat failed: retries exhausted");
+}
+
+async function agent(req: Request, supabase: SupabaseClient): Promise<Response> {

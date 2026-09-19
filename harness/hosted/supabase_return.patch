@@ -1,0 +1,3 @@
+  return json({ rows: [{ answer: chat.content, visual: visual ?? [], spoken: spoken ?? [] }] });
+---
+  return json({ rows: [{ answer: chat.content, visual: visual ?? [], spoken: spoken ?? [], attempts: chat.attempts }] });

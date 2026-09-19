@@ -21,6 +21,7 @@ import platform
 import statistics
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -217,6 +218,84 @@ def agent_latency(client: httpx.Client, impl: str, iterations: int) -> dict:
     return out
 
 
+def read_latency(client: httpx.Client, impl: str, iterations: int) -> dict:
+    """Two reads nothing else covers: the list route, and a stored frame fetched by URL.
+
+    frame_url resolves to a different substrate per platform: Pixeltable's catalog media
+    store, Supabase Storage, and Convex file storage. The URLs come from a frame search
+    because the contract has no route that returns a frame by id.
+    """
+    method, path = PATHS[impl]['list']
+    list_samples = []
+    for _ in range(iterations):
+        started = time.monotonic()
+        response = client.request(method, path)
+        response.raise_for_status()
+        list_samples.append((time.monotonic() - started) * 1000)
+
+    method, path = PATHS[impl]['frames']
+    rows = client.request(method, path, json={'query': FRAME_QUERIES[0], 'limit': 10}).json()['rows']
+    if not rows:
+        sys.exit('frame search returned nothing; cannot measure frame fetch')
+    urls = [r['frame_url'] for r in rows]
+    fetch_samples = []
+    for _ in range(iterations):
+        for url in urls:
+            started = time.monotonic()
+            response = client.get(url)
+            response.raise_for_status()
+            fetch_samples.append((time.monotonic() - started) * 1000)
+
+    out = {}
+    for name, samples in (('list', list_samples), ('frame_fetch', fetch_samples)):
+        out[name] = {
+            'samples': len(samples),
+            'p50_ms': round(percentile(samples, 50), 1),
+            'p95_ms': round(percentile(samples, 95), 1),
+            'min_ms': round(min(samples), 1),
+            'max_ms': round(max(samples), 1),
+        }
+        print(f'  read/{name}: p50 {out[name]["p50_ms"]}ms  p95 {out[name]["p95_ms"]}ms  (n={len(samples)})')
+    return out
+
+
+def concurrent_search(base_url: str, headers: dict, impl: str, workers: int, iterations: int) -> dict:
+    """The serial search numbers under N clients in flight at once.
+
+    One client per worker rather than one shared client, so the connection pool each
+    platform gives its handler is part of the measurement.
+    """
+    queries = [('frames', q) for q in FRAME_QUERIES] + [('transcripts', q) for q in TRANSCRIPT_QUERIES]
+    tasks = [queries[i % len(queries)] for i in range(iterations * workers)]
+
+    def worker(chunk: list[tuple[str, str]]) -> list[float]:
+        samples = []
+        with httpx.Client(base_url=base_url, headers=headers, timeout=TIMEOUT) as client:
+            for route, query in chunk:
+                method, path = PATHS[impl][route]
+                started = time.monotonic()
+                response = client.request(method, path, json={'query': query, 'limit': 10})
+                response.raise_for_status()
+                samples.append((time.monotonic() - started) * 1000)
+        return samples
+
+    started_all = time.monotonic()
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        samples = [ms for chunk in pool.map(worker, (tasks[i::workers] for i in range(workers))) for ms in chunk]
+    wall = time.monotonic() - started_all
+    out = {
+        'workers': workers,
+        'samples': len(samples),
+        'wall_sec': round(wall, 1),
+        'p50_ms': round(percentile(samples, 50), 1),
+        'p95_ms': round(percentile(samples, 95), 1),
+        'min_ms': round(min(samples), 1),
+        'max_ms': round(max(samples), 1),
+    }
+    print(f'  load: {workers} workers, p50 {out["p50_ms"]}ms  p95 {out["p95_ms"]}ms  wall {wall:.1f}s')
+    return out
+
+
 def corpus(client: httpx.Client, impl: str) -> dict:
     method, path = PATHS[impl]['list']
     rows = client.request(method, path).json()['rows']
@@ -234,6 +313,9 @@ def main() -> int:
         '--agent-iterations', type=int, default=4, help='passes over the agent questions, which are slower'
     )
     parser.add_argument('--skip-ingest', action='store_true', help='measure search only')
+    parser.add_argument(
+        '--workers', type=int, default=8, help='clients in flight for the concurrent-search measurement'
+    )
     args = parser.parse_args()
 
     base_url = args.base_url
@@ -253,6 +335,8 @@ def main() -> int:
         print(f'search ({args.impl}):')
         result['search'] = latency(client, args.impl, args.iterations)
         result['agent'] = agent_latency(client, args.impl, args.agent_iterations)
+        result['read'] = read_latency(client, args.impl, args.iterations)
+        result['load'] = concurrent_search(base_url, headers, args.impl, args.workers, args.iterations)
         result['corpus'] = corpus(client, args.impl)
 
     existing = json.loads(OUT.read_text()) if OUT.exists() else {}
