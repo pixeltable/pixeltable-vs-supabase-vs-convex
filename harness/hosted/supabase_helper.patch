@@ -9,18 +9,20 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 async function chatHosted(messages: unknown[]): Promise<{ content: string; attempts: number }> {
   const key = Deno.env.get("OPENROUTER_API_KEY");
   if (!key) throw new Error("OPENROUTER_API_KEY is not set");
-  const model = Deno.env.get("HOSTED_MODEL") ?? "meta-llama/llama-3.3-8b-instruct:free";
+  const model = Deno.env.get("HOSTED_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free";
   for (let attempt = 1; attempt <= 6; attempt++) {
     const resp = await fetch(OPENROUTER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model, messages, max_tokens: 256, temperature: 0.2 }),
+      body: JSON.stringify({ model, messages, max_tokens: 1024, temperature: 0.2 }),
     });
     if (resp.ok) {
       const data = await resp.json();
-      return { content: data.choices?.[0]?.message?.content ?? "", attempts: attempt };
-    }
-    if (resp.status !== 429 && resp.status < 500) {
+      const content = data.choices?.[0]?.message?.content;
+      // OpenRouter can carry an upstream provider error inside a 200 body; an absent
+      // error field and non-empty content are the only shapes worth returning.
+      if (!data.error && content) return { content, attempts: attempt };
+    } else if (resp.status !== 429 && resp.status < 500) {
       throw new Error(`chat failed: ${resp.status} ${(await resp.text()).slice(0, 200)}`);
     }
     const retryAfter = Number(resp.headers.get("retry-after"));

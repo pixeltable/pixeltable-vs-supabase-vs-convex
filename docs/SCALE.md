@@ -168,6 +168,40 @@ whose own throughput is shared between them here - and still hold ~60-67ms becau
 the edge function and the action layers are stateless and parallel. Invert it again
 on cost: the two that scale better are paying for a second process to do it.
 
+## Hosted model
+
+The agent again, but with local generation swapped for one hosted model -
+`nvidia/nemotron-3-super-120b-a12b:free` on OpenRouter, identical for all three. The
+swap is the thing being measured: on Pixeltable it is a 7-line schema change and the
+OpenAI function's rate-limit scheduler paces and retries; on the other two it is a
+36-37 line helper, because pacing, Retry-After and backoff are application code.
+`harness/bench_hosted.py` applies the patches, delivers the key through each vendor's
+own config path, fires 12 questions at 6 workers, then reverts everything. Numbers in
+`docs/hosted.json`.
+
+| | ok | Wall | p50 | p95 | Retries | Lines |
+|---|---|---|---|---|---|---|
+| Supabase | 12/12 | 6.0s | 1.5s | 3.7s | 2 | 36 |
+| Convex | 12/12 | 10.5s | 2.8s | 7.3s | 1 | 37 |
+| Pixeltable | 8/12 | 23.7s | 2.8s | 17.7s | scheduler-internal | 7 |
+
+Two findings, neither flattering to a tidy story. First: the free pool degrades by
+returning HTTP 200 with an `error` body (`503 upstream overloaded`) or a completion
+whose `content` is empty - a status check alone cannot see either. The hand-written
+loops inspect the body and retry, which is what keeps them at 12/12; Pixeltable's
+computed column evaluates the response it is given, so a malformed 200 lands as a
+null answer - the scheduler retries raised errors, not well-formed wrong ones, and
+the misses here are exactly those calls. Second: the p50s land within ~1.3s of each
+other because provider latency dominates everything; what separates the rows is the
+failure mode and the wall clock under saturation, not the median. The line counts are
+the other half of the trade: 7 lines versus 36-37 buys pacing and header-aware
+retries, and gives up the ability to inspect a bad 200.
+
+Free-tier provider saturation moves minute to minute - a repeat run showed Supabase
+absorbing ten retries and Pixeltable losing only one of twelve - so the counts above
+are a snapshot of one window, not a property of the platforms. What does not move:
+who wrote the retry code, and who could see inside the response.
+
 ## What these numbers are not
 
 - **One laptop, one run, CPU only, local models.** They compare the three against each

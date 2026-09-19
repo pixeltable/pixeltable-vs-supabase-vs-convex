@@ -11,6 +11,6 @@
 ---
     answer = chat_completions(
         messages=[{'role': 'user', 'content': build_prompt(question, visual, spoken)}],
-        model=os.environ.get('HOSTED_MODEL', 'meta-llama/llama-3.3-8b-instruct:free'),
-        model_kwargs={'max_tokens': 256, 'temperature': 0.2},
+        model=os.environ.get('HOSTED_MODEL', 'nvidia/nemotron-3-super-120b-a12b:free'),
+        model_kwargs={'max_tokens': 1024, 'temperature': 0.2},
     )['choices'][0]['message']['content']

@@ -175,9 +175,12 @@ shape that decides all of it.
   resource pool. `RateLimitsScheduler` reads the limits a provider reports, keeps requests
   under them, and retries with exponential backoff up to ten times; `RequestRateScheduler`
   covers providers that report nothing, with three. Configuration is per provider
-  (`openai.rate_limits`, `openai.max_connections`, `gemini.rate_limits`). Every model in
-  this benchmark is local, so none of that runs, and none of it is measured. On Supabase
-  and Convex the equivalent is code in the ingest path.
+  (`openai.rate_limits`, `openai.max_connections`, `gemini.rate_limits`). The contract
+  corpus runs every model locally, so the suites above never see it; the hosted tier in
+  `harness/bench_hosted.py` does exercise it, and [SCALE.md](SCALE.md#hosted-model)
+  records what happened, including the malformed-200 response shape a scheduler cannot
+  inspect. On Supabase and Convex the equivalent is code in the request path - 36 and
+  37 lines of it, counted in `docs/hosted.json`.
 - **Iterators beyond two.** `FrameIterator` and `AudioSplitter` are used here.
   `VideoSplitter`, `DocumentSplitter`, `StringSplitter`, `TileIterator` and
   `ComponentIterator` also ship and go unmeasured.

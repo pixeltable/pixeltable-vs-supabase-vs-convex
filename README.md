@@ -176,10 +176,12 @@ Seven iterators ship (`FrameIterator`, `AudioSplitter`, `VideoSplitter`, `Docume
 **Model calls are scheduled, not looped.** Eighteen provider modules declare a resource
 pool, and the scheduler reads the rate limits the provider reports, stays under them, and
 retries with exponential backoff. Configuration is per provider: `openai.rate_limits`,
-`anthropic.api_key`, `gemini.rate_limits`, `openai.max_connections`. **This benchmark does
-not exercise any of it**, because every model here is local. Swap one line to a hosted
-model and the concurrency, the rate limiting and the retries arrive with it; on the other
-two they are yours to write.
+`anthropic.api_key`, `gemini.rate_limits`, `openai.max_connections`. The hosted tier
+exercises it ([docs/hosted.json](docs/hosted.json)): a 7-line schema swap points `answer`
+at OpenRouter, against 36-37 lines of hand-written retry/backoff on the other two. The
+trade surfaces under a saturated free pool: OpenRouter can carry an upstream error inside
+a 200 body, which a hand-written loop can inspect and retry while a computed column
+evaluates it to a null answer - 12/12 on both versus 8/12.
 
 **A failed ingest must not become a listed video.** A zero-byte file, a truncated file,
 random bytes with an `.mp4` extension, a path that does not exist: all three reject all
@@ -294,11 +296,19 @@ python harness/benchmark.py --impl pixeltable --tier large
 python harness/bench_evolve.py --supabase-token $SECRET
 ```
 
+Time the agent against one hosted model on all three. Reverts its own patches when done
+and needs a real key, which never touches the repo ([docs/hosted.json](docs/hosted.json)):
+
+```bash
+OPENROUTER_API_KEY=sk-or-... python harness/bench_hosted.py --supabase-token $SECRET
+```
+
 ## Reading the rest
 
 - [docs/TRADEOFFS.md](docs/TRADEOFFS.md): even swaps, and which stack wins when.
 - [docs/SCALE.md](docs/SCALE.md): ingest, search and agent latency over 20 and 100
-  videos, and what the single-machine setup hides.
+  videos, the agent measured against a hosted model, and what the single-machine
+  setup hides.
 - [docs/EVOLVE.md](docs/EVOLVE.md): adding a column to live data, run on all three, with
   the code each one required and the costs the clock does not show.
 - [docs/METHODOLOGY.md](docs/METHODOLOGY.md): what is measured, what is a judgment call,
