@@ -1,0 +1,8 @@
+    status: v.string(), // 'processing' | 'ready' | 'error'
+    createdAt: v.number(),
+  }),
+---
+    status: v.string(), // 'processing' | 'ready' | 'error'
+    createdAt: v.number(),
+    titleTag: v.optional(v.string()),
+  }),

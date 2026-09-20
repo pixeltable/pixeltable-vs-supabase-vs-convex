@@ -55,7 +55,7 @@ def wait_for_job(client: httpx.Client, job_url: str, deadline: float, poll_sec: 
     raise TimeoutError(f'ingest job still pending: {job_url}')
 
 
-def seed(impl: str, base_url: str, auth_token: str = '', tier: str = 'small') -> int:
+def seed(impl: str, base_url: str, auth_token: str = '', tier: str = 'small', skip_existing: bool = False) -> int:
     videos = videos_for(tier)
     if not videos:
         sys.exit(f'no {tier}-tier fixture videos. Run: python fixtures/videos/generate.py --tier {tier}')
@@ -64,6 +64,12 @@ def seed(impl: str, base_url: str, auth_token: str = '', tier: str = 'small') ->
     headers = auth_headers(impl, auth_token)
     with httpx.Client(base_url=base_url.rstrip('/'), headers=headers, timeout=TIMEOUT) as client:
         method, path = paths['ingest']
+        if skip_existing:
+            listed = client.request(*paths['list'])
+            listed.raise_for_status()
+            have = {row['video_title'] for row in listed.json()['rows']}
+            videos = [v for v in videos if v.name not in have]
+            print(f'{len(have)} already seeded, {len(videos)} to go')
         for video in videos:
             started = time.monotonic()
             response = client.request(method, path, json={'video': str(video), 'title': video.name})
@@ -89,6 +95,12 @@ def main() -> int:
     parser.add_argument('--base-url', default='', help='Root URL of the running implementation')
     parser.add_argument('--auth-token', default='')
     parser.add_argument('--tier', choices=sorted(TIERS), default='small')
+    parser.add_argument(
+        '--skip-existing',
+        action='store_true',
+        help='Skip titles the list route already returns. No implementation exposes a '
+        'delete route, so a duplicate seeded by mistake cannot be removed.',
+    )
     args = parser.parse_args()
 
     base_url = args.base_url
@@ -102,7 +114,7 @@ def main() -> int:
     if not base_url:
         sys.exit(f'--base-url required for {args.impl} (or start Pixeltable service)')
 
-    return seed(args.impl, base_url, args.auth_token, args.tier)
+    return seed(args.impl, base_url, args.auth_token, args.tier, args.skip_existing)
 
 
 if __name__ == '__main__':

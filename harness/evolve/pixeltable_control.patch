@@ -1,0 +1,4 @@
+    scene_count = count_items(scenes)
+---
+    scene_count = count_items(scenes)
+    title_len = title.len()

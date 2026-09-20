@@ -8,8 +8,8 @@ already exist, and an embedding is not derivable in SQL, so every existing row h
 read, sent to a model, and written back. That is the shape of every real schema change on
 a populated table.
 
-**The corpus.** The 20-video tier on top of the fixtures: 23 videos on all three. The
-backfill touches one row per video.
+**The corpus.** Two sizes on all three: 23 videos (the large tier on top of the
+fixtures) and 123 (the xl tier on top of that). The backfill touches one row per video.
 
 **What is committed.** Nothing. The contract does not need title search, so putting it in
 all three would inflate every line count in the repo with a feature nobody calls. Each
@@ -20,16 +20,45 @@ change is applied, timed, and reverted. The diffs are in
 
 ## What it cost
 
-| | Schema change | Backfill | Total | Lines written | Files touched |
-|---|---|---|---|---|---|
-| Pixeltable | 9.06s | same step | 9.06s | **1** | **1** |
-| Supabase | 0.08s | 1.38s | **1.45s** | 24 | 2 |
-| Convex | 5.94s | 1.09s | 7.03s | 53 | 2 |
+The three schema changes are not the same kind of operation, so each platform is timed
+twice: once for a **control** that exercises the same mechanism with no model work, and
+once for the change itself. The mechanism is warmed first on the unchanged schema, so a
+cold interpreter or bundler does not land in either number. The control is the fixed
+price of the mechanism; the difference is the work that scales with rows.
 
-**Supabase is the fastest, and Pixeltable is not.** At two dozen rows the backfill is one
-batched embedding call and a couple of dozen updates, so wall time is dominated by what
-surrounds it: building an HNSW index, or pushing a deployment. Anyone quoting these
-seconds as a scaling result is quoting noise.
+| 23 videos | Control | Schema change | Backfill | Total | Lines written | Files touched |
+|---|---|---|---|---|---|---|
+| Pixeltable | 0.53s | 0.96s | same step | **0.96s** | **1** | **1** |
+| Supabase | 0.23s | 0.08s | 2.63s | 2.71s | 24 | 2 |
+| Convex | 1.52s | 7.01s | 2.09s | 9.10s | 53 | 2 |
+
+| 123 videos | Control | Schema change | Backfill | Total | Lines written | Files touched |
+|---|---|---|---|---|---|---|
+| Pixeltable | 0.81s | 5.22s | same step | 5.22s | **1** | **1** |
+| Supabase | 0.12s | 0.09s | 3.42s | **3.51s** | 24 | 2 |
+| Convex | 1.52s | 6.19s | 1.48s | 7.66s | 53 | 2 |
+
+What the controls are: a computed `title_len` column for Pixeltable (visits every row,
+calls no model), an optional `titleTag` field for Convex (a push with no index), a plain
+`title_tag` text column for Supabase. What each platform adds beyond its control is the
+interesting part:
+
+- **Pixeltable:** schema minus control is 0.4s at 23 rows and 4.4s at 123 - the fused
+  backfill, embedding plus index build for every existing row, and the only one of the
+  three whose schema step grows with the table.
+- **Supabase:** the DDL is metadata-only at both sizes measured; everything
+  row-proportional sits in the hand-written script: one batched embedding call per 64
+  rows plus an UPDATE per row, 2.6s then 3.4s.
+- **Convex:** push minus control is ~4.7-5.5s and flat across corpus size - registering
+  the vector index is a fixed deployment cost (document validation runs on every push,
+  so it is already in the control). The backfill action (1.5-2.1s) is the
+  row-proportional part.
+
+An earlier version of this table reported 9.06s for the same Pixeltable change: that
+number was a cold measurement, the first `pxt schema update` of a session, and most of
+it was importing the schema file. Warmed once, the fused step is the cheapest on the
+table at 23 rows and still second at 123. Seconds at this corpus size remain noise for
+scaling claims; what the control column adds is proof of *where* the noise lives.
 
 ### The same question asked the cheap way
 
@@ -44,8 +73,8 @@ carry:
 
 | | Total | Lines written | Files touched |
 |---|---|---|---|
-| Convex, `vectorIndex` (semantic, same feature as the other two) | 7.03s | 53 | 2 |
-| Convex, `searchIndex` (lexical) | **1.35s** | **1** | **1** |
+| Convex, `vectorIndex` (semantic, same feature as the other two) | 7.66s | 53 | 2 |
+| Convex, `searchIndex` (lexical) | **1.67s** | **1** | **1** |
 
 Both are measured and both are in [`evolve.json`](evolve.json). Postgres has the same
 cheap answer in a GIN index over `to_tsvector(title)`, and Pixeltable in a `BtreeIndex`.
@@ -103,9 +132,12 @@ catalog is updated and correct, and reads keep working; new writes need
 `pxt service update` first. The other two have no equivalent step, because their handlers
 resolve the table on every request. This is a real cost and it is not in the table above.
 
-**Backfill time is the part that scales, and it is the part this corpus cannot show.**
-1.4 seconds for 23 rows says nothing about 23 million. The structural claim stands on its
-shape rather than these numbers: Pixeltable's backfill is work proportional to the rows
-that changed and is the same command as the schema change, while a backfill script is
-work proportional to the table and a separate thing to write, run, monitor and retry. This
-page does not measure that, and neither does anything else in this repo.
+**Backfill time is the part that scales, and two corpus sizes only start to show it.**
+The controls do expose the slope: Pixeltable's schema-minus-control residual grows with
+rows (0.4s to 4.4s) because embedding is fused into the change, while Convex's push
+residual stays flat (~5s) because index registration is fixed deployment cost. At 123
+rows Supabase's batched script overtakes Pixeltable's in-process embedding on the clock -
+the fused step buys lines, not speed. But 123 rows still says nothing about 23 million:
+a hand-written backfill is a separate thing to write, run, monitor and retry at any
+size, and no corpus in this repo is large enough to make that the bottleneck over the
+machinery around it.
