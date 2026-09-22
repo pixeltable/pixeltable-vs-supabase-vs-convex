@@ -92,5 +92,8 @@ jobs:
       - run: python harness/run_comparison.py
       - name: Measurements must match the committed docs/metrics.json
         run: git diff --exit-code docs/metrics.json
+      - run: python harness/render_summary.py
+      - name: Summary chart must match the committed artifacts
+        run: git diff --exit-code docs/summary.svg
       - name: Published tables must quote the committed benchmark artifacts
         run: python harness/check_docs.py

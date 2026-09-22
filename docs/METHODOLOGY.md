@@ -186,6 +186,8 @@ faster than Supabase on the agent query. Three more measurements live there now:
   `error` field inside a 200 body, `finish_reason`, and reasoning tokens against
   `max_tokens`. It separates a provider fault from the token cap when an answer comes
   back empty. Results in `docs/hosted_probe.json`, keyed by model.
+- **Summary chart.** `harness/render_summary.py` renders `docs/summary.svg` from the
+  committed artifacts - the README embeds it, and CI fails if a re-render differs.
 
 ## Pixeltable capabilities the contract leaves out
 

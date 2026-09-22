@@ -58,6 +58,31 @@ def hosted_cells(h: dict) -> list[str]:
     return cells
 
 
+def readme_cells(m: dict, h: dict) -> list[str]:
+    """The README summary table and hosted-tier prose, formatted the way the doc renders
+    them - `**` is stripped before matching, so bolding is not part of the check."""
+
+    def row(label: str, vals: list) -> str:
+        return f'| {label} | ' + ' | '.join(str(v) for v in vals) + ' |'
+
+    compute = m['compute-service']['app_loc']
+    needs = [m[i]['classified']['needs_compute_service'] for i in IMPLS]
+    app = [m[i]['app_loc'] for i in IMPLS]
+    cells = [
+        row('App code you maintain', app),
+        row('Plus the shared compute service', [compute if n else 0 for n in needs]),
+        row('Total', [a + (compute if n else 0) for a, n in zip(app, needs, strict=True)]),
+        row('Files you open to read the backend', [m[i]['app_files'] for i in IMPLS]),
+        row('Orchestration hops', [m[i]['orchestration_hops'] for i in IMPLS]),
+        row('HTTP routes with a hand-written handler', [m[i]['http_routes_written_by_hand'] for i in IMPLS]),
+    ]
+    cells += [f'{h[i]["succeeded"]}/{h["questions"]}' for i in IMPLS]
+    lines = [h[i]['lines_written'] for i in IMPLS]
+    cells.append(f'{lines[0]}-line')
+    cells.append(f'{min(lines[1:])}-{max(lines[1:])}')
+    return cells
+
+
 def evolve_cells(e: dict) -> list[str]:
     cells = []
     for impl, tiers in e.items():
@@ -89,6 +114,12 @@ def main() -> int:
     for cell in hosted_cells(hosted):
         if cell not in scale:
             failures.append(f'SCALE.md missing hosted cell: {cell}')
+
+    readme = (ROOT / 'README.md').read_text().replace('**', '')
+    metrics = json.loads((DOCS / 'metrics.json').read_text())
+    for cell in readme_cells(metrics, hosted):
+        if cell not in readme:
+            failures.append(f'README.md missing summary cell: {cell}')
 
     evolve_doc = (DOCS / 'EVOLVE.md').read_text().replace('**', '')
     for cell in evolve_cells(json.loads((DOCS / 'evolve.json').read_text())):

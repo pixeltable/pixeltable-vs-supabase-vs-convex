@@ -45,6 +45,9 @@ the same property that wins the agent serially loses it under load. All measured
 one machine, which is the assumption most favourable to the two that need that
 service. Method, versions and caveats in [docs/SCALE.md](docs/SCALE.md).
 
+![Benchmark summary: p50 latency by operation, effort to land a schema change, and the
+hosted-agent swap. Rendered from the committed artifacts by harness/render_summary.py.](docs/summary.svg)
+
 **Read [docs/TRADEOFFS.md](docs/TRADEOFFS.md) before the rest.** It says which stack wins
 under which conditions, using even swaps, and it concedes the cases where Pixeltable
 loses. The short version: this app is media-heavy, which suits Pixeltable; if you need
