@@ -28,7 +28,6 @@ import json
 import os
 import shutil
 import socket
-import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -48,6 +47,9 @@ HOSTED = ROOT / 'harness' / 'hosted'
 OUT = ROOT / 'docs' / 'hosted.json'
 OPENROUTER_BASE = 'https://openrouter.ai/api/v1'
 HOSTED_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free'
+# The untimed warm-up asks a question no timed request uses, so the row it writes on
+# Pixeltable can be told apart from the measured ones when the cells' error state is read.
+WARMUP_QUESTION = 'Summarize what the videos cover.'
 SUPABASE_APP = ROOT / 'supabase-app'
 CONVEX_APP = ROOT / 'convex-app'
 SUPABASE_URL = 'http://127.0.0.1:54321'
@@ -107,8 +109,9 @@ def fire_agent(impl: str, base_url: str, headers: dict, questions: list[str], wo
 
     # Untimed warm-up, the same shape as agent_latency in benchmark.py: each stack is
     # restarted immediately before this fires, and the first request pays cold client
-    # and service init that has nothing to do with the model being measured.
-    ask(0, questions[0])
+    # and service init that has nothing to do with the model being measured. The
+    # sentinel question marks the row it leaves behind, so _cell_errors can exclude it.
+    warmup = ask(0, WARMUP_QUESTION)
     started = time.monotonic()
     with ThreadPoolExecutor(workers) as pool:
         results = list(pool.map(lambda iq: ask(*iq), enumerate(questions)))
@@ -118,13 +121,24 @@ def fire_agent(impl: str, base_url: str, headers: dict, questions: list[str], wo
 
     done = [r['sec'] for r in results if r['ok']]
     attempts = [r['attempts'] for r in results if r['attempts']]
+    # Only successful responses carry an attempt count on the two hand-written loops: a
+    # request that exhausts its retries throws, and the 500 body holds no count. Empty
+    # attempts on those two therefore means no request succeeded; on Pixeltable it is
+    # always empty because the retries are the scheduler's.
+    if attempts:
+        retries: int | str = sum(a - 1 for a in attempts)
+    elif impl == 'pixeltable':
+        retries = 'n/a: scheduler-internal'
+    else:
+        retries = 'n/a: no successful request returned one'
     return {
         'succeeded': len(done),
         'failed': len(results) - len(done),
+        'warmup_ok': warmup['ok'],
         'wall_sec': round(wall, 2),
         'p50_sec': round(percentile(done, 50), 3) if done else None,
         'p95_sec': round(percentile(done, 95), 3) if done else None,
-        'retries': sum(a - 1 for a in attempts) if attempts else 'n/a: scheduler-internal',
+        'retries': retries,
         'statuses': sorted({r['status'] for r in results}),
     }
 
@@ -146,18 +160,22 @@ def _drop_conversations(env: dict) -> None:
 
 
 def _cell_errors(env: dict) -> dict:
-    """Per-cell error state of the answers this run just wrote, read before the restore
-    drops the conversations table. The HTTP layer only sees 200s: a failed answer is a
-    null cell, and the reason sits in the row's errormsg/errortype - detail the platform
-    keeps that a status code cannot carry.
+    """Per-cell error state of the timed answers this run just wrote, read before the
+    restore drops the conversations table. The HTTP layer only sees 200s: a failed
+    answer is a null cell, and the reason sits in the row's errormsg/errortype - detail
+    the platform keeps that a status code cannot carry. The warm-up's row is filtered
+    out by its sentinel question, so `empty` and `rows` describe the timed set only.
     """
     code = (
         'import json, pixeltable as pxt\n'
+        f'WARMUP = {json.dumps(WARMUP_QUESTION)}\n'
         "t = pxt.get_table('media.conversations')\n"
-        'rows = [dict(r) for r in t.select(ans=t.answer, err=t.answer.errormsg, et=t.answer.errortype).collect()]\n'
+        'sel = t.select(q=t.question, ans=t.answer, err=t.answer.errormsg, et=t.answer.errortype)\n'
+        'rows = [dict(r) for r in sel.collect()]\n'
+        "rows = [r for r in rows if r['q'] != WARMUP]\n"
         "errs = [str(r['et']) + ': ' + str(r['err']) for r in rows if r['err']]\n"
         "empty = sum(1 for r in rows if r['err'] is None and not r['ans'])\n"
-        "print(json.dumps({'errors': errs, 'empty': empty}))\n"
+        "print(json.dumps({'errors': errs, 'empty': empty, 'rows': len(rows)}))\n"
     )
     try:
         # The last stdout line is the JSON; pxt announces its catalog connection first.
@@ -212,8 +230,6 @@ def _service_url() -> str | None:
 def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
     app = ROOT / 'pixeltable' / 'app.py'
     original = app.read_text()
-    patch(app, HOSTED / 'pixeltable_imports.patch')
-    patch(app, HOSTED / 'pixeltable_answer.patch')
     # The daemon resolves credentials from the environment it was started with, and
     # services it spawns inherit that environment. Starting it with OPENROUTER_API_KEY
     # set points every service at OpenRouter without touching config.toml. The daemon
@@ -224,9 +240,13 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
     port = _free_port()
     env = {'PXT_PORT': port, 'OPENROUTER_API_KEY': key, 'HOSTED_MODEL': HOSTED_MODEL}
     try:
+        # Applied inside the try: if a patch's anchor has gone stale, the finally still
+        # puts the original text back instead of leaving the file half-patched.
+        patch(app, HOSTED / 'pixeltable_imports.patch')
+        patch(app, HOSTED / 'pixeltable_answer.patch')
         try:
             run([pxt_bin(), 'daemon', 'stop', '--force'], cwd=app.parent, env=env)
-        except RuntimeError as exc:
+        except Exception as exc:
             print(f'  daemon stop failed (continuing): {exc}', flush=True)
         run([pxt_bin(), 'daemon', 'start'], cwd=app.parent, env=env)
         _wait_daemon(port)
@@ -244,12 +264,15 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
         result = fire_agent('pixeltable', url, {}, questions, workers)
         result['cell_errors'] = _cell_errors(env)
     finally:
-        app.write_text(original)
         # Each restore step is guarded so a single failure cannot skip the rest of the
         # cleanup; the schema and the service must both come back to the local variant.
         # The daemon stop+start runs before the schema update: a dead daemon fails the
         # update and leaves the service blocked on a schema that never landed. The empty
         # values drop the key from the respawned daemon and the service it starts.
+        try:
+            app.write_text(original)
+        except OSError as exc:
+            print(f'  restore step failed: {exc}', flush=True)
         clean_env = {'PXT_PORT': port, 'OPENROUTER_API_KEY': '', 'HOSTED_MODEL': ''}
         for cmd in (
             [
@@ -262,7 +285,7 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
         ):
             try:
                 run(cmd, cwd=app.parent, env=clean_env)
-            except RuntimeError as exc:
+            except Exception as exc:
                 print(f'  restore step failed: {exc}', flush=True)
         try:
             _wait_daemon(port)
@@ -274,7 +297,7 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
             run([pxt_bin(), 'service', 'update', 'app.py', 'media', '-f'], cwd=app.parent, env=clean_env)
             # the private daemon's work is done; the service runs independently of it
             run([pxt_bin(), 'daemon', 'stop', '--force'], cwd=app.parent, env=clean_env)
-        except RuntimeError as exc:
+        except Exception as exc:
             print(f'  restore step failed: {exc}', flush=True)
     result.update(
         lines_written=loc_of_patch(HOSTED / 'pixeltable_imports.patch')
@@ -292,17 +315,19 @@ def hosted_supabase(key: str, token: str, questions: list[str], workers: int) ->
     index = SUPABASE_APP / 'supabase' / 'functions' / 'api' / 'index.ts'
     original = index.read_text()
     names = ['supabase_helper', 'supabase_call', 'supabase_return']
-    for name in names:
-        patch(index, HOSTED / f'{name}.patch')
     env_file = SUPABASE_APP / 'supabase' / 'functions' / '.env'
     # The file already exists in a working local stack - COMPUTE_SERVICE_URL lives here.
     # Replace only our hosted-model variables, and put the original content back after.
     env_original = env_file.read_text() if env_file.exists() else ''
-    kept = [line for line in env_original.splitlines() if not line.startswith(('OPENROUTER_API_KEY=', 'HOSTED_MODEL='))]
-    hosted = [f'OPENROUTER_API_KEY={key}', f'HOSTED_MODEL={HOSTED_MODEL}']
-    env_file.write_text('\n'.join(kept + hosted) + '\n')
     headers = auth_headers('supabase', token)
     try:
+        for name in names:
+            patch(index, HOSTED / f'{name}.patch')
+        kept = [
+            line for line in env_original.splitlines() if not line.startswith(('OPENROUTER_API_KEY=', 'HOSTED_MODEL='))
+        ]
+        hosted = [f'OPENROUTER_API_KEY={key}', f'HOSTED_MODEL={HOSTED_MODEL}']
+        env_file.write_text('\n'.join(kept + hosted) + '\n')
         # The .env file reaches the edge runtime only at container creation, so this is
         # a stack restart rather than a function reload. Data survives in the volumes.
         run(['npx', 'supabase', 'stop'], cwd=SUPABASE_APP)
@@ -310,13 +335,25 @@ def hosted_supabase(key: str, token: str, questions: list[str], workers: int) ->
         _wait_ready(f'{SUPABASE_URL}/functions/v1/api/videos', headers)
         result = fire_agent('supabase', SUPABASE_URL, headers, questions, workers)
     finally:
-        index.write_text(original)
-        if env_original:
-            env_file.write_text(env_original)
-        else:
-            env_file.unlink(missing_ok=True)
-        run(['npx', 'supabase', 'stop'], cwd=SUPABASE_APP)
-        run(['npx', 'supabase', 'start'], cwd=SUPABASE_APP)
+        # Each restore step is guarded so a single failure cannot skip the rest of the
+        # cleanup; the env file holds the hosted key until it is put back, so its
+        # restore must not depend on the index restore succeeding.
+        try:
+            index.write_text(original)
+        except OSError as exc:
+            print(f'  restore step failed: {exc}', flush=True)
+        try:
+            if env_original:
+                env_file.write_text(env_original)
+            else:
+                env_file.unlink(missing_ok=True)
+        except OSError as exc:
+            print(f'  restore step failed: {exc}', flush=True)
+        for cmd in (['npx', 'supabase', 'stop'], ['npx', 'supabase', 'start']):
+            try:
+                run(cmd, cwd=SUPABASE_APP)
+            except Exception as exc:
+                print(f'  restore step failed: {exc}', flush=True)
     result.update(
         lines_written=sum(loc_of_patch(HOSTED / f'{name}.patch') for name in names),
         files_touched=1,
@@ -332,9 +369,9 @@ def hosted_convex(key: str, questions: list[str], workers: int) -> dict:
     agent_ts = CONVEX_APP / 'convex' / 'agent.ts'
     original = agent_ts.read_text()
     names = ['convex_helper', 'convex_call', 'convex_return', 'convex_returntype']
-    for name in names:
-        patch(agent_ts, HOSTED / f'{name}.patch')
     try:
+        for name in names:
+            patch(agent_ts, HOSTED / f'{name}.patch')
         run(['npx', 'convex', 'env', 'set', 'OPENROUTER_API_KEY', key], cwd=CONVEX_APP)
         run(['npx', 'convex', 'env', 'set', 'HOSTED_MODEL', HOSTED_MODEL], cwd=CONVEX_APP)
         _stop_convex_watcher()
@@ -343,12 +380,27 @@ def hosted_convex(key: str, questions: list[str], workers: int) -> dict:
         _wait_ready(f'{CONVEX_URL}/videos')
         result = fire_agent('convex', CONVEX_URL, {}, questions, workers)
     finally:
-        agent_ts.write_text(original)
+        # Same guarded restore shape as the other legs: one failed step cannot skip the
+        # rest. The env vars hold the hosted key, so their removal gets its own guard
+        # with a timeout - the CLI must not be able to hang the cleanup.
+        try:
+            agent_ts.write_text(original)
+        except OSError as exc:
+            print(f'  restore step failed: {exc}', flush=True)
         for var in ('OPENROUTER_API_KEY', 'HOSTED_MODEL'):
-            subprocess.run(['npx', 'convex', 'env', 'remove', var], cwd=CONVEX_APP, capture_output=True)
-        _stop_convex_watcher()
-        run(['npx', 'convex', 'dev', '--once'], cwd=CONVEX_APP)
-        _start_convex_watcher(CONVEX_APP)
+            try:
+                run(['npx', 'convex', 'env', 'remove', var], cwd=CONVEX_APP, timeout=120)
+            except Exception as exc:
+                print(f'  restore step failed: {exc}', flush=True)
+        try:
+            _stop_convex_watcher()
+            run(['npx', 'convex', 'dev', '--once'], cwd=CONVEX_APP)
+        except Exception as exc:
+            print(f'  restore step failed: {exc}', flush=True)
+        try:
+            _start_convex_watcher(CONVEX_APP)
+        except Exception as exc:
+            print(f'  restore step failed: {exc}', flush=True)
     result.update(
         lines_written=sum(loc_of_patch(HOSTED / f'{name}.patch') for name in names),
         files_touched=1,
@@ -364,6 +416,10 @@ def main() -> int:
     parser.add_argument('--workers', type=int, default=6)
     parser.add_argument('--supabase-token', default='')
     args = parser.parse_args()
+    if args.questions < 1:
+        parser.error('--questions must be at least 1')
+    if args.workers < 1:
+        parser.error('--workers must be at least 1')
 
     key = os.environ.get('OPENROUTER_API_KEY')
     if not key:
@@ -373,8 +429,9 @@ def main() -> int:
         )
 
     questions = [AGENT_QUESTIONS[i % len(AGENT_QUESTIONS)] for i in range(args.questions)]
+    measured_at = datetime.now(UTC).isoformat(timespec='seconds')
     results: dict = {
-        'measured_at': datetime.now(UTC).isoformat(timespec='seconds'),
+        'measured_at': measured_at,
         'endpoint': f'{OPENROUTER_BASE} (openai-compatible)',
         'model': HOSTED_MODEL,
         # 1024, not the local agent's 256: the hosted model spends reasoning tokens
@@ -393,6 +450,9 @@ def main() -> int:
             'supabase': lambda: hosted_supabase(key, args.supabase_token, questions, args.workers),
             'convex': lambda: hosted_convex(key, questions, args.workers),
         }[impl]()
+        # Stamped per leg: a run over a subset of implementations must not make stale
+        # legs look freshly measured by updating only the file-level measured_at.
+        result['measured_at'] = measured_at
         results[impl] = result
         print(
             f'  {result["succeeded"]}/{args.questions} ok in {result["wall_sec"]}s wall, '

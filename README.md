@@ -183,7 +183,7 @@ exercises it ([docs/hosted.json](docs/hosted.json)): a 7-line schema swap points
 at OpenRouter, against 36-37 lines of hand-written retry/backoff on the other two. The
 trade surfaces under a saturated free pool: OpenRouter can carry an upstream error inside
 a 200 body, which a hand-written loop can inspect and retry while a computed column
-evaluates it to a null answer - 12/12 on both versus 8/12.
+evaluates it to a null answer - 12/12 on both versus 7/12.
 
 **A failed ingest must not become a listed video.** A zero-byte file, a truncated file,
 random bytes with an `.mp4` extension, a path that does not exist: all three reject all
