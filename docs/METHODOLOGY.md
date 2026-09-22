@@ -178,6 +178,11 @@ faster than Supabase on the agent query. Three more measurements live there now:
   the other two the retry loop is application code and its lines are counted. Gated
   on `OPENROUTER_API_KEY`, which reaches each service through its own config path and
   is never written to the repo or the report. Results in `docs/hosted.json`.
+- **Hosted response shapes.** `harness/probe_hosted.py` sends the agent's prompt straight
+  to OpenRouter, bypassing all three implementations, and records the HTTP status, an
+  `error` field inside a 200 body, `finish_reason`, and reasoning tokens against
+  `max_tokens`. It separates a provider fault from the token cap when an answer comes
+  back empty. Results in `docs/hosted_probe.json`, keyed by model.
 
 ## Pixeltable capabilities the contract leaves out
 

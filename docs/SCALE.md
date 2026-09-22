@@ -205,11 +205,16 @@ own config path, fires 12 questions at 6 workers, then reverts everything. Numbe
 Two findings, neither flattering to a tidy story. First: the free pool degrades by
 returning HTTP 200 with an `error` body (`503 upstream overloaded`) or a completion
 whose `content` is empty - a status check alone cannot see either. The hand-written
-loops inspect the body and retry, which is what keeps them at 12/12; Pixeltable's
+loops inspect the body and retry on both, which is what keeps them at 12/12; Pixeltable's
 computed column evaluates the response it is given, so a malformed 200 lands as a
-null answer - the scheduler retries raised errors, not well-formed wrong ones. The
-run above proves it is exactly those calls: `hosted.json` records the cells'
-`errormsg`/`errortype`, and all five misses are empty answers with no recorded error.
+null answer - the scheduler retries raised errors, not well-formed wrong ones.
+`hosted.json` records the cells' `errormsg`/`errortype`, and all five misses are empty
+answers with no recorded error. The run did not record which of the two shapes they
+were. The token cap is the unlikely one: `harness/probe_hosted.py` sends the agent's
+prompt to the paid endpoint of the same model, and every answer came back with its
+reasoning far under `max_tokens` ([hosted_probe.json](hosted_probe.json)). The paid
+endpoint routes to other providers than the free one, so the probe cannot reproduce
+the free pool's errors.
 Second: provider latency dominates the medians, but Pixeltable's spread is worse -
 in the request-rate scheduler a retried request runs synchronously ahead of the
 queued ones, so a single 429 stalls the line behind its backoff. The line counts are
