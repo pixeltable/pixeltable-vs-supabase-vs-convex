@@ -1,111 +1,73 @@
 # Supabase: video intelligence pipeline
 
-Five tables, three foreign keys, two HNSW indexes, two SQL search functions, one view,
-a Storage bucket, one Edge Function, and an external compute service.
+Five tables, three foreign keys, two HNSW indexes, two SQL search functions, one
+view, a Storage bucket, one Edge Function, and an external compute service.
 
 ## Written to Supabase's own guidance
 
-Supabase publishes concrete rules for Edge Functions, and this implementation follows
-them:
-
-- [Few large functions, not many small ones](https://supabase.com/docs/guides/functions/development-tips),
-  with shared code under `_shared/`. All five contract routes are one Function.
-- [Do not use `Deno.serve`](https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions).
-  The handler is a default export whose `fetch` is wrapped with `withSupabase`.
+- [Few large functions, not many small ones](https://supabase.com/docs/guides/functions/development-tips):
+  all five routes are one Function, shared code under `_shared/`.
+- [Not `Deno.serve`](https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions):
+  a default export whose `fetch` is wrapped with `withSupabase`.
 - `npm:` specifiers with pinned versions, not `esm.sh`.
-- Request bodies are validated at the handler, in `_shared/client.ts`. Deno has no
-  request-validation layer, so without it a missing field is an unhandled throw and
-  the Edge Runtime reports a client's mistake as a 500.
-- `video_summary` lists only `status = 'ready'`. Ingest writes the row before processing
-  it, to get an id, so a failed media step leaves the row behind; the contract's list row
-  carries no status, so listing it would tell a caller it processed.
+- Bodies validated at the handler (`_shared/client.ts`): Deno has no request
+  validation, so an unchecked missing field becomes a 500.
+- `video_summary` lists only `status = 'ready'`: ingest writes the row before
+  processing, and a failed media step would otherwise list it.
 
-`withSupabase({ auth: 'secret' })` means the endpoint is authenticated: an
-unauthenticated request gets a 401 naming the accepted auth modes, and the handler
-receives a client that bypasses RLS. A multi-tenant application would declare
-`auth: 'user'` instead and get an RLS-scoped client. Neither of the other two
-implementations in this benchmark authenticates anything.
+`withSupabase({ auth: 'secret' })` authenticates the endpoint (a 401 naming the
+accepted modes) and hands the handler a client that bypasses RLS. Neither other
+implementation authenticates anything.
 
 ## Why the compute service
 
-Edge Functions run on Deno, which has no subprocess and therefore no ffmpeg. Every media
-operation is an HTTP call to `../compute-service/`, which you operate. Moving the models
-to a hosted API would shrink that service but not remove it: frame extraction, audio
-extraction and scene detection are ffmpeg.
+Deno has no subprocess, so no ffmpeg. Every media operation is an HTTP call to
+`../compute-service/`; a hosted API would shrink it but not remove it.
 
 ## Setup
 
-`../compute-service/` has to be running on port 9000 first.
+`../compute-service/` on port 9000 first, then:
 
 ```bash
-cp .env.example supabase/functions/.env   # COMPUTE_SERVICE_URL, readable inside the runtime
-supabase start                            # local Docker, 12 containers; applies all five migrations
+cp .env.example supabase/functions/.env   # COMPUTE_SERVICE_URL, read inside the runtime
+supabase start                            # local Docker, 12 containers; applies all migrations
 ```
 
-The Function reads `COMPUTE_SERVICE_URL` and falls back to `http://localhost:9000`,
-which inside the Edge Runtime container is the container, so every ingest fails at
-the first media call. `host.docker.internal` is the host from there. The stack's
-edge-runtime container reads `supabase/functions/.env` at creation - changing it
-takes `supabase stop && supabase start`, not a reload. (The standalone alternative is
-`supabase functions serve --env-file .env.local`, which serves on the host and is not
-what this benchmark runs.)
-
-`supabase functions deploy` is the hosted path and needs a linked project; `serve` is the
-local one, and it is what this benchmark runs.
+`COMPUTE_SERVICE_URL` defaults to `http://localhost:9000`, which inside the edge
+runtime is the container; `host.docker.internal` is the host. The runtime reads
+`supabase/functions/.env` at creation, so a change takes `supabase stop && supabase
+start`.
 
 ## Endpoints
 
-All five contract routes are served by one Function at `/functions/v1/api`:
-
-| Contract endpoint | Path |
-|---|---|
-| `POST /videos` | `/functions/v1/api/videos` |
-| `GET /videos` | `/functions/v1/api/videos` |
-| `POST /search/frames` | `/functions/v1/api/search/frames` |
-| `POST /search/transcripts` | `/functions/v1/api/search/transcripts` |
-| `POST /agent/query` | `/functions/v1/api/agent/query` |
+One Function at `/functions/v1/api`, five routes: `videos` (POST, GET),
+`search/frames`, `search/transcripts`, `agent/query`.
 
 ## Supabase's own advisors
 
-`supabase db advisors --local --type all` inspects the running database and exits
-non-zero on findings. Against this schema it reports **no errors**. Row-level security is
-enabled on all five tables, `video_summary` is `security_invoker`, and both search
-functions pin `search_path = ''`.
-
-Enabling RLS with no policies is the right shape here: every client goes through the
-Edge Function holding the service role, which bypasses RLS, while PostgREST's anon and
-authenticated roles are denied direct table access. You can check that:
+`supabase db advisors --local --type all` reports **no errors**. RLS is enabled on
+all five tables, `video_summary` is `security_invoker`, both search functions pin
+`search_path = ''` (which is why `OPERATOR(public.<=>)` appears in
+`002_search_functions.sql`). With no policies, PostgREST's anon role is denied
+direct table access:
 
 ```bash
 curl "$SUPABASE_URL/rest/v1/videos?select=*" -H "apikey: $PUBLISHABLE_KEY"   # []
 ```
 
-A multi-tenant application would write per-table policies against `auth.uid()` instead.
-
 One warning is left deliberately: `extension_in_public`, because `pgvector` lives in
-`public`. Moving it means qualifying the `<=>` operator and the `vector` type at every
-use, which trades a hygiene warning for noticeably more SQL. Locking `search_path`
-already forced `OPERATOR(public.<=>)` into both search functions; that is the visible
-cost of the fix, and it is in `002_search_functions.sql`.
+`public`.
 
-## Known limits, stated rather than hidden
+## Known limits
 
-- Processing lives in the ingest path, so a row inserted by anything else is not
-  processed. Restoring that means database triggers and one webhook per row.
-- Nothing enforces that a query vector came from the model that filled the column it
-  searches. The dimension is the only guard, and 384 equals 384.
-- Adding a derived column later means a migration and a backfill script.
+- Processing lives in the ingest path; a row inserted any other way is not
+  processed.
+- Nothing checks a query vector came from the model that filled the column.
+- Adding a derived column means a migration and a backfill script.
 
-## What this benchmark does not use, and should be counted in Supabase's favour
+## What this benchmark does not use
 
-PostgREST would serve `GET /videos` and both searches with no handler code at all, and
-every query here goes through the Edge Function instead.
-
-Absent, by grep of `supabase/`: any `CREATE POLICY` (RLS is on for five tables with zero
-policies, and the service-role key bypasses it), `auth.uid()`, a `[realtime]` stanza or any
-table in the `supabase_realtime` publication, `pg_cron`, `pg_net`, a queue, a trigger,
-Storage policies or image transforms. Auth plus per-tenant RLS is the reason a large share
-of teams are on Supabase, and this contract has no user, no tenant and no owned row, so
-there is nothing for a policy to be about.
-
-Priced in [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).
+PostgREST would serve `GET /videos` and both searches with no handler code. Absent
+by grep: `CREATE POLICY`, `auth.uid()`, `[realtime]`, `pg_cron`, `pg_net`, triggers,
+Storage policies, transforms. Priced in
+[../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).

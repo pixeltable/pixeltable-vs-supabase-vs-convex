@@ -1,67 +1,49 @@
 # Convex: video intelligence pipeline
 
-Five tables, two vector indexes, three by_video indexes, seven TypeScript files, and an
-external compute service.
+Five tables, two vector indexes, three by_video indexes, seven TypeScript files,
+and an external compute service.
 
 ## Written to Convex's own guidance
 
-Convex documents that [most logic should be plain TypeScript
-functions](https://docs.convex.dev/understanding/best-practices/), and that separate
-`ctx.run*` calls each run in their own transaction, so a loop of them loses atomicity.
-This implementation batches its writes, hydrates vector hits in one query, calls plain
-helpers rather than `ctx.runAction`, and passes explicit table ids. Their own ESLint
-plugin runs in CI: `npm run lint`.
+Per [their best practices](https://docs.convex.dev/understanding/best-practices/):
+batched writes (separate `ctx.run*` calls each run their own transaction), vector
+hits hydrated in one query, plain helpers rather than `ctx.runAction`, explicit
+table ids. Their ESLint plugin runs in CI: `npm run lint`.
 
 ## Why the compute service
 
-The Convex runtime cannot run ffmpeg, Whisper, CLIP or a local chat model, so every media
-operation is an HTTP call to `../compute-service/`, which you operate.
-
-Against the local backend `127.0.0.1:9000` works. Against a hosted deployment it does
-not, because actions run on Convex's infrastructure rather than your machine: use a
-tunnel or a deployed compute service.
+The Convex runtime cannot run ffmpeg, Whisper, CLIP or a local chat model, so every
+media operation is an HTTP call to `../compute-service/`. Against the local backend
+`127.0.0.1:9000` works; on a hosted deployment actions run on Convex's
+infrastructure, so use a tunnel or a deployed service.
 
 ## Setup
 
 ```bash
 npm install
-npx convex dev     # anonymous local backend, no account needed
+npx convex dev     # anonymous local backend, no account
 npx convex env set COMPUTE_SERVICE_URL http://127.0.0.1:9000
 ```
 
-That writes `convex/_generated/` (not committed) and prints two ports: `CONVEX_URL` for
-the client and `CONVEX_SITE_URL` for HTTP actions, and writes both into `.env.local`. The
-contract routes are on the HTTP actions port. The pair is chosen at start-up rather than
-fixed, so read it from `.env.local` instead of hard-coding it. On a hosted deployment those are `.convex.cloud` and `.convex.site`
-respectively, and the compute service must be reachable from Convex's cloud, so
-`127.0.0.1` will not do there.
+Ports are chosen at startup; `CONVEX_SITE_URL` in `.env.local` is the HTTP-actions
+base for every contract route.
 
-## Known limits, stated rather than hidden
+## Known limits
 
-- An action cannot write to the database, so every write goes through a mutation.
+- An action cannot write to the database, so every write goes through a mutation:
   `videos.ts` is 105 of this implementation's 425 lines for that reason.
-- `vectorSearch` returns ids and scores, so rows are fetched in a second query.
-- `listVideos` filters to `status === "ready"`. An action cannot write, so ingest inserts
-  the video through a mutation before processing it, and a failed media step leaves that
-  document behind.
-- `http.ts` is 90 lines: 46 because this benchmark's contract is REST, and the rest
-  because argument validators live inside the function, so a bad body reaches the client
-  as a 500 unless the HTTP edge checks it first.
-- Processing lives in the ingest path; restoring per-row automatic processing means a
+- `vectorSearch` returns ids and scores; rows are fetched in a second query.
+- `listVideos` filters to `status === "ready"`: ingest inserts the row before
+  processing, and a failed media step leaves it behind.
+- `http.ts` is 90 lines: 46 for REST bodies, the rest because argument validators
+  run inside the function, so a bad body is a 500 unless the edge checks it.
+- Processing lives in the ingest path; per-row automatic processing would take a
   scheduled action.
 
-## What this benchmark does not use, and should be counted in Convex's favour
+## What this benchmark does not use
 
-Reactivity is the reason most teams choose Convex, and a REST contract discards it
-entirely: with the reactive client, `http.ts` disappears and the UI re-renders on write.
-
-Absent, by grep of `convex/`: `convex/react`, `useQuery` or any client at all, so
-reactivity and optimistic updates are structurally unreachable here; `ctx.scheduler` and
-`convex/crons.ts`; `convex.config.ts`, without which no `@convex-dev/*` component can be
-installed; `searchIndex`, priced against the vector equivalent in
-[../docs/EVOLVE.md](../docs/EVOLVE.md); Convex Auth; and `generateUploadUrl`, so frames
-are base64'd through the compute service rather than uploaded straight from a client.
-Ingest also splits its writes across a separate `ctx.runMutation` call per table write, each its own
-transaction, where a single transactional mutation is the product's actual guarantee.
-
-Priced in [../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).
+Reactivity is the reason most teams choose Convex, and a REST contract discards it.
+Absent by grep: `convex/react` / `useQuery`, `ctx.scheduler`, `convex.config.ts`
+(so no components), `searchIndex` (priced in
+[../docs/EVOLVE.md](../docs/EVOLVE.md)), Convex Auth, `generateUploadUrl`. Priced in
+[../docs/TRADEOFFS.md](../docs/TRADEOFFS.md#what-this-benchmark-does-not-measure).
