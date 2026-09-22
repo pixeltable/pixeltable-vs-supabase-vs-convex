@@ -49,6 +49,10 @@ hand.
   Pixeltable scores 1 (the `@api.post` for the agent); Supabase's `fetch` export
   dispatches five branches to five handlers and Convex's five `http.route` blocks
   each hold one, so both score 5.
+- **Two metrics are deliberately absent.** An `.env.example` line count measures
+  whether a file exists, not what a deployment needs, and an external-hosts regex
+  cannot see a hostname a library assembles - it would report 0 for `app.py` while
+  it downloads CLIP, MiniLM and a Qwen GGUF from huggingface.co.
 
 `CLASSIFIED` in `metrics.py` holds what a regex cannot derive - whether work runs on
 insert, whether adding a column backfills incrementally, how many runtimes you
@@ -96,10 +100,12 @@ only that each video has at least one.
   out of the list.
 
 Three Pixeltable behaviours are checked by hand against the live catalog, not by a
-suite: a plain `videos.insert` outside the HTTP service still produced frames and
-chunks a similarity query found; `pxt schema update` backfills one added column
-without touching the rest (the control in [EVOLVE.md](EVOLVE.md)); and
-`pxt revert --steps 1` removed a column and kept the rows.
+suite: a plain `videos.insert` outside the HTTP service produced 30 frames and
+3 chunks, all columns computed, and a similarity query returned the new frames;
+`pxt schema update` backfills one added column without touching the rest and
+refuses removal without `--allow-destructive` (the control in
+[EVOLVE.md](EVOLVE.md)); and `pxt revert --steps 1` removed a column and kept the
+rows, with `pxt history` showing the rollback as a new version.
 
 ## Beyond the suites
 
