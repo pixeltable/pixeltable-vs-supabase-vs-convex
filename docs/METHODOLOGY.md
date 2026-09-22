@@ -169,12 +169,15 @@ faster than Supabase on the agent query. Three more measurements live there now:
   (`--workers`), reported as concurrent p50/p95 and wall time. Kept deliberately
   separate from serial latency: it measures degradation under contention, not speed.
 - **Hosted agent.** `harness/bench_hosted.py` swaps each implementation's local chat
-  model for the same hosted model over an OpenAI-compatible endpoint and fires the
-  agent questions concurrently. On Pixeltable the swap is a schema change and the
-  OpenAI function's rate-limit scheduler does pacing and retries; on the other two the
-  retry loop is application code and its lines are counted. Gated on
-  `OPENROUTER_API_KEY`, which reaches each service through its own config path and is
-  never written to the repo or the report. Results in `docs/hosted.json`.
+  model for the same hosted model on OpenRouter and fires the agent questions
+  concurrently. On Pixeltable the swap is a schema change and the `openrouter`
+  function's request-rate scheduler does pacing and retries; the run uses a private
+  daemon on its own port (`PXT_PORT`) so a daemon from another install cannot be
+  swapped in mid-run, and the cells' `errormsg`/`errortype` are recorded before the
+  table is dropped, which is what separates an empty answer from a failed one. On
+  the other two the retry loop is application code and its lines are counted. Gated
+  on `OPENROUTER_API_KEY`, which reaches each service through its own config path and
+  is never written to the repo or the report. Results in `docs/hosted.json`.
 
 ## Pixeltable capabilities the contract leaves out
 

@@ -34,7 +34,7 @@ Judgments are marked as judgments.
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
 | Request validation before handlers | derived from signature, 422 | ~28 lines by hand | ~46 lines by hand |
 | Failed ingest becomes a listed row | no, insert rejected | error row, filtered out | error row, filtered out |
-| Hosted-model pacing and retries | provider scheduler, 7-line swap | 36-line loop | 37-line loop |
+| Hosted-model pacing and retries | request-rate scheduler, 7-line swap | 36-line loop | 37-line loop |
 | Realtime push to clients | no | yes | yes, and it is the core idea |
 | Endpoints authenticated by default | no | **yes**, one config line | no |
 | Row-level security | no | **yes**, enabled and verified | no |

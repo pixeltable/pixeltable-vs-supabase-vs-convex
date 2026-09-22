@@ -3,12 +3,12 @@
 
     OPENROUTER_API_KEY=sk-or-... python harness/bench_hosted.py --supabase-token "$SECRET"
 
-Each implementation's local generation model is swapped for the same hosted model over
-an OpenAI-compatible endpoint. On Pixeltable the swap is a schema change - the answer is
-already a computed column and the hosted function carries the rate-limit scheduler, so
-pacing and retries are the platform's job. On the other two the swap is a code change:
-the retry loop, Retry-After handling and backoff are application code, and the lines it
-takes are counted with the rest of the diff.
+Each implementation's local generation model is swapped for the same hosted model on
+OpenRouter. On Pixeltable the swap is a schema change - the answer is already a computed
+column and the openrouter UDF paces and retries on its own request-rate pool, so those
+are the platform's job. On the other two the swap is a code change: the retry loop,
+Retry-After handling and backoff are application code, and the lines it takes are
+counted with the rest of the diff.
 
 Questions are fired at the agent endpoint concurrently, so the hosted model's rate limit
 is real backpressure rather than a fast path. Wall time, per-request latency, retries
@@ -27,6 +27,7 @@ import argparse
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -41,7 +42,7 @@ sys.path.insert(0, str(ROOT))
 
 from harness.bench_evolve import _start_convex_watcher, _stop_convex_watcher, loc_of_patch, patch, run  # noqa: E402
 from harness.benchmark import AGENT_QUESTIONS, percentile  # noqa: E402
-from harness.conftest import PATHS, _auto_discover_pixeltable_url, auth_headers  # noqa: E402
+from harness.conftest import PATHS, auth_headers  # noqa: E402
 
 HOSTED = ROOT / 'harness' / 'hosted'
 OUT = ROOT / 'docs' / 'hosted.json'
@@ -131,29 +132,81 @@ def fire_agent(impl: str, base_url: str, headers: dict, questions: list[str], wo
 # ----------------------------------------------------------------- pixeltable
 
 
-def _drop_conversations() -> None:
+def _drop_conversations(env: dict) -> None:
     """Drop the derived conversations table so `schema update` recreates it.
 
     pxt refuses to change an existing computed column's expression in place, and
     re-pointing `answer` at the hosted model is exactly that. The table holds only
     agent results that re-derive on each question, so dropping it loses nothing.
     """
-    run([pxt_python(), '-c', "import pixeltable as pxt; pxt.drop_table('media.conversations', force=True)"])
+    run(
+        [pxt_python(), '-c', "import pixeltable as pxt; pxt.drop_table('media.conversations', force=True)"],
+        env=env,
+    )
 
 
-def _wait_daemon(timeout: float = 60.0) -> None:
-    """Poll until the pxt daemon answers after a restart.
-
-    `service restart` issued against a daemon that is still coming up dies on a closed
-    connection, so wait for `service list` to succeed before touching services.
+def _cell_errors(env: dict) -> dict:
+    """Per-cell error state of the answers this run just wrote, read before the restore
+    drops the conversations table. The HTTP layer only sees 200s: a failed answer is a
+    null cell, and the reason sits in the row's errormsg/errortype - detail the platform
+    keeps that a status code cannot carry.
     """
+    code = (
+        'import json, pixeltable as pxt\n'
+        "t = pxt.get_table('media.conversations')\n"
+        'rows = [dict(r) for r in t.select(ans=t.answer, err=t.answer.errormsg, et=t.answer.errortype).collect()]\n'
+        "errs = [str(r['et']) + ': ' + str(r['err']) for r in rows if r['err']]\n"
+        "empty = sum(1 for r in rows if r['err'] is None and not r['ans'])\n"
+        "print(json.dumps({'errors': errs, 'empty': empty}))\n"
+    )
+    try:
+        # The last stdout line is the JSON; pxt announces its catalog connection first.
+        out = run([pxt_python(), '-c', code], env=env, timeout=180)
+        return json.loads(out.strip().splitlines()[-1])
+    except Exception as exc:
+        return {'unavailable': str(exc)[:200]}
+
+
+def _free_port() -> str:
+    """A loopback port nothing holds, for the run's private pxt daemon."""
+    with socket.socket() as s:
+        s.bind(('127.0.0.1', 0))
+        return str(s.getsockname()[1])
+
+
+def _wait_daemon(port: str, timeout: float = 60.0) -> None:
+    """Poll the run's private daemon until /api/health reports this venv's install.
+
+    pxt restarts a daemon whose install differs from the invoking client's, so two installs
+    sharing the default port respawn each other in a loop. PXT_PORT gives this run its own
+    port, pidfile and daemon; checking the responder's install dir here turns a foreign
+    daemon on our port into a clear failure instead of a dropped connection mid-schema.
+    """
+    expected = str(Path(pxt_bin()).resolve().parent.parent)
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        proc = subprocess.run([pxt_bin(), 'service', 'list'], capture_output=True)
-        if proc.returncode == 0:
-            return
+        try:
+            health = httpx.get(f'http://127.0.0.1:{port}/api/health', timeout=5).json()
+            if str(health.get('pxt_install_dir', '')).startswith(expected):
+                return
+        except Exception:
+            pass
         time.sleep(1)
-    raise RuntimeError(f'pxt daemon did not come back in {timeout}s')
+    raise RuntimeError(f'pxt daemon on port {port} did not come up as the venv install in {timeout}s')
+
+
+def _service_url() -> str | None:
+    """The endpoint in media/api's service record, written by the serving process itself.
+
+    Reading the record avoids `pxt service list`, which would resolve the default-port
+    daemon - and any install mismatch there restarts a daemon we do not own.
+    """
+    home = Path(os.environ.get('PIXELTABLE_HOME', '~/.pixeltable')).expanduser()
+    try:
+        endpoint = json.loads((home / 'services' / 'media' / 'api.json').read_text()).get('endpoint')
+    except (OSError, ValueError):
+        return None
+    return endpoint.rstrip('/') if endpoint else None
 
 
 def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
@@ -162,53 +215,72 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
     patch(app, HOSTED / 'pixeltable_imports.patch')
     patch(app, HOSTED / 'pixeltable_answer.patch')
     # The daemon resolves credentials from the environment it was started with, and
-    # services it spawns inherit that environment. Restarting it with the OpenAI-compat
-    # variables set points every service at OpenRouter without touching config.toml.
-    env = {'OPENAI_API_KEY': key, 'OPENAI_BASE_URL': OPENROUTER_BASE, 'HOSTED_MODEL': HOSTED_MODEL}
+    # services it spawns inherit that environment. Starting it with OPENROUTER_API_KEY
+    # set points every service at OpenRouter without touching config.toml. The daemon
+    # also rejects a request whose config env it does not share, so every daemon-bound
+    # call in this leg carries the same env. PXT_PORT gives the run a private daemon on
+    # its own port: pxt respawns a daemon whose install differs from the caller's, and
+    # another install sharing the default port would keep replacing ours mid-run.
+    port = _free_port()
+    env = {'PXT_PORT': port, 'OPENROUTER_API_KEY': key, 'HOSTED_MODEL': HOSTED_MODEL}
     try:
-        # --force overrides a stale pidfile: a daemon respawned outside the pidfile's
-        # tracking otherwise refuses to restart.
-        run([pxt_bin(), 'daemon', 'restart', '--force'], cwd=app.parent, env=env)
-        _wait_daemon()
-        _drop_conversations()
+        try:
+            run([pxt_bin(), 'daemon', 'stop', '--force'], cwd=app.parent, env=env)
+        except RuntimeError as exc:
+            print(f'  daemon stop failed (continuing): {exc}', flush=True)
+        run([pxt_bin(), 'daemon', 'start'], cwd=app.parent, env=env)
+        _wait_daemon(port)
+        _drop_conversations(env)
         run([pxt_bin(), 'schema', 'update', 'app.py', 'media', '-f'], cwd=app.parent, env=env)
         # `service update` respawns the service process against the restarted daemon,
-        # which is how the OpenAI-compat env reaches it. `service restart` is not the
+        # which is how the key reaches it. `service restart` is not the
         # same path: it asserts `project_root is not None` when the running service was
         # not started from a project directory.
-        run([pxt_bin(), 'service', 'update', 'app.py', 'media'], cwd=app.parent, env=env)
-        url = _auto_discover_pixeltable_url()
+        run([pxt_bin(), 'service', 'update', 'app.py', 'media', '-f'], cwd=app.parent, env=env)
+        url = _service_url()
         if not url:
             raise RuntimeError('pixeltable service did not come back after restart')
         _wait_ready(f'{url}/videos')
         result = fire_agent('pixeltable', url, {}, questions, workers)
+        result['cell_errors'] = _cell_errors(env)
     finally:
         app.write_text(original)
         # Each restore step is guarded so a single failure cannot skip the rest of the
         # cleanup; the schema and the service must both come back to the local variant.
+        # The daemon stop+start runs before the schema update: a dead daemon fails the
+        # update and leaves the service blocked on a schema that never landed. The empty
+        # values drop the key from the respawned daemon and the service it starts.
+        clean_env = {'PXT_PORT': port, 'OPENROUTER_API_KEY': '', 'HOSTED_MODEL': ''}
         for cmd in (
             [
                 pxt_python(),
                 '-c',
                 "import pixeltable as pxt; pxt.drop_table('media.conversations', force=True, if_not_exists='ignore')",
             ],
-            [pxt_bin(), 'schema', 'update', 'app.py', 'media', '-f', '--allow-destructive'],
-            [pxt_bin(), 'daemon', 'restart', '--force'],
+            [pxt_bin(), 'daemon', 'stop', '--force'],
+            [pxt_bin(), 'daemon', 'start'],
         ):
             try:
-                run(cmd, cwd=app.parent)
+                run(cmd, cwd=app.parent, env=clean_env)
             except RuntimeError as exc:
                 print(f'  restore step failed: {exc}', flush=True)
         try:
-            _wait_daemon()
-            run([pxt_bin(), 'service', 'update', 'app.py', 'media'], cwd=app.parent)
+            _wait_daemon(port)
+            run(
+                [pxt_bin(), 'schema', 'update', 'app.py', 'media', '-f', '--allow-destructive'],
+                cwd=app.parent,
+                env=clean_env,
+            )
+            run([pxt_bin(), 'service', 'update', 'app.py', 'media', '-f'], cwd=app.parent, env=clean_env)
+            # the private daemon's work is done; the service runs independently of it
+            run([pxt_bin(), 'daemon', 'stop', '--force'], cwd=app.parent, env=clean_env)
         except RuntimeError as exc:
             print(f'  restore step failed: {exc}', flush=True)
     result.update(
         lines_written=loc_of_patch(HOSTED / 'pixeltable_imports.patch')
         + loc_of_patch(HOSTED / 'pixeltable_answer.patch'),
         files_touched=1,
-        note='schema swap: the answer column re-points at chat_completions, whose scheduler paces and retries',
+        note='schema swap: the answer column re-points at openrouter.chat_completions, a request-rate pool',
     )
     return result
 

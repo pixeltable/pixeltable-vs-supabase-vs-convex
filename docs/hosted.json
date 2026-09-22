@@ -1,22 +1,26 @@
 {
-  "measured_at": "2026-09-19T20:03:54+00:00",
+  "measured_at": "2026-09-22T02:53:36+00:00",
   "endpoint": "https://openrouter.ai/api/v1 (openai-compatible)",
   "model": "nvidia/nemotron-3-super-120b-a12b:free",
   "questions": 12,
   "workers": 6,
   "pixeltable": {
-    "succeeded": 8,
-    "failed": 4,
-    "wall_sec": 23.66,
-    "p50_sec": 2.815,
-    "p95_sec": 17.711,
+    "succeeded": 7,
+    "failed": 5,
+    "wall_sec": 30.78,
+    "p50_sec": 10.306,
+    "p95_sec": 30.779,
     "retries": "n/a: scheduler-internal",
     "statuses": [
       200
     ],
+    "cell_errors": {
+      "errors": [],
+      "empty": 5
+    },
     "lines_written": 7,
     "files_touched": 1,
-    "note": "schema swap: the answer column re-points at chat_completions, whose scheduler paces and retries"
+    "note": "schema swap: the answer column re-points at openrouter.chat_completions, a request-rate pool"
   },
   "supabase": {
     "succeeded": 12,
