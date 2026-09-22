@@ -9,7 +9,7 @@ const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 async function chatHosted(messages: unknown[]): Promise<{ content: string; attempts: number }> {
   const key = Deno.env.get("OPENROUTER_API_KEY");
   if (!key) throw new Error("OPENROUTER_API_KEY is not set");
-  const model = Deno.env.get("HOSTED_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b:free";
+  const model = Deno.env.get("HOSTED_MODEL") ?? "nvidia/nemotron-3-super-120b-a12b";
   for (let attempt = 1; attempt <= 6; attempt++) {
     const resp = await fetch(OPENROUTER_URL, {
       method: "POST",

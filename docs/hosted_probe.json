@@ -15,5 +15,24 @@
       "DeepInfra": 20
     },
     "errors": []
+  },
+  "nvidia/nemotron-3-super-120b-a12b:free": {
+    "measured_at": "2026-09-22T22:58:56+00:00",
+    "calls": 36,
+    "workers": 6,
+    "max_tokens": 1024,
+    "shapes": {
+      "200 finish=stop error=False content=yes": 33,
+      "200 finish=None error=True content=empty": 3
+    },
+    "empty": 3,
+    "max_completion_tokens": 116,
+    "max_reasoning_tokens": 96,
+    "providers": {
+      "Nvidia": 33
+    },
+    "errors": [
+      "{'message': 'Upstream error from Nvidia: Service temporarily overloaded', 'code': 503, 'metadata': {'error_type': 'provider_overloaded'}}"
+    ]
   }
 }

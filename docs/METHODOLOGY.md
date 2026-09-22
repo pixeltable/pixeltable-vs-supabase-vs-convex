@@ -177,7 +177,10 @@ faster than Supabase on the agent query. Three more measurements live there now:
   table is dropped, which is what separates an empty answer from a failed one. On
   the other two the retry loop is application code and its lines are counted. Gated
   on `OPENROUTER_API_KEY`, which reaches each service through its own config path and
-  is never written to the repo or the report. Results in `docs/hosted.json`.
+  is never written to the repo or the report. `--model` selects the endpoint; the
+  published run uses the paid endpoint of `nvidia/nemotron-3-super-120b-a12b`, and
+  the `:free` variant reproduces the free-pool comparison. Results in
+  `docs/hosted.json`.
 - **Hosted response shapes.** `harness/probe_hosted.py` sends the agent's prompt straight
   to OpenRouter, bypassing all three implementations, and records the HTTP status, an
   `error` field inside a 200 body, `finish_reason`, and reasoning tokens against

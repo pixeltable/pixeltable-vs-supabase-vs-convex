@@ -1,54 +1,64 @@
 {
-  "measured_at": "2026-09-22T02:53:36+00:00",
+  "measured_at": "2026-09-22T22:51:17+00:00",
   "endpoint": "https://openrouter.ai/api/v1 (openai-compatible)",
-  "model": "nvidia/nemotron-3-super-120b-a12b:free",
+  "model": "nvidia/nemotron-3-super-120b-a12b",
   "questions": 12,
   "workers": 6,
   "pixeltable": {
-    "succeeded": 7,
-    "failed": 5,
-    "wall_sec": 30.78,
-    "p50_sec": 10.306,
-    "p95_sec": 30.779,
+    "succeeded": 12,
+    "failed": 0,
+    "warmup_ok": true,
+    "wall_sec": 36.56,
+    "p50_sec": 8.359,
+    "p95_sec": 34.123,
     "retries": "n/a: scheduler-internal",
     "statuses": [
       200
     ],
     "cell_errors": {
       "errors": [],
-      "empty": 5
+      "empty": 0,
+      "rows": 12
     },
     "lines_written": 7,
     "files_touched": 1,
-    "note": "schema swap: the answer column re-points at openrouter.chat_completions, a request-rate pool"
+    "note": "schema swap: the answer column re-points at openrouter.chat_completions, a request-rate pool",
+    "measured_at": "2026-09-22T22:51:17+00:00",
+    "model": "nvidia/nemotron-3-super-120b-a12b"
   },
   "supabase": {
     "succeeded": 12,
     "failed": 0,
-    "wall_sec": 6.01,
-    "p50_sec": 1.524,
-    "p95_sec": 3.712,
-    "retries": 2,
+    "warmup_ok": true,
+    "wall_sec": 9.41,
+    "p50_sec": 2.342,
+    "p95_sec": 5.202,
+    "retries": 0,
     "statuses": [
       200
     ],
     "lines_written": 36,
     "files_touched": 1,
-    "note": "direct OpenRouter call from the Edge Function; the retry loop and backoff are application code"
+    "note": "direct OpenRouter call from the Edge Function; the retry loop and backoff are application code",
+    "measured_at": "2026-09-22T22:51:17+00:00",
+    "model": "nvidia/nemotron-3-super-120b-a12b"
   },
   "convex": {
     "succeeded": 12,
     "failed": 0,
-    "wall_sec": 10.54,
-    "p50_sec": 2.767,
-    "p95_sec": 7.339,
-    "retries": 1,
+    "warmup_ok": true,
+    "wall_sec": 18.76,
+    "p50_sec": 3.895,
+    "p95_sec": 18.761,
+    "retries": 0,
     "statuses": [
       200
     ],
     "lines_written": 37,
     "files_touched": 1,
-    "note": "same retry contract as the Edge Function, written in the action"
+    "note": "same retry contract as the Edge Function, written in the action",
+    "measured_at": "2026-09-22T22:51:17+00:00",
+    "model": "nvidia/nemotron-3-super-120b-a12b"
   },
   "max_tokens": 1024
 }

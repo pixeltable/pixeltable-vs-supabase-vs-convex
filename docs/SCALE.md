@@ -188,38 +188,36 @@ on cost: the two that scale better are paying for a second process to do it.
 ## Hosted model
 
 The agent again, but with local generation swapped for one hosted model -
-`nvidia/nemotron-3-super-120b-a12b:free` on OpenRouter, identical for all three. The
-swap is the thing being measured: on Pixeltable it is a 7-line schema change and the
-`openrouter` function's request-rate scheduler paces and retries; on the other two it is a
-36-37 line helper, because pacing, Retry-After and backoff are application code.
-`harness/bench_hosted.py` applies the patches, delivers the key through each vendor's
-own config path, fires 12 questions at 6 workers, then reverts everything. Numbers in
-`docs/hosted.json`.
+`nvidia/nemotron-3-super-120b-a12b` on OpenRouter's paid endpoint, identical for all
+three. The swap is the thing being measured: on Pixeltable it is a 7-line schema change
+and the `openrouter` function's request-rate scheduler paces and retries; on the other
+two it is a 36-37 line helper, because pacing, Retry-After and backoff are application
+code. `harness/bench_hosted.py` applies the patches, delivers the key through each
+vendor's own config path, fires 12 questions at 6 workers, then reverts everything.
+Numbers in `docs/hosted.json`.
 
 | | ok | Wall | p50 | p95 | Retries | Lines |
 |---|---|---|---|---|---|---|
-| Supabase | 12/12 | 6.0s | 1.5s | 3.7s | 2 | 36 |
-| Convex | 12/12 | 10.5s | 2.8s | 7.3s | 1 | 37 |
-| Pixeltable | 7/12 | 30.8s | 10.3s | 30.8s | scheduler-internal | 7 |
+| Supabase | 12/12 | 9.4s | 2.3s | 5.2s | 0 | 36 |
+| Convex | 12/12 | 18.8s | 3.9s | 18.8s | 0 | 37 |
+| Pixeltable | 12/12 | 36.6s | 8.4s | 34.1s | scheduler-internal | 7 |
 
-Two findings, neither flattering to a tidy story. First: the free pool degrades by
-returning HTTP 200 with an `error` body (`503 upstream overloaded`) or a completion
-whose `content` is empty - a status check alone cannot see either. The hand-written
-loops inspect the body and retry on both, which is what keeps them at 12/12; Pixeltable's
-computed column evaluates the response it is given, so a malformed 200 lands as a
-null answer - the scheduler retries raised errors, not well-formed wrong ones.
-`hosted.json` records the cells' `errormsg`/`errortype`, and all five misses are empty
-answers with no recorded error. The run did not record which of the two shapes they
-were. The token cap is the unlikely one: `harness/probe_hosted.py` sends the agent's
-prompt to the paid endpoint of the same model, and every answer came back with its
-reasoning far under `max_tokens` ([hosted_probe.json](hosted_probe.json)). The paid
-endpoint routes to other providers than the free one, so the probe cannot reproduce
-the free pool's errors.
-Second: provider latency dominates the medians, but Pixeltable's spread is worse -
-in the request-rate scheduler a retried request runs synchronously ahead of the
-queued ones, so a single 429 stalls the line behind its backoff. The line counts are
-the other half of the trade: 7 lines versus 36-37 buys pacing and retries, and gives
-up the ability to inspect a bad 200.
+On a healthy pool the retry code is never exercised: all three answer every question,
+and the two loops that report attempt counts record zero retries. The remaining
+differences are who wrote the retry code - 7 lines against 36-37 - and the latency.
+Provider response time dominates the medians, and the longest tail stays on
+Pixeltable, where pacing serializes inside the request-rate scheduler; any retries
+there are invisible, since the response carries no attempt count.
+
+The failure that code exists to catch is real, and now it is measured rather than
+inferred. `harness/probe_hosted.py` fires the agent's prompt at the endpoint directly
+and [hosted_probe.json](hosted_probe.json) keys the result by model: 36/36 clean on
+the paid endpoint; on the free pool, 3 of 36 come back as HTTP 200 with an `error`
+field and no content. A hand-written loop inspects the body and retries that shape;
+Pixeltable's computed column evaluates the response it is given, so a malformed 200
+lands as a null answer - the scheduler retries raised errors, not well-formed wrong
+ones. The earlier free-pool run recorded exactly that: five empty cells with no
+`errormsg`/`errortype`, 7/12 answers where both loops held 12/12.
 
 The run above is the corrected swap. An earlier published run pointed the generic
 `openai.chat_completions` at OpenRouter through `OPENAI_BASE_URL`, and that
@@ -229,10 +227,11 @@ scheduler's synchronous bootstrap path. The dedicated `openrouter.chat_completio
 UDF paces on a configured request rate instead, and the harness now records
 per-cell errors before tearing the table down.
 
-Free-tier provider saturation moves minute to minute - a repeat run showed Supabase
-absorbing ten retries and Pixeltable losing only one of twelve - so the counts above
-are a snapshot of one window, not a property of the platforms. What does not move:
-who wrote the retry code, and who could see inside the response.
+Free-pool saturation moves minute to minute - the benchmark run there caught five
+empty answers in twelve, the probe caught three in thirty-six, and a repeat run once
+showed Supabase absorbing ten retries and Pixeltable losing only one of twelve - so
+the free-pool counts are snapshots of a moving window, not platform properties.
+What does not move: who wrote the retry code, and who could see inside the response.
 
 ## What these numbers are not
 

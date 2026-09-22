@@ -46,7 +46,7 @@ from harness.conftest import PATHS, auth_headers  # noqa: E402
 HOSTED = ROOT / 'harness' / 'hosted'
 OUT = ROOT / 'docs' / 'hosted.json'
 OPENROUTER_BASE = 'https://openrouter.ai/api/v1'
-HOSTED_MODEL = 'nvidia/nemotron-3-super-120b-a12b:free'
+HOSTED_MODEL = 'nvidia/nemotron-3-super-120b-a12b'
 # The untimed warm-up asks a question no timed request uses, so the row it writes on
 # Pixeltable can be told apart from the measured ones when the cells' error state is read.
 WARMUP_QUESTION = 'Summarize what the videos cover.'
@@ -227,7 +227,7 @@ def _service_url() -> str | None:
     return endpoint.rstrip('/') if endpoint else None
 
 
-def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
+def hosted_pixeltable(key: str, model: str, questions: list[str], workers: int) -> dict:
     app = ROOT / 'pixeltable' / 'app.py'
     original = app.read_text()
     # The daemon resolves credentials from the environment it was started with, and
@@ -238,7 +238,7 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
     # its own port: pxt respawns a daemon whose install differs from the caller's, and
     # another install sharing the default port would keep replacing ours mid-run.
     port = _free_port()
-    env = {'PXT_PORT': port, 'OPENROUTER_API_KEY': key, 'HOSTED_MODEL': HOSTED_MODEL}
+    env = {'PXT_PORT': port, 'OPENROUTER_API_KEY': key, 'HOSTED_MODEL': model}
     try:
         # Applied inside the try: if a patch's anchor has gone stale, the finally still
         # puts the original text back instead of leaving the file half-patched.
@@ -311,7 +311,7 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
 # ------------------------------------------------------------------- supabase
 
 
-def hosted_supabase(key: str, token: str, questions: list[str], workers: int) -> dict:
+def hosted_supabase(key: str, token: str, model: str, questions: list[str], workers: int) -> dict:
     index = SUPABASE_APP / 'supabase' / 'functions' / 'api' / 'index.ts'
     original = index.read_text()
     names = ['supabase_helper', 'supabase_call', 'supabase_return']
@@ -326,7 +326,7 @@ def hosted_supabase(key: str, token: str, questions: list[str], workers: int) ->
         kept = [
             line for line in env_original.splitlines() if not line.startswith(('OPENROUTER_API_KEY=', 'HOSTED_MODEL='))
         ]
-        hosted = [f'OPENROUTER_API_KEY={key}', f'HOSTED_MODEL={HOSTED_MODEL}']
+        hosted = [f'OPENROUTER_API_KEY={key}', f'HOSTED_MODEL={model}']
         env_file.write_text('\n'.join(kept + hosted) + '\n')
         # The .env file reaches the edge runtime only at container creation, so this is
         # a stack restart rather than a function reload. Data survives in the volumes.
@@ -365,7 +365,7 @@ def hosted_supabase(key: str, token: str, questions: list[str], workers: int) ->
 # --------------------------------------------------------------------- convex
 
 
-def hosted_convex(key: str, questions: list[str], workers: int) -> dict:
+def hosted_convex(key: str, model: str, questions: list[str], workers: int) -> dict:
     agent_ts = CONVEX_APP / 'convex' / 'agent.ts'
     original = agent_ts.read_text()
     names = ['convex_helper', 'convex_call', 'convex_return', 'convex_returntype']
@@ -373,7 +373,7 @@ def hosted_convex(key: str, questions: list[str], workers: int) -> dict:
         for name in names:
             patch(agent_ts, HOSTED / f'{name}.patch')
         run(['npx', 'convex', 'env', 'set', 'OPENROUTER_API_KEY', key], cwd=CONVEX_APP)
-        run(['npx', 'convex', 'env', 'set', 'HOSTED_MODEL', HOSTED_MODEL], cwd=CONVEX_APP)
+        run(['npx', 'convex', 'env', 'set', 'HOSTED_MODEL', model], cwd=CONVEX_APP)
         _stop_convex_watcher()
         run(['npx', 'convex', 'dev', '--once'], cwd=CONVEX_APP)
         _start_convex_watcher(CONVEX_APP)
@@ -415,6 +415,7 @@ def main() -> int:
     parser.add_argument('--questions', type=int, default=12)
     parser.add_argument('--workers', type=int, default=6)
     parser.add_argument('--supabase-token', default='')
+    parser.add_argument('--model', default=HOSTED_MODEL)
     args = parser.parse_args()
     if args.questions < 1:
         parser.error('--questions must be at least 1')
@@ -433,7 +434,7 @@ def main() -> int:
     results: dict = {
         'measured_at': measured_at,
         'endpoint': f'{OPENROUTER_BASE} (openai-compatible)',
-        'model': HOSTED_MODEL,
+        'model': args.model,
         # 1024, not the local agent's 256: the hosted model spends reasoning tokens
         # before content, and a 256 cap returns finish_reason=length with an empty answer.
         'max_tokens': 1024,
@@ -446,13 +447,14 @@ def main() -> int:
             print('  skipped: --supabase-token required')
             continue
         result = {
-            'pixeltable': lambda: hosted_pixeltable(key, questions, args.workers),
-            'supabase': lambda: hosted_supabase(key, args.supabase_token, questions, args.workers),
-            'convex': lambda: hosted_convex(key, questions, args.workers),
+            'pixeltable': lambda: hosted_pixeltable(key, args.model, questions, args.workers),
+            'supabase': lambda: hosted_supabase(key, args.supabase_token, args.model, questions, args.workers),
+            'convex': lambda: hosted_convex(key, args.model, questions, args.workers),
         }[impl]()
         # Stamped per leg: a run over a subset of implementations must not make stale
-        # legs look freshly measured by updating only the file-level measured_at.
+        # legs look freshly measured by updating only the file-level fields.
         result['measured_at'] = measured_at
+        result['model'] = args.model
         results[impl] = result
         print(
             f'  {result["succeeded"]}/{args.questions} ok in {result["wall_sec"]}s wall, '
