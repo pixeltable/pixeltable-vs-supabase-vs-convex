@@ -64,7 +64,17 @@ excludes pure HTTP dispatch, which is already counted as hand-written routes. Th
 exclusion applies to `convex/http.ts`, where every route is a `ctx.runAction` into the
 function that does the work; counting those would charge Convex twice for one layer,
 and Supabase has no equivalent file because each `Deno.serve` handler holds its own
-logic. Convex's raw count is 14 and its pipeline count is 9.
+logic. Convex's raw count is 14 and its pipeline count is 9. Supabase's count is 13,
+including the multi-line `supabase.storage.from(...)` frame upload.
+
+**HTTP routes written by hand** counts route endpoints whose handler body is code you
+wrote, not route bindings. Pixeltable scores 1: its four `add_insert_route` /
+`add_query_route` calls declare routes but carry no handler code, and the one
+`@api.post` it writes by hand is the count. Supabase's single `fetch` export
+hand-dispatches five `path ===` branches to five hand-written handlers, and Convex's
+five `http.route` blocks each hold a handler, so both score 5. An earlier version of
+this metric counted the Supabase `fetch` wrapper itself, which reported 1 where 5
+routes are served by hand-written code - the same number with different contents.
 
 ## What is a judgment call
 
@@ -133,19 +143,22 @@ there is no row and the error is typed, while Supabase and Convex write the row 
 processing, leave `status='error'` in the table, answer a bare 500, and filter that row out
 of their list endpoint.
 
-Two claims about Pixeltable's behaviour are checked by hand rather than by a suite, both
+Three claims about Pixeltable's behaviour are checked by hand rather than by a suite,
 re-run against the live catalog:
 
 - **Processing fires for any writer.** A plain `videos.insert([...])` in a Python shell,
   with the HTTP service not involved, produced 30 frames and 3 chunks, all columns
   computed, and the new frames were returned by a similarity query in the same session.
 - **Adding a column backfills incrementally.** Adding one computed column to `Videos` and
-  running `pxt schema update` took 1.4s: `media/videos` updated, the other three
-  `unchanged`, and no transcription re-ran. Removing it again is refused as `DESTRUCTIVE`
-  without an explicit flag. Priced against the other two in [EVOLVE.md](EVOLVE.md).
+  running `pxt schema update` is the control measurement in [EVOLVE.md](EVOLVE.md):
+  `media/videos` updated, the other three `unchanged`, and no transcription re-ran.
+  Removing it again is refused as `DESTRUCTIVE` without an explicit flag.
+- **Revert restores an earlier version.** On a scratch table: insert two rows, add a
+  computed column, `pxt revert --steps 1 -f` removed the column and kept the rows, and
+  `pxt history` showed the rollback as a new version. The catalog was cleaned up after.
 
 Throughput and latency are measured separately, over two tiers, in [SCALE.md](SCALE.md).
-Pixeltable is last on ingest by a margin that matters, last on search by 9ms, and 3x
+Pixeltable is last on ingest by a margin that matters, last on search by ~7ms, and 3.4x
 faster than Supabase on the agent query. Three more measurements live there now:
 
 - **Reads.** `GET /videos` list latency plus a real fetch of one returned `frame_url`

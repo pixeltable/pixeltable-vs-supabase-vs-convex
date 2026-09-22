@@ -9,6 +9,13 @@
       "transformers": "4.57.6",
       "torch": "2.8.0",
       "openai-whisper": "20250625"
+    },
+    "service_env_versions": {
+      "pixeltable": "0.7.8",
+      "sentence-transformers": "5.7.0",
+      "transformers": "4.57.6",
+      "torch": "2.14.0",
+      "openai-whisper": "20250625"
     }
   },
   "pixeltable": {

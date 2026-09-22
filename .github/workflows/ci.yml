@@ -92,3 +92,5 @@ jobs:
       - run: python harness/run_comparison.py
       - name: Measurements must match the committed docs/metrics.json
         run: git diff --exit-code docs/metrics.json
+      - name: Published tables must quote the committed benchmark artifacts
+        run: python harness/check_docs.py

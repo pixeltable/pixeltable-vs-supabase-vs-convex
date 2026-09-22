@@ -41,8 +41,8 @@
     "vector_indexes": 2,
     "foreign_keys": 3,
     "db_triggers": 0,
-    "orchestration_hops": 12,
-    "http_routes_written_by_hand": 1,
+    "orchestration_hops": 13,
+    "http_routes_written_by_hand": 5,
     "file_breakdown": {
       "supabase/functions/_shared/client.ts": 31,
       "supabase/functions/api/index.ts": 149,

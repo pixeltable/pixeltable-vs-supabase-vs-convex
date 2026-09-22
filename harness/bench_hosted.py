@@ -104,6 +104,10 @@ def fire_agent(impl: str, base_url: str, headers: dict, questions: list[str], wo
         except Exception:
             return {'sec': time.monotonic() - started, 'status': 0, 'ok': False, 'attempts': None}
 
+    # Untimed warm-up, the same shape as agent_latency in benchmark.py: each stack is
+    # restarted immediately before this fires, and the first request pays cold client
+    # and service init that has nothing to do with the model being measured.
+    ask(0, questions[0])
     started = time.monotonic()
     with ThreadPoolExecutor(workers) as pool:
         results = list(pool.map(lambda iq: ask(*iq), enumerate(questions)))
@@ -168,7 +172,11 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
         _wait_daemon()
         _drop_conversations()
         run([pxt_bin(), 'schema', 'update', 'app.py', 'media', '-f'], cwd=app.parent, env=env)
-        run([pxt_bin(), 'service', 'restart', 'media/api'], cwd=app.parent, env=env)
+        # `service update` respawns the service process against the restarted daemon,
+        # which is how the OpenAI-compat env reaches it. `service restart` is not the
+        # same path: it asserts `project_root is not None` when the running service was
+        # not started from a project directory.
+        run([pxt_bin(), 'service', 'update', 'app.py', 'media'], cwd=app.parent, env=env)
         url = _auto_discover_pixeltable_url()
         if not url:
             raise RuntimeError('pixeltable service did not come back after restart')
@@ -193,7 +201,7 @@ def hosted_pixeltable(key: str, questions: list[str], workers: int) -> dict:
                 print(f'  restore step failed: {exc}', flush=True)
         try:
             _wait_daemon()
-            run([pxt_bin(), 'service', 'restart', 'media/api'], cwd=app.parent)
+            run([pxt_bin(), 'service', 'update', 'app.py', 'media'], cwd=app.parent)
         except RuntimeError as exc:
             print(f'  restore step failed: {exc}', flush=True)
     result.update(

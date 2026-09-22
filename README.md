@@ -29,12 +29,12 @@ scored zero.
 | Files you open to read the backend | **1** | 7 | 7 |
 | Schema objects | 2 tables, 2 views | 5 tables, 1 view, 3 FKs | 5 tables |
 | Vector indexes | 2 | 2 | 2 |
-| Orchestration hops | **3** | 12 | 9 |
-| HTTP routes written by hand | 1 | 1 | 5 |
+| Orchestration hops | **3** | 13 | 9 |
+| HTTP routes with a hand-written handler | **1** | 5 | 5 |
 
 Those are properties of the code. Speed splits four ways. Pixeltable is last on ingest
-at both sizes measured, 10.59x realtime over 100 videos against Supabase's 17.71x. It is
-last on search too, by 9ms with every implementation under 26ms. And it is **3x faster
+at both sizes measured, 10.45x realtime over 100 videos against Supabase's 16.89x. It is
+last on search too, by ~7ms with every implementation under 25ms. And it is **3.4x faster
 than Supabase on the agent query**, the most expensive operation in the app, because
 answering one costs the other two three round trips to their compute service and costs
 Pixeltable none. On the read path Convex is fastest on both `GET /videos` (1.4-2.4ms)
@@ -123,10 +123,12 @@ orchestration hops, and base64 on the wire.
 **Adding a column to live data.** One edit and `pxt schema update`: the table that gained
 the column backfills, every table that did not prints `unchanged`, and no transcription
 re-runs. On the other two it is a migration plus a backfill script. Run on a populated
-catalog in [docs/EVOLVE.md](docs/EVOLVE.md): **1 line in 1 file, against 24 and 53**.
-Supabase is the fastest of the three in wall time, and at two dozen rows that is noise.
-The claim past this corpus is structural, not measured: what backfills incrementally stays
-proportional to the rows that changed, and what re-runs a script does not.
+catalog at two corpus sizes in [docs/EVOLVE.md](docs/EVOLVE.md), with a model-free
+control per platform separating mechanism cost from backfill work: **1 line in 1 file,
+against 24 and 53**. The wall-clock winner flips with corpus - Pixeltable is cheapest at
+23 rows, Supabase at 123 - so the durable claim is structural: what backfills
+incrementally stays proportional to the rows that changed, and what re-runs a script
+does not.
 
 **Processing fires for any writer.** A row inserted into a Pixeltable table by anything
 at all gets processed, because the pipeline is the schema. On Supabase or Convex the
@@ -246,10 +248,12 @@ SECRET=...                         # supabase status, the Edge Function needs it
 ```
 
 Measure the source. Regenerates `docs/metrics.json`, which every number in the docs comes
-from; CI fails if it drifts:
+from; CI fails if it drifts. The second command fails if the published tables stop
+quoting the committed benchmark artifacts:
 
 ```bash
 python harness/run_comparison.py
+python harness/check_docs.py
 ```
 
 Seed the fixtures, then test one implementation against the contract:

@@ -19,6 +19,7 @@ import argparse
 import json
 import platform
 import statistics
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -82,6 +83,31 @@ def versions() -> dict[str, str]:
         except md.PackageNotFoundError:
             found[name] = 'not installed'
     return found
+
+
+def service_env_versions() -> dict[str, str]:
+    """Versions in the interpreter the Pixeltable service runs under (the repo .venv).
+
+    This harness runs under a different interpreter - the one that also runs
+    compute-service - so reporting only `versions()` would record the environment of
+    the two competitors' model work and 'not installed' for the platform whose
+    numbers it produced. Both are recorded; the labels say which is which.
+    """
+    venv_python = ROOT / '.venv' / 'bin' / 'python'
+    if not venv_python.exists():
+        return {}
+    code = (
+        'import importlib.metadata as m, json\n'
+        'def v(p):\n'
+        '    try: return m.version(p)\n'
+        '    except m.PackageNotFoundError: return "not installed"\n'
+        f'print(json.dumps({{p: v(p) for p in {TRACKED_PACKAGES!r}}}))'
+    )
+    try:
+        out = subprocess.run([str(venv_python), '-c', code], capture_output=True, text=True, timeout=30)
+        return json.loads(out.stdout) if out.returncode == 0 else {}
+    except Exception:
+        return {}
 
 
 def percentile(values: list[float], p: float) -> float:
@@ -347,6 +373,7 @@ def main() -> int:
         'machine': platform.machine(),
         'python': platform.python_version(),
         'versions': versions(),
+        'service_env_versions': service_env_versions(),
     }
     # Keyed by implementation then tier, so tiers accumulate instead of overwriting each
     # other. A flat entry from a single-tier run is migrated into its own tier first.

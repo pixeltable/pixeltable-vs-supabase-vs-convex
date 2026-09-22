@@ -82,7 +82,7 @@ runs, so the fields it fills later are `v.optional()`:
 Videos.insert([{'video': 'lecture.mp4', 'title': 'CS101'}])
 ```
 
-**Supabase.** 67 lines in one function: extract, embed the batch, upload each frame,
+**Supabase.** 75 lines in one function: extract, embed the batch, upload each frame,
 one insert per table.
 
 ```ts
@@ -196,8 +196,9 @@ REST. Convex's actual interface is a reactive client where the UI re-renders on 
 
 This is the one that compounds.
 
-**Pixeltable.** Adding one computed column to `Videos` on a populated catalog, timed at
-1.4 seconds:
+**Pixeltable.** Adding one computed column to `Videos` on a populated catalog - the
+control measurement in [EVOLVE.md](EVOLVE.md), timed at 0.53s on 23 videos and 0.81s
+on 123:
 
 ```
 $ pxt schema update app.py media

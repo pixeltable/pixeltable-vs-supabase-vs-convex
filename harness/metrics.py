@@ -120,6 +120,9 @@ PATTERNS = {
         # The declared routes do no orchestration. The one hand-written route does:
         # it resolves a table, inserts, and reads the row back. That is 3, not 0.
         'orchestration_hops': r'pxt\.get_table\(|\.insert\(\[|\.collect\(\)',
+        # Routes whose handler body is written by hand. The four `add_*_route` calls
+        # are route bindings, not handlers: they carry no handler code, which is the
+        # claim this metric exists to measure.
         'http_routes_written_by_hand': r'@api\.(?:get|post|put|delete)\(',
     },
     'supabase': {
@@ -129,11 +132,13 @@ PATTERNS = {
         'foreign_keys': r'REFERENCES \w+\(',
         'db_triggers': r'CREATE TRIGGER',
         'orchestration_hops': (
-            r'supabase\s*\n?\s*\.from\(|supabase\.from\(|supabase\.storage\.'
+            r'supabase\s*\n?\s*\.from\(|supabase\.from\(|supabase\.storage\s*\n?\s*\.'
             r'|supabase\.rpc\(|PERFORM notify_edge_function'
         ),
-        # The documented handler shape: a default export whose fetch is wrapped.
-        'http_routes_written_by_hand': r'fetch:\s*withSupabase\(|Deno\.serve\(',
+        # One `fetch` export dispatches five `path ===` branches to five hand-written
+        # handlers; counting the wrapper instead would report 1 where 5 routes are
+        # served by hand-written code.
+        'http_routes_written_by_hand': r'path === "',
     },
     'convex': {
         'tables': r'defineTable\(',

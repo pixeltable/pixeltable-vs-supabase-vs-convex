@@ -71,10 +71,12 @@ carry:
   }).searchIndex("by_title", { searchField: "title" }),
 ```
 
-| | Total | Lines written | Files touched |
-|---|---|---|---|
-| Convex, `vectorIndex` (semantic, same feature as the other two) | 7.66s | 53 | 2 |
-| Convex, `searchIndex` (lexical) | **1.67s** | **1** | **1** |
+| | Corpus | Total | Lines written | Files touched |
+|---|---|---|---|---|
+| Convex, `vectorIndex` (semantic, same feature as the other two) | 23 | 9.10s | 53 | 2 |
+| | 123 | 7.66s | 53 | 2 |
+| Convex, `searchIndex` (lexical) | 23 | **2.75s** | **1** | **1** |
+| | 123 | **1.67s** | **1** | **1** |
 
 Both are measured and both are in [`evolve.json`](evolve.json). Postgres has the same
 cheap answer in a GIN index over `to_tsvector(title)`, and Pixeltable in a `BtreeIndex`.

@@ -5,26 +5,41 @@ build one table of consequences, then trade attributes off against each other un
 attribute is equal across all three and can be struck out. Each swap has to name a
 price, which is what stops it being an argument dressed as arithmetic.
 
-Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
+Numbers in this table come from `docs/metrics.json`, `docs/benchmarks.json`,
+`docs/evolve.json` and `docs/hosted.json`. Rows without numbers are structural facts of
+the code as written; `†` marks the one row this contract cannot exercise at all.
+Judgments are marked as judgments.
 
 ## The consequences table
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App code you maintain | 129 | 294 | 425 |
+| App code you maintain | 129 | 302 | 425 |
 | Plus the shared compute service | 0 | 246 | 246 |
 | Files you open to read the backend | 1 | 7 | 7 |
 | Services you operate | 1 | 2 | 2 |
-| Orchestration hops | 3 | 12 | 9 |
+| Install to a running local stack | `pip install` + `pxt init`, heavy deps | Docker, 12 containers | `npx convex dev`, no account |
+| Orchestration hops | 3 | 13 | 9 |
+| HTTP routes with a hand-written handler | 1 | 5 | 5 |
+| Ingest call semantics | async job, polled | synchronous response | synchronous response |
 | ffmpeg, Whisper, CLIP run in-platform | yes | no | no |
+| Round trips to a second service per agent query | 0 | 3 | 3 |
+| Concurrent search p50, 8 clients (xl) | 119.5ms | 67.0ms | 65.2ms |
 | Add a derived column to live data | backfills in place* | migration + backfill script | migration action |
 | Processing fires for writes from any client | yes | no, unless you add triggers | no, unless you add a scheduler |
+| Derived value stays fresh on row update† | yes, recomputed | no, silent staleness | no |
+| Embedding index knows its own model | yes | no, the dimension is the guard | no |
 | Per-cell error state | yes (`errormsg`, `errortype`) | no | no |
+| Column lineage | expression per column, in the catalog | nothing recorded to draw | nothing recorded |
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
+| Request validation before handlers | derived from signature, 422 | ~28 lines by hand | ~46 lines by hand |
+| Failed ingest becomes a listed row | no, insert rejected | error row, filtered out | error row, filtered out |
+| Hosted-model pacing and retries | provider scheduler, 7-line swap | 36-line loop | 37-line loop |
 | Realtime push to clients | no | yes | yes, and it is the core idea |
 | Endpoints authenticated by default | no | **yes**, one config line | no |
 | Row-level security | no | **yes**, enabled and verified | no |
 | Vendor ships a conformance checker | no | **yes**, `db advisors` on a live database | **yes**, an ESLint plugin |
+| Local UI | dashboard, with lineage graphs | Studio | dashboard |
 | Operations | you run the process | managed | managed |
 | Free tier | n/a, self-hosted | yes | yes |
 
@@ -32,6 +47,14 @@ Numbers come from `docs/metrics.json`. Judgments are marked as judgments.
 that already exists: `pxt schema update` answers `500 A query over model 'Frames' cannot
 be serialized; bind it to a table first`. Ordinary computed columns backfill in place, and
 that is what the row claims.
+
+† The contract has no UPDATE, so this row is structural, not measured. What it claims:
+on the two hand-backfilled platforms a title UPDATE leaves `title_embedding` serving
+vectors computed from the old value until something re-runs the backfill - the index
+cannot tell the data changed. Pixeltable recomputes the derived column on write, so the
+staleness does not exist to be measured. The same holds for swapping the embedding
+model: on the other two, nothing checks that the query was embedded by the model that
+filled the column.
 
 ## The swaps
 
@@ -68,16 +91,19 @@ the feature you would otherwise build. Another swap that does not strike out.
 
 **Swap 4: equalise "add a derived column to live data".** Give Supabase and Convex the
 migration plus backfill they need and the row becomes equal. [EVOLVE.md](EVOLVE.md) runs
-exactly that swap and prices it: 24 lines for Supabase and 53 for Convex against
-Pixeltable's 1, and Supabase is the fastest of the three in wall time, because at two
-dozen rows the backfill is not what the clock is measuring. Two costs the clock misses cut
-both ways: Convex needs a second migration to undo the first, and Pixeltable's running
-service answers 409 to inserts until it is restarted.
+exactly that swap and prices it at two corpus sizes with a model-free control per
+platform: 24 lines for Supabase and 53 for Convex against Pixeltable's 1. On the clock
+the winner flips with corpus - Pixeltable is cheapest at 23 rows (0.96s) and Supabase
+at 123 (3.51s), because Pixeltable's fused step scales with rows while the script's
+fixed cost amortises. Two costs the clock misses cut both ways: Convex needs a second
+migration to undo the first, and Pixeltable's running service answers 409 to inserts
+until it is restarted.
 
-The swap gets more expensive as the data grows, because a backfill script is work
-proportional to the table and an incremental backfill is work proportional to the change.
-That is a structural claim this repo does not measure at a size where it bites, which is
-why it belongs in the conditional answer rather than the headline.
+The controls expose the slope behind that flip: Pixeltable's schema-minus-control
+residual grew 0.4s to 4.4s between the two corpus sizes while Convex's push residual
+stayed flat. That is still not the size where the structural claim bites - a backfill
+script stays proportional to the table at a million rows and this corpus is not - so
+the claim stays in the conditional answer rather than the headline.
 
 **Swap 5: equalise the app shape.** Every swap above trades one attribute. This one trades
 the premise. The contract is single-tenant, stateless, request/response and write-once:
@@ -99,8 +125,8 @@ Throughput is not in the swaps because it has its own measurement:
 [SCALE.md](SCALE.md), where Supabase ingests fastest and Convex searches fastest. If speed
 at this scale is your binding constraint, that page decides it and this one does not.
 
-**What survives every swap**: lines of code and files to open (129/1 against 294/7 and
-425/7), orchestration hops (3 against 12 and 9), and where media processing runs.
+**What survives every swap**: lines of code and files to open (129/1 against 302/7 and
+425/7), orchestration hops (3 against 13 and 9), and where media processing runs.
 
 ## The conditional recommendation
 
