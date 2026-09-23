@@ -29,7 +29,7 @@ the row this contract cannot exercise. Judgments are marked as judgments.
 | Per-cell error state | yes (`errormsg`, `errortype`) | no | no |
 | Column lineage | expression per column, in the catalog | nothing recorded to draw | nothing recorded |
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
-| Request validation before handlers | derived from signature, 422 | ~28 lines by hand | ~46 lines by hand |
+| Request validation before handlers | derived from signature, 422 | 28 lines by hand | 42 lines by hand |
 | Failed ingest becomes a listed row | no, insert rejected | error row, filtered out | error row, filtered out |
 | Hosted-model pacing and retries | request-rate scheduler, 7-line swap | 36-line loop | 37-line loop |
 | Realtime push to clients | no | yes | yes, and it is the core idea |

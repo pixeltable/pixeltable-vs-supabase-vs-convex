@@ -88,6 +88,10 @@ CLASSIFIED = {
         'work_runs_on_insert': False,
         'incremental_column_add': False,
         'data_versioning': False,
+        # Hand-counted: the lines that exist to turn a malformed body into a 4xx -
+        # BadRequest/readJson/requireString/readLimit in _shared/client.ts (19) plus
+        # their call sites and the catch clause in api/index.ts (9).
+        'request_validation_loc': 28,
     },
     'convex': {
         'runtimes_to_operate': ['Convex (database, actions, storage)', 'compute-service'],
@@ -95,6 +99,9 @@ CLASSIFIED = {
         'work_runs_on_insert': False,
         'incremental_column_add': False,
         'data_versioning': False,
+        # Same rule: BadRequest/readJson/requireString/readLimit/guarded in http.ts
+        # (27) plus guarded/readJson/requireString/readLimit call sites (15).
+        'request_validation_loc': 42,
     },
     'compute-service': {
         'runtimes_to_operate': ['compute-service'],

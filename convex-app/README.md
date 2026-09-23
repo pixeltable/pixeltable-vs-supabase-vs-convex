@@ -35,7 +35,7 @@ base for every contract route.
 - `vectorSearch` returns ids and scores; rows are fetched in a second query.
 - `listVideos` filters to `status === "ready"`: ingest inserts the row before
   processing, and a failed media step leaves it behind.
-- `http.ts` is 90 lines: 46 for REST bodies, the rest because argument validators
+- `http.ts` is 90 lines: 42 for REST bodies, the rest because argument validators
   run inside the function, so a bad body is a 500 unless the edge checks it.
 - Processing lives in the ingest path; per-row automatic processing would take a
   scheduled action.

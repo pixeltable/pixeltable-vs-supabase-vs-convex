@@ -83,6 +83,36 @@ def readme_cells(m: dict, h: dict) -> list[str]:
     return cells
 
 
+def roundtrip_cells(r: dict) -> list[str]:
+    """SCALE.md's boundary claims: per-video requests and bytes for the two consumers
+    plus the latency-sweep wall-time deltas, formatted the way the doc renders them."""
+    cells = []
+    for impl in ('supabase', 'convex'):
+        i = r[impl]['ingest']
+        cells.append(f'{i["requests_per_video"]:g} requests')
+        cells.append(f'{i["bytes_per_video"] / 1e6:.2f} MB')
+    deltas = [
+        r[impl]['sweep'][level]['wall_sec'] - r[impl]['sweep']['0']['wall_sec']
+        for impl in ('supabase', 'convex')
+        for level in ('20', '80')
+    ]
+    cells.append(f'added {min(deltas):.1f}-{max(deltas):.1f}s')
+    return cells
+
+
+def validation_cells(m: dict) -> list[tuple[str, str]]:
+    """Hand-classified request-validation lines, (doc name, cell) per place that quotes
+    them: TRADEOFFS per implementation, README and convex-app/README as prose."""
+    sb = m['supabase']['classified']['request_validation_loc']
+    cx = m['convex']['classified']['request_validation_loc']
+    return [
+        ('docs/TRADEOFFS.md', f'{sb} lines by hand'),
+        ('docs/TRADEOFFS.md', f'{cx} lines by hand'),
+        ('README.md', f'{sb} and {cx} hand-written lines'),
+        ('convex-app/README.md', f'{cx} for REST bodies'),
+    ]
+
+
 def evolve_cells(e: dict) -> list[str]:
     cells = []
     for impl, tiers in e.items():
@@ -125,6 +155,20 @@ def main() -> int:
     for cell in evolve_cells(json.loads((DOCS / 'evolve.json').read_text())):
         if cell not in evolve_doc:
             failures.append(f'EVOLVE.md missing evolve cell: {cell}')
+
+    scale_flat = ' '.join(scale.split())
+    for cell in roundtrip_cells(json.loads((DOCS / 'roundtrip.json').read_text())):
+        if cell not in scale_flat:
+            failures.append(f'SCALE.md missing roundtrip cell: {cell}')
+
+    validation: dict[str, list[str]] = {}
+    for name, cell in validation_cells(metrics):
+        validation.setdefault(name, []).append(cell)
+    for name, cells in validation.items():
+        flat = ' '.join((ROOT / name).read_text().replace('**', '').split())
+        for cell in cells:
+            if cell not in flat:
+                failures.append(f'{name} missing validation cell: {cell}')
 
     for failure in failures:
         print(f'FAIL {failure}')

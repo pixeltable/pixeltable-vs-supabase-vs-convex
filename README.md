@@ -55,7 +55,7 @@ the answer changes.
 - **Lineage is in the catalog** (`pxt columns`, `pxt dashboard`); the other two record
   nothing to draw.
 - **Request validation is derived**: a bad body is a 422 on Pixeltable, against 28 and
-  46 hand-written lines.
+  42 hand-written lines.
 - **A hosted-model swap** is a 7-line schema change against 36-37 lines of
   retry/backoff ([docs/hosted.json](docs/hosted.json)). On the paid endpoint all
   three answer 12/12; the free pool returns malformed 200 bodies
@@ -140,6 +140,9 @@ pytest harness/test_metrics.py     # tests the measuring code itself
 python fixtures/videos/generate.py --tier large
 python harness/benchmark.py --impl pixeltable --tier large      # docs/SCALE.md
 python harness/bench_evolve.py --supabase-token $SECRET         # docs/EVOLVE.md
+# run compute-service on :9100 first; this script's proxy takes its usual :9000
+python harness/bench_roundtrip.py --impl supabase --base-url $SUPA --auth-token $SECRET
+python harness/bench_roundtrip.py --impl convex --base-url $CONVEX --add-latency-ms 80  # docs/roundtrip.json
 OPENROUTER_API_KEY=sk-or-... python harness/bench_hosted.py --supabase-token $SECRET
 ```
 

@@ -114,6 +114,9 @@ Measured in [SCALE.md](SCALE.md): `harness/benchmark.py` (reads, load),
 `errormsg`/`errortype` recorded before teardown, `--model` selects the endpoint,
 `OPENROUTER_API_KEY` reaches each stack through its own config path and is never
 written to the repo), `harness/probe_hosted.py` (the provider's raw response shapes),
+`harness/bench_roundtrip.py` (requests and bytes across the compute-service
+boundary, per video and per agent query; `--add-latency-ms` models a deployment
+where the boundary stops being loopback; [roundtrip.json](roundtrip.json)),
 `harness/render_summary.py` (`docs/summary.svg`, regenerated and diffed in CI).
 
 ## Pixeltable capabilities the contract leaves out

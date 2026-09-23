@@ -42,8 +42,9 @@ large, 1.62x at xl). The ordering is a property of the implementations. Two
 asymmetries sit underneath, neither measured separately: a different scene detector
 per side (PySceneDetect in Python against ffmpeg's `select` filter in C) and
 different frame work (a stored 320x180 still against base64 to object storage). And
-the two that reach `compute-service` pay 9 requests and 1.07 MB per video over
-loopback, which a deployment would charge for.
+the two that reach `compute-service` pay an average of 8.5 requests and 1.35 MB
+per video over loopback ([roundtrip.json](roundtrip.json)), which a deployment
+would charge for.
 
 ## Search
 
@@ -60,7 +61,7 @@ Ten queries, six passes, one untimed warm-up. Large was measured over 23 videos 
 | | **xl** | **15.3ms** | **21.5ms** | **11.4ms** | **16.5ms** |
 
 Pixeltable is last at both tiers, but read the size before the rank: every
-implementation answers every query in under 25ms at 7,689 vectors, and much of each
+implementation's p50 stays under 25ms at 7,689 vectors (worst p95 26.5ms), and much of each
 number is the query embedding (~10ms CLIP, ~7ms MiniLM, measured directly). This is
 an ordering check, not a vector benchmark.
 
@@ -161,9 +162,11 @@ retry code and who could see inside the response.
 - **7,689 vectors is still not a vector benchmark.** Nothing measures recall; the
   tiers answer whether the ordering survives 12x, not what happens at a million rows.
 - **Everything runs on one machine, the assumption most favourable to the two that
-  need a second service.** `compute-service` answers on `127.0.0.1`, so its 9 round
-  trips and 1.07 MB per video cost nothing. In a deployment neither edge runtime can
-  even reach it there; read their ingest numbers as a lower bound.
+  need a second service.** `compute-service` answers on `127.0.0.1`, so its 8.5
+  requests and 1.35 MB per video cost nothing; a proxy adding 20-80ms per call added
+  2.7-11.8s to the 20-video ingest ([roundtrip.json](roundtrip.json)). In a
+  deployment neither edge runtime can even reach it there; read their ingest numbers
+  as a lower bound.
 - **Not a cost comparison.**
 
 ## What survives the numbers

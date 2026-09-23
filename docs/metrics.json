@@ -60,7 +60,8 @@
       "needs_compute_service": true,
       "work_runs_on_insert": false,
       "incremental_column_add": false,
-      "data_versioning": false
+      "data_versioning": false,
+      "request_validation_loc": 28
     }
   },
   "convex": {
@@ -95,7 +96,8 @@
       "needs_compute_service": true,
       "work_runs_on_insert": false,
       "incremental_column_add": false,
-      "data_versioning": false
+      "data_versioning": false,
+      "request_validation_loc": 42
     }
   },
   "compute-service": {
