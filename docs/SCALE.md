@@ -163,10 +163,21 @@ retry code and who could see inside the response.
   tiers answer whether the ordering survives 12x, not what happens at a million rows.
 - **Everything runs on one machine, the assumption most favourable to the two that
   need a second service.** `compute-service` answers on `127.0.0.1`, so its 8.5
-  requests and 1.35 MB per video cost nothing; a proxy adding 20-80ms per call added
-  2.7-11.8s to the 20-video ingest ([roundtrip.json](roundtrip.json)). In a
-  deployment neither edge runtime can even reach it there; read their ingest numbers
-  as a lower bound.
+  requests and 1.35 MB per video cost nothing. A proxy adding 20 or 80ms per call was
+  run four times at each level ([roundtrip.json](roundtrip.json)):
+
+  - supabase +20ms: added 2.5s (n=4)
+  - supabase +80ms: added 7.5s (n=4)
+  - convex +20ms: added 1.3s (n=4)
+  - convex +80ms: did not resolve (n=4, 64.4-93.6s)
+
+  Three of those four are smaller than the delay the proxy injected, and the fourth is
+  not a number: Convex's runs at 80ms span 29s, and its own baseline spans 30s, which is
+  8.8x the 3.4s that 20ms of injected delay amounts to across 170 requests. The sweep
+  resolves on Supabase and does not on Convex, and a single earlier run that read 11.5s
+  at 20ms was that noise rather than a measurement. Read it as the shape of the cost, not
+  its size. In a deployment neither edge runtime can reach `127.0.0.1` at all, so their
+  ingest numbers stay a lower bound.
 - **Not a cost comparison.**
 
 ## What survives the numbers

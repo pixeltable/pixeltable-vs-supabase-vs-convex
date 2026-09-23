@@ -7,6 +7,14 @@
 Ingest is asynchronous on Pixeltable, which answers with a job to poll, and synchronous
 on Supabase and Convex, which answer when the pipeline has finished. This waits for
 either, so the three are comparable once it returns.
+
+An ingest names the video by filesystem path, which only resolves while the harness and
+the implementation share a disk. `--video-base-url` names it by URL instead. To exercise
+that without deploying anything, serve the fixture tree and point at it:
+
+    python -m http.server 8000 --directory fixtures/videos
+    python harness/seed.py --impl convex --base-url http://127.0.0.1:3211 \
+        --tier large --video-base-url http://127.0.0.1:8000
 """
 
 from __future__ import annotations
@@ -25,15 +33,31 @@ from harness.conftest import PATHS, auth_headers  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 TIMEOUT = 900.0
 
+FIXTURE_ROOT = ROOT / 'fixtures' / 'videos'
+
 TIERS = {
-    'small': ROOT / 'fixtures' / 'videos',
-    'large': ROOT / 'fixtures' / 'videos' / 'large',
-    'xl': ROOT / 'fixtures' / 'videos' / 'xl',
+    'small': FIXTURE_ROOT,
+    'large': FIXTURE_ROOT / 'large',
+    'xl': FIXTURE_ROOT / 'xl',
 }
 
 
 def videos_for(tier: str) -> list[Path]:
     return sorted(TIERS[tier].glob('*.mp4'))
+
+
+def video_ref(video: Path, base_url: str = '') -> str:
+    """What the ingest payload calls a video: its path, or a URL under `base_url`.
+
+    A path is only meaningful to a process that shares this disk. Pixeltable ingests the
+    string straight into `Videos.video`, so a hosted one is handed a file it does not
+    have. `base_url` serves the whole fixture tree rather than one tier, and the tier's
+    subdirectory is carried into the URL: one base URL covers all three tiers, and there
+    is no way to point it at the wrong one.
+    """
+    if not base_url:
+        return str(video)
+    return f'{base_url.rstrip("/")}/{video.relative_to(FIXTURE_ROOT).as_posix()}'
 
 
 def wait_for_job(client: httpx.Client, job_url: str, deadline: float, poll_sec: float = 2.0) -> None:
@@ -55,7 +79,14 @@ def wait_for_job(client: httpx.Client, job_url: str, deadline: float, poll_sec: 
     raise TimeoutError(f'ingest job still pending: {job_url}')
 
 
-def seed(impl: str, base_url: str, auth_token: str = '', tier: str = 'small', skip_existing: bool = False) -> int:
+def seed(
+    impl: str,
+    base_url: str,
+    auth_token: str = '',
+    tier: str = 'small',
+    skip_existing: bool = False,
+    video_base_url: str = '',
+) -> int:
     videos = videos_for(tier)
     if not videos:
         sys.exit(f'no {tier}-tier fixture videos. Run: python fixtures/videos/generate.py --tier {tier}')
@@ -72,7 +103,8 @@ def seed(impl: str, base_url: str, auth_token: str = '', tier: str = 'small', sk
             print(f'{len(have)} already seeded, {len(videos)} to go')
         for video in videos:
             started = time.monotonic()
-            response = client.request(method, path, json={'video': str(video), 'title': video.name})
+            payload = {'video': video_ref(video, video_base_url), 'title': video.name}
+            response = client.request(method, path, json=payload)
             response.raise_for_status()
             body = response.json()
             # The ack shape is part of the contract; parse it here because the one test
@@ -96,6 +128,13 @@ def main() -> int:
     parser.add_argument('--auth-token', default='')
     parser.add_argument('--tier', choices=sorted(TIERS), default='small')
     parser.add_argument(
+        '--video-base-url',
+        default='',
+        help='Send each video as a URL under this base instead of a local path, for an '
+        'implementation that does not share a disk with the harness. Serves the whole '
+        'fixtures/videos tree; the tier subdirectory is part of the URL.',
+    )
+    parser.add_argument(
         '--skip-existing',
         action='store_true',
         help='Skip titles the list route already returns. No implementation exposes a '
@@ -114,7 +153,7 @@ def main() -> int:
     if not base_url:
         sys.exit(f'--base-url required for {args.impl} (or start Pixeltable service)')
 
-    return seed(args.impl, base_url, args.auth_token, args.tier, args.skip_existing)
+    return seed(args.impl, base_url, args.auth_token, args.tier, args.skip_existing, args.video_base_url)
 
 
 if __name__ == '__main__':

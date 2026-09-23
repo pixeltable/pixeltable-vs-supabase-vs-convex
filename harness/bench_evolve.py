@@ -177,6 +177,13 @@ def loc_of_patch(patch_file: Path) -> int:
 
 
 def psql(sql: str) -> str:
+    """DDL through the local stack's own container.
+
+    This is what binds the Supabase leg of this benchmark to a local stack: the schema
+    change is applied by shelling into the container, not over a connection string. A
+    hosted project has no container to exec into, so pointing this leg at one is not a
+    flag, it is a migration path (`supabase db push`) and a different measurement.
+    """
     return run(['docker', 'exec', DB_CONTAINER, 'psql', '-U', 'postgres', '-d', 'postgres', '-c', sql])
 
 

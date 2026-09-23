@@ -11,7 +11,9 @@ are noise next to them.
 
 --add-latency-ms delays each forwarded request, the cheapest model of a boundary that
 stops being loopback. Every run records its wall time under that latency level, so three
-runs at 0/20/80 produce the sweep.
+runs at 0/20/80 produce the sweep. --repeats runs the ingest more than once at one level;
+the sweep point keeps every wall time it is given, here and across invocations, because a
+sweep point of n=1 cannot tell the boundary cost from a slow afternoon.
 
 Pixeltable's row is written with basis 'structural': it has no compute-service call to
 count, which is a fact about the code, not a measurement. The two that do have one are
@@ -24,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import statistics
 import sys
 import threading
 import time
@@ -154,8 +157,47 @@ def measure(client: httpx.Client, impl: str, videos: list[Path], proxy: _Proxy, 
     }
 
 
-def write_result(impl: str, tier: str, add_latency_ms: float, result: dict) -> None:
-    """Merge one run into docs/roundtrip.json: counts refresh, sweep entries accumulate."""
+def merge_sweep(entry: dict, add_latency_ms: float, results: list[dict]) -> dict:
+    """Fold this invocation's ingest wall times into the sweep point for one latency level.
+
+    The point used to be overwritten, so every published sweep number was n=1 and a single
+    slow run was indistinguishable from the boundary cost it claimed to measure. Runs
+    accumulate across invocations as well as within one: `--repeats 3` run twice leaves n=6.
+
+    Spread is the observed min and max, not a half-range around the median. At these n the
+    extremes are data rather than an estimate, and which side a point ran long on is the
+    thing a reader needs to see; a symmetric half-range throws that away. `wall_sec` stays
+    the headline key and is now the median, which at n=1 is the value it always held, so an
+    artifact written before this change reads the same.
+    """
+    level = str(int(add_latency_ms))
+    last = results[-1]['ingest']
+    shape = {'videos': last['videos'], 'requests': last['requests']}
+    point = entry.setdefault('sweep', {}).get(level, {})
+    runs = list(point.get('runs') or ([point['wall_sec']] if 'wall_sec' in point else []))
+    if any(point[key] != value for key, value in shape.items() if key in point):
+        # A different video or request count is a different measurement. Pooling it with
+        # this one would publish the mean of two things, so the earlier runs go, and say so.
+        print(f'sweep {level}ms: shape changed, dropping {len(runs)} earlier run(s) rather than pooling them')
+        runs = []
+    runs += [r['ingest']['wall_sec'] for r in results]
+    return {
+        'wall_sec': round(statistics.median(runs), 1),
+        'wall_sec_min': min(runs),
+        'wall_sec_max': max(runs),
+        'n': len(runs),
+        'runs': runs,
+        **shape,
+    }
+
+
+def write_result(impl: str, tier: str, add_latency_ms: float, results: list[dict]) -> None:
+    """Merge one invocation into docs/roundtrip.json: counts refresh, sweep runs accumulate.
+
+    The counts and per-video detail are the last repeat's, as they were before repeats
+    existed. Only the sweep keeps history, because only the sweep is a timing.
+    """
+    result = results[-1]
     data = json.loads(OUT.read_text()) if OUT.exists() else {}
     data['measured_at'] = datetime.now(UTC).isoformat(timespec='seconds')
     data['method'] = (
@@ -171,17 +213,15 @@ def write_result(impl: str, tier: str, add_latency_ms: float, result: dict) -> N
         },
     )
     entry = data.setdefault(impl, {})
-    agent_records = result.pop('_agent_records')
+    agent_records = [r.pop('_agent_records') for r in results]
     entry['ingest'] = {'tier': tier, **result['ingest']}
     entry['agent'] = result['agent']
     entry['paths_called'] = result['paths_called']
-    entry.setdefault('sweep', {})[str(int(add_latency_ms))] = {
-        'wall_sec': result['ingest']['wall_sec'],
-        'videos': result['ingest']['videos'],
-        'requests': result['ingest']['requests'],
-    }
+    point = merge_sweep(entry, add_latency_ms, results)
+    entry['sweep'][str(int(add_latency_ms))] = point
     OUT.write_text(json.dumps(data, indent=1) + '\n')
-    print(f'wrote {OUT} (agent calls seen: {agent_records})')
+    print(f'wrote {OUT} (agent calls seen: {agent_records[-1]})')
+    print(f'sweep {int(add_latency_ms)}ms: median {point["wall_sec"]}s over n={point["n"]} {point["runs"]}')
 
 
 def main() -> int:
@@ -195,7 +235,15 @@ def main() -> int:
     parser.add_argument('--listen-port', type=int, default=9000)
     parser.add_argument('--upstream', default='http://127.0.0.1:9100')
     parser.add_argument('--add-latency-ms', type=float, default=0.0)
+    parser.add_argument(
+        '--repeats',
+        type=int,
+        default=1,
+        help='Ingest sweeps to run at this latency; the sweep point keeps every wall time, so n grows',
+    )
     args = parser.parse_args()
+    if args.repeats < 1:
+        sys.exit('--repeats must be at least 1')
 
     videos = videos_for(args.tier)
     if args.videos:
@@ -207,19 +255,25 @@ def main() -> int:
     threading.Thread(target=proxy.serve_forever, daemon=True).start()
     print(
         f'proxy on :{args.listen_port} -> {args.upstream}, +{args.add_latency_ms}ms per request; '
-        f'{len(videos)} videos on {args.impl}'
+        f'{len(videos)} videos on {args.impl} x{args.repeats}'
     )
+    results = []
     try:
         with httpx.Client(
             base_url=args.base_url.rstrip('/'),
             headers=auth_headers(args.impl, args.auth_token),
             timeout=UPSTREAM_TIMEOUT,
         ) as client:
-            result = measure(client, args.impl, videos, proxy, args.agent_iterations)
+            # Each repeat re-ingests the same videos, which is what running this script
+            # twice already did. Nothing here resets the consumer between repeats.
+            for run in range(args.repeats):
+                if args.repeats > 1:
+                    print(f'run {run + 1}/{args.repeats}')
+                results.append(measure(client, args.impl, videos, proxy, args.agent_iterations))
     finally:
         proxy.shutdown()
         proxy.server_close()
-    write_result(args.impl, args.tier, args.add_latency_ms, result)
+    write_result(args.impl, args.tier, args.add_latency_ms, results)
     return 0
 
 

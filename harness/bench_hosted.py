@@ -52,6 +52,8 @@ HOSTED_MODEL = 'nvidia/nemotron-3-super-120b-a12b'
 WARMUP_QUESTION = 'Summarize what the videos cover.'
 SUPABASE_APP = ROOT / 'supabase-app'
 CONVEX_APP = ROOT / 'convex-app'
+# Defaults, not assumptions. Both are overridable so a leg can be pointed at a deployed
+# project; nothing else in this file knows where the endpoint lives.
 SUPABASE_URL = 'http://127.0.0.1:54321'
 CONVEX_URL = 'http://127.0.0.1:3211'
 
@@ -228,6 +230,12 @@ def _service_url() -> str | None:
 
 
 def hosted_pixeltable(key: str, model: str, questions: list[str], workers: int) -> dict:
+    # No base_url parameter, deliberately. The other two legs take one because they only
+    # need an endpoint to fire at. This one starts a private daemon, applies the schema and
+    # brings up the service itself, so pointing it at a deployed database is not a flag: it
+    # is `pxt db update` against a hosted uri and a service that lives there. The
+    # asymmetry is worth seeing rather than papering over with an option that would not work.
+
     app = ROOT / 'pixeltable' / 'app.py'
     original = app.read_text()
     # The daemon resolves credentials from the environment it was started with, and
@@ -311,7 +319,9 @@ def hosted_pixeltable(key: str, model: str, questions: list[str], workers: int) 
 # ------------------------------------------------------------------- supabase
 
 
-def hosted_supabase(key: str, token: str, model: str, questions: list[str], workers: int) -> dict:
+def hosted_supabase(
+    key: str, token: str, model: str, questions: list[str], workers: int, base_url: str = SUPABASE_URL
+) -> dict:
     index = SUPABASE_APP / 'supabase' / 'functions' / 'api' / 'index.ts'
     original = index.read_text()
     names = ['supabase_helper', 'supabase_call', 'supabase_return']
@@ -332,8 +342,8 @@ def hosted_supabase(key: str, token: str, model: str, questions: list[str], work
         # a stack restart rather than a function reload. Data survives in the volumes.
         run(['npx', 'supabase', 'stop'], cwd=SUPABASE_APP)
         run(['npx', 'supabase', 'start'], cwd=SUPABASE_APP)
-        _wait_ready(f'{SUPABASE_URL}/functions/v1/api/videos', headers)
-        result = fire_agent('supabase', SUPABASE_URL, headers, questions, workers)
+        _wait_ready(f'{base_url}/functions/v1/api/videos', headers)
+        result = fire_agent('supabase', base_url, headers, questions, workers)
     finally:
         # Each restore step is guarded so a single failure cannot skip the rest of the
         # cleanup; the env file holds the hosted key until it is put back, so its
@@ -365,7 +375,7 @@ def hosted_supabase(key: str, token: str, model: str, questions: list[str], work
 # --------------------------------------------------------------------- convex
 
 
-def hosted_convex(key: str, model: str, questions: list[str], workers: int) -> dict:
+def hosted_convex(key: str, model: str, questions: list[str], workers: int, base_url: str = CONVEX_URL) -> dict:
     agent_ts = CONVEX_APP / 'convex' / 'agent.ts'
     original = agent_ts.read_text()
     names = ['convex_helper', 'convex_call', 'convex_return', 'convex_returntype']
@@ -377,8 +387,8 @@ def hosted_convex(key: str, model: str, questions: list[str], workers: int) -> d
         _stop_convex_watcher()
         run(['npx', 'convex', 'dev', '--once'], cwd=CONVEX_APP)
         _start_convex_watcher(CONVEX_APP)
-        _wait_ready(f'{CONVEX_URL}/videos')
-        result = fire_agent('convex', CONVEX_URL, {}, questions, workers)
+        _wait_ready(f'{base_url}/videos')
+        result = fire_agent('convex', base_url, {}, questions, workers)
     finally:
         # Same guarded restore shape as the other legs: one failed step cannot skip the
         # rest. The env vars hold the hosted key, so their removal gets its own guard
@@ -416,6 +426,8 @@ def main() -> int:
     parser.add_argument('--workers', type=int, default=6)
     parser.add_argument('--supabase-token', default='')
     parser.add_argument('--model', default=HOSTED_MODEL)
+    parser.add_argument('--supabase-url', default=SUPABASE_URL, help='point the Supabase leg at a deployed project')
+    parser.add_argument('--convex-url', default=CONVEX_URL, help='point the Convex leg at a cloud deployment')
     args = parser.parse_args()
     if args.questions < 1:
         parser.error('--questions must be at least 1')
@@ -448,8 +460,10 @@ def main() -> int:
             continue
         result = {
             'pixeltable': lambda: hosted_pixeltable(key, args.model, questions, args.workers),
-            'supabase': lambda: hosted_supabase(key, args.supabase_token, args.model, questions, args.workers),
-            'convex': lambda: hosted_convex(key, args.model, questions, args.workers),
+            'supabase': lambda: hosted_supabase(
+                key, args.supabase_token, args.model, questions, args.workers, args.supabase_url
+            ),
+            'convex': lambda: hosted_convex(key, args.model, questions, args.workers, args.convex_url),
         }[impl]()
         # Stamped per leg: a run over a subset of implementations must not make stale
         # legs look freshly measured by updating only the file-level fields.

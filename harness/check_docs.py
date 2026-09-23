@@ -22,6 +22,19 @@ DOCS = ROOT / 'docs'
 
 IMPLS = ('pixeltable', 'supabase', 'convex')
 
+CONSUMERS = ('supabase', 'convex')
+SWEEP_LEVELS = ('20', '80')
+# The proxy sleeps --add-latency-ms before each forwarded request and ingest is synchronous
+# on both consumers, so a level's added wall time should land near requests x added ms.
+# Under prediction means some of the delay overlapped; far over it is time the proxy did
+# not inject, which is not the boundary cost the sweep claims to report. The points that
+# agree sit at 0.8-0.9x, so 1.5x is slack of the same order as the agreement itself.
+SWEEP_RATIO_CEILING = 1.5
+# With n>=2 the spread is the only evidence the median is reproducible. A quarter of the
+# median is already wider than the disagreement the consistent points show; past that the
+# point is a range, and a range is not a number to publish.
+SWEEP_SPREAD_FRACTION = 0.25
+
 
 def benchmarks_cells(b: dict) -> list[str]:
     cells = []
@@ -84,20 +97,72 @@ def readme_cells(m: dict, h: dict) -> list[str]:
 
 
 def roundtrip_cells(r: dict) -> list[str]:
-    """SCALE.md's boundary claims: per-video requests and bytes for the two consumers
-    plus the latency-sweep wall-time deltas, formatted the way the doc renders them."""
+    """SCALE.md's boundary claims: per-video requests and bytes for the two consumers plus
+    one cell per sweep point, formatted the way the doc renders them.
+
+    The deltas used to render as one pooled `added X-Ys` range whose ends came from
+    different implementations. A range cannot disagree with itself, so an outlier at one
+    level hid inside it and shipped. One cell per implementation and level lets a bad point
+    be wrong on its own, and n travels with it so the doc cannot present a single run as a
+    settled number.
+    """
     cells = []
-    for impl in ('supabase', 'convex'):
+    for impl in CONSUMERS:
         i = r[impl]['ingest']
         cells.append(f'{i["requests_per_video"]:g} requests')
         cells.append(f'{i["bytes_per_video"] / 1e6:.2f} MB')
-    deltas = [
-        r[impl]['sweep'][level]['wall_sec'] - r[impl]['sweep']['0']['wall_sec']
-        for impl in ('supabase', 'convex')
-        for level in ('20', '80')
-    ]
-    cells.append(f'added {min(deltas):.1f}-{max(deltas):.1f}s')
+    for impl in CONSUMERS:
+        sweep = r[impl]['sweep']
+        for level in SWEEP_LEVELS:
+            point = sweep[level]
+            n = point.get('n') or len(point.get('runs') or []) or 1
+            runs = point.get('runs') or []
+            if _resolves(point):
+                cells.append(f'{impl} +{level}ms: added {point["wall_sec"] - sweep["0"]["wall_sec"]:.1f}s (n={n})')
+            else:
+                cells.append(f'{impl} +{level}ms: did not resolve (n={n}, {min(runs):.1f}-{max(runs):.1f}s)')
     return cells
+
+
+def _resolves(point: dict) -> bool:
+    """Whether a sweep point's runs agree closely enough to quote a median.
+
+    Below two runs there is no spread to judge, so the ratio check in `sweep_failures`
+    carries it instead. Above the fraction, the median is a number the runs do not
+    support and the cell says so rather than rounding disagreement into a point estimate.
+    """
+    runs = point.get('runs') or []
+    if len(runs) < 2:
+        return True
+    return max(runs) - min(runs) <= point['wall_sec'] * SWEEP_SPREAD_FRACTION
+
+
+def sweep_failures(r: dict) -> list[str]:
+    """Refuse to publish a sweep point the sweep's own model contradicts.
+
+    Same shape as the 'no failed attempts' check below: the artifact is asked whether it
+    supports the claim, rather than the doc being asked whether it copied a number. A cell
+    that only has to exist cannot catch a point that is noise.
+    """
+    failures = []
+    for impl in CONSUMERS:
+        sweep = r[impl]['sweep']
+        base = sweep['0']['wall_sec']
+        for level in SWEEP_LEVELS:
+            point = sweep[level]
+            delta = point['wall_sec'] - base
+            injected = point['requests'] * int(level) / 1000
+            # A point that did not resolve already says so in its own cell; holding its
+            # median to the ratio model as well would fail it twice for one fact.
+            if _resolves(point) and delta > injected * SWEEP_RATIO_CEILING:
+                failures.append(
+                    f'roundtrip.json {impl} +{level}ms added {delta:.1f}s, over {SWEEP_RATIO_CEILING:g}x the '
+                    f'{injected:.1f}s the proxy injected across {point["requests"]} serialized requests'
+                )
+        walls = [sweep[level]['wall_sec'] for level in SWEEP_LEVELS]
+        if walls != sorted(walls):
+            failures.append(f'roundtrip.json {impl} sweep runs faster at more added latency: {walls}')
+    return failures
 
 
 def validation_cells(m: dict) -> list[tuple[str, str]]:
@@ -157,9 +222,11 @@ def main() -> int:
             failures.append(f'EVOLVE.md missing evolve cell: {cell}')
 
     scale_flat = ' '.join(scale.split())
-    for cell in roundtrip_cells(json.loads((DOCS / 'roundtrip.json').read_text())):
+    roundtrip = json.loads((DOCS / 'roundtrip.json').read_text())
+    for cell in roundtrip_cells(roundtrip):
         if cell not in scale_flat:
             failures.append(f'SCALE.md missing roundtrip cell: {cell}')
+    failures += sweep_failures(roundtrip)
 
     validation: dict[str, list[str]] = {}
     for name, cell in validation_cells(metrics):

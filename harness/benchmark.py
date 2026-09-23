@@ -30,7 +30,7 @@ import httpx
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from harness.conftest import PATHS, auth_headers  # noqa: E402
-from harness.seed import TIERS, videos_for, wait_for_job  # noqa: E402
+from harness.seed import TIERS, video_ref, videos_for, wait_for_job  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'docs' / 'benchmarks.json'
@@ -117,7 +117,7 @@ def percentile(values: list[float], p: float) -> float:
     return ordered[index]
 
 
-def ingest(client: httpx.Client, impl: str, tier: str) -> dict:
+def ingest(client: httpx.Client, impl: str, tier: str, video_base_url: str = '') -> dict:
     videos = videos_for(tier)
     if not videos:
         sys.exit(f'no {tier}-tier videos. Run: python fixtures/videos/generate.py --tier {tier}')
@@ -133,7 +133,8 @@ def ingest(client: httpx.Client, impl: str, tier: str) -> dict:
         for attempt in (1, 2):
             started = time.monotonic()
             try:
-                response = client.request(method, path, json={'video': str(video), 'title': video.name})
+                payload = {'video': video_ref(video, video_base_url), 'title': video.name}
+                response = client.request(method, path, json=payload)
                 response.raise_for_status()
                 if job_url := response.json().get('job_url'):
                     wait_for_job(client, job_url, started + TIMEOUT, poll_sec=POLL_SEC)
@@ -166,6 +167,10 @@ def ingest(client: httpx.Client, impl: str, tier: str) -> dict:
     return {
         'videos': len(videos),
         'ingested': len(per_video),
+        # A URL ingest makes the implementation fetch the file; a path ingest makes it
+        # open one already on its disk. Recorded so two runs cannot be read as the same
+        # work measured twice.
+        'video_source': 'url' if video_base_url else 'local_path',
         'failed_attempts': failures,
         'seconds_of_video': round(seconds_of_video, 1),
         'wall_sec': round(wall, 1),
@@ -334,6 +339,13 @@ def main() -> int:
     parser.add_argument('--base-url', default='')
     parser.add_argument('--auth-token', default='')
     parser.add_argument('--tier', default='large', choices=sorted(TIERS))
+    parser.add_argument(
+        '--video-base-url',
+        default='',
+        help='Send each video as a URL under this base instead of a local path, for an '
+        'implementation that does not share a disk with the harness. Serves the whole '
+        'fixtures/videos tree; the tier subdirectory is part of the URL.',
+    )
     parser.add_argument('--iterations', type=int, default=6, help='passes over the query set')
     parser.add_argument(
         '--agent-iterations', type=int, default=4, help='passes over the agent questions, which are slower'
@@ -357,7 +369,7 @@ def main() -> int:
     with httpx.Client(base_url=base_url.rstrip('/'), headers=headers, timeout=TIMEOUT) as client:
         if not args.skip_ingest:
             print(f'ingest ({args.impl}, {args.tier}):')
-            result['ingest'] = ingest(client, args.impl, args.tier)
+            result['ingest'] = ingest(client, args.impl, args.tier, args.video_base_url)
         print(f'search ({args.impl}):')
         result['search'] = latency(client, args.impl, args.iterations)
         result['agent'] = agent_latency(client, args.impl, args.agent_iterations)

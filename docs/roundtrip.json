@@ -1,5 +1,5 @@
 {
- "measured_at": "2026-09-23T04:38:55+00:00",
+ "measured_at": "2026-09-23T21:07:59+00:00",
  "method": "counting proxy on :9000 forwarding to compute-service; bytes are JSON request+response bodies; pixeltable is structural: no compute-service dependency exists to measure",
  "pixeltable": {
   "ingest": {
@@ -16,150 +16,150 @@
   "ingest": {
    "tier": "large",
    "videos": 20,
-   "wall_sec": 63.4,
+   "wall_sec": 62.0,
    "requests": 170,
    "requests_per_video": 8.5,
-   "bytes": 26942170,
-   "bytes_per_video": 1347108,
+   "bytes": 26945424,
+   "bytes_per_video": 1347271,
    "per_video": [
     {
      "video": "amortised_analysis.mp4",
-     "wall_sec": 6.18,
+     "wall_sec": 3.54,
      "requests": 9,
-     "bytes": 1443898
+     "bytes": 1443935
     },
     {
      "video": "binary_search_trees.mp4",
-     "wall_sec": 2.51,
+     "wall_sec": 2.66,
      "requests": 8,
-     "bytes": 1294770
+     "bytes": 1294765
     },
     {
      "video": "cache_locality.mp4",
-     "wall_sec": 2.8,
+     "wall_sec": 2.86,
      "requests": 9,
-     "bytes": 1393804
+     "bytes": 1393859
     },
     {
      "video": "code_review_practice.mp4",
-     "wall_sec": 2.47,
+     "wall_sec": 2.79,
      "requests": 8,
-     "bytes": 1234888
+     "bytes": 1235183
     },
     {
      "video": "concurrency_locks.mp4",
-     "wall_sec": 6.79,
+     "wall_sec": 4.36,
      "requests": 9,
-     "bytes": 1498555
+     "bytes": 1499109
     },
     {
      "video": "database_indexes.mp4",
-     "wall_sec": 2.44,
+     "wall_sec": 2.83,
      "requests": 9,
-     "bytes": 1420840
+     "bytes": 1420854
     },
     {
      "video": "dynamic_programming.mp4",
-     "wall_sec": 2.59,
+     "wall_sec": 3.06,
      "requests": 9,
-     "bytes": 1503519
+     "bytes": 1503852
     },
     {
      "video": "embedding_models.mp4",
-     "wall_sec": 4.88,
+     "wall_sec": 4.63,
      "requests": 9,
-     "bytes": 1458337
+     "bytes": 1458758
     },
     {
      "video": "graph_traversal.mp4",
-     "wall_sec": 2.37,
+     "wall_sec": 2.6,
      "requests": 8,
-     "bytes": 1237519
+     "bytes": 1237572
     },
     {
      "video": "hash_collisions.mp4",
-     "wall_sec": 2.51,
+     "wall_sec": 2.68,
      "requests": 8,
-     "bytes": 1235908
+     "bytes": 1235905
     },
     {
      "video": "heap_priority_queues.mp4",
-     "wall_sec": 3.59,
+     "wall_sec": 4.36,
      "requests": 9,
-     "bytes": 1487131
+     "bytes": 1487045
     },
     {
      "video": "http_caching.mp4",
-     "wall_sec": 3.21,
+     "wall_sec": 3.43,
      "requests": 9,
-     "bytes": 1423265
+     "bytes": 1423282
     },
     {
      "video": "incident_response.mp4",
      "wall_sec": 2.77,
      "requests": 9,
-     "bytes": 1407181
+     "bytes": 1407389
     },
     {
      "video": "load_balancing.mp4",
-     "wall_sec": 2.39,
+     "wall_sec": 2.5,
      "requests": 8,
-     "bytes": 1237587
+     "bytes": 1237890
     },
     {
      "video": "observability.mp4",
-     "wall_sec": 2.54,
+     "wall_sec": 2.75,
      "requests": 8,
-     "bytes": 1245787
+     "bytes": 1245842
     },
     {
      "video": "query_planning.mp4",
-     "wall_sec": 2.35,
+     "wall_sec": 2.54,
      "requests": 8,
-     "bytes": 1288635
+     "bytes": 1288852
     },
     {
      "video": "sorting_stability.mp4",
-     "wall_sec": 2.33,
+     "wall_sec": 2.5,
      "requests": 8,
-     "bytes": 1218291
+     "bytes": 1218097
     },
     {
      "video": "string_matching.mp4",
-     "wall_sec": 2.41,
+     "wall_sec": 2.66,
      "requests": 8,
-     "bytes": 1248806
+     "bytes": 1249065
     },
     {
      "video": "transaction_isolation.mp4",
-     "wall_sec": 3.74,
+     "wall_sec": 3.93,
      "requests": 9,
-     "bytes": 1414756
+     "bytes": 1415117
     },
     {
      "video": "vector_search.mp4",
-     "wall_sec": 2.54,
+     "wall_sec": 2.55,
      "requests": 8,
-     "bytes": 1248693
+     "bytes": 1249053
     }
    ]
   },
   "agent": {
    "queries": 3,
    "requests_per_query": 3.0,
-   "bytes_per_query": 20251,
+   "bytes_per_query": 20212,
    "per_query": [
     {
      "requests": 3,
-     "bytes": 20118
+     "bytes": 20123
     },
     {
      "requests": 3,
-     "bytes": 20360
+     "bytes": 20308
     },
     {
      "requests": 3,
-     "bytes": 20274
+     "bytes": 20205
     }
    ]
   },
@@ -174,17 +174,44 @@
   ],
   "sweep": {
    "0": {
-    "wall_sec": 52.2,
+    "wall_sec": 54.5,
+    "wall_sec_min": 52.2,
+    "wall_sec_max": 59.8,
+    "n": 4,
+    "runs": [
+     52.2,
+     59.8,
+     54.3,
+     54.8
+    ],
     "videos": 20,
     "requests": 170
    },
    "20": {
-    "wall_sec": 54.9,
+    "wall_sec": 57.0,
+    "wall_sec_min": 54.9,
+    "wall_sec_max": 58.1,
+    "n": 4,
+    "runs": [
+     54.9,
+     58.1,
+     57.8,
+     56.2
+    ],
     "videos": 20,
     "requests": 170
    },
    "80": {
-    "wall_sec": 63.4,
+    "wall_sec": 62.0,
+    "wall_sec_min": 61.2,
+    "wall_sec_max": 63.4,
+    "n": 4,
+    "runs": [
+     63.4,
+     62.1,
+     61.2,
+     62.0
+    ],
     "videos": 20,
     "requests": 170
    }
@@ -194,150 +221,150 @@
   "ingest": {
    "tier": "large",
    "videos": 20,
-   "wall_sec": 64.4,
+   "wall_sec": 80.6,
    "requests": 170,
    "requests_per_video": 8.5,
-   "bytes": 26941857,
-   "bytes_per_video": 1347093,
+   "bytes": 26945611,
+   "bytes_per_video": 1347281,
    "per_video": [
     {
      "video": "amortised_analysis.mp4",
-     "wall_sec": 5.14,
+     "wall_sec": 5.12,
      "requests": 9,
-     "bytes": 1443683
+     "bytes": 1443965
     },
     {
      "video": "binary_search_trees.mp4",
-     "wall_sec": 3.14,
+     "wall_sec": 3.09,
      "requests": 8,
-     "bytes": 1294770
+     "bytes": 1294765
     },
     {
      "video": "cache_locality.mp4",
-     "wall_sec": 3.49,
+     "wall_sec": 3.25,
      "requests": 9,
-     "bytes": 1393804
+     "bytes": 1393859
     },
     {
      "video": "code_review_practice.mp4",
-     "wall_sec": 2.66,
+     "wall_sec": 3.18,
      "requests": 8,
-     "bytes": 1234888
+     "bytes": 1235183
     },
     {
      "video": "concurrency_locks.mp4",
-     "wall_sec": 3.51,
+     "wall_sec": 4.83,
      "requests": 9,
-     "bytes": 1498577
+     "bytes": 1499232
     },
     {
      "video": "database_indexes.mp4",
-     "wall_sec": 2.87,
+     "wall_sec": 3.65,
      "requests": 9,
-     "bytes": 1420840
+     "bytes": 1420854
     },
     {
      "video": "dynamic_programming.mp4",
-     "wall_sec": 3.02,
+     "wall_sec": 3.95,
      "requests": 9,
-     "bytes": 1503519
+     "bytes": 1503852
     },
     {
      "video": "embedding_models.mp4",
-     "wall_sec": 5.05,
+     "wall_sec": 8.48,
      "requests": 9,
-     "bytes": 1458337
+     "bytes": 1458791
     },
     {
      "video": "graph_traversal.mp4",
-     "wall_sec": 2.73,
+     "wall_sec": 3.29,
      "requests": 8,
-     "bytes": 1237519
+     "bytes": 1237572
     },
     {
      "video": "hash_collisions.mp4",
-     "wall_sec": 2.64,
+     "wall_sec": 3.23,
      "requests": 8,
-     "bytes": 1235908
+     "bytes": 1235905
     },
     {
      "video": "heap_priority_queues.mp4",
-     "wall_sec": 3.53,
+     "wall_sec": 7.42,
      "requests": 9,
-     "bytes": 1487095
+     "bytes": 1487064
     },
     {
      "video": "http_caching.mp4",
-     "wall_sec": 4.12,
+     "wall_sec": 4.11,
      "requests": 9,
-     "bytes": 1423213
+     "bytes": 1423286
     },
     {
      "video": "incident_response.mp4",
-     "wall_sec": 2.86,
+     "wall_sec": 3.15,
      "requests": 9,
-     "bytes": 1407181
+     "bytes": 1407389
     },
     {
      "video": "load_balancing.mp4",
-     "wall_sec": 2.52,
+     "wall_sec": 2.9,
      "requests": 8,
-     "bytes": 1237587
+     "bytes": 1237890
     },
     {
      "video": "observability.mp4",
-     "wall_sec": 2.62,
+     "wall_sec": 3.02,
      "requests": 8,
-     "bytes": 1245787
+     "bytes": 1245842
     },
     {
      "video": "query_planning.mp4",
-     "wall_sec": 2.52,
+     "wall_sec": 2.93,
      "requests": 8,
-     "bytes": 1288635
+     "bytes": 1288852
     },
     {
      "video": "sorting_stability.mp4",
-     "wall_sec": 2.56,
+     "wall_sec": 2.92,
      "requests": 8,
-     "bytes": 1218291
+     "bytes": 1218097
     },
     {
      "video": "string_matching.mp4",
-     "wall_sec": 2.61,
+     "wall_sec": 3.15,
      "requests": 8,
-     "bytes": 1248806
+     "bytes": 1249065
     },
     {
      "video": "transaction_isolation.mp4",
-     "wall_sec": 3.91,
+     "wall_sec": 6.03,
      "requests": 9,
-     "bytes": 1414724
+     "bytes": 1415095
     },
     {
      "video": "vector_search.mp4",
-     "wall_sec": 2.85,
+     "wall_sec": 2.91,
      "requests": 8,
-     "bytes": 1248693
+     "bytes": 1249053
     }
    ]
   },
   "agent": {
    "queries": 3,
    "requests_per_query": 3.0,
-   "bytes_per_query": 20235,
+   "bytes_per_query": 20212,
    "per_query": [
     {
      "requests": 3,
-     "bytes": 20118
+     "bytes": 20123
     },
     {
      "requests": 3,
-     "bytes": 20351
+     "bytes": 20308
     },
     {
      "requests": 3,
-     "bytes": 20235
+     "bytes": 20205
     }
    ]
   },
@@ -352,17 +379,44 @@
   ],
   "sweep": {
    "0": {
-    "wall_sec": 52.6,
+    "wall_sec": 64.5,
+    "wall_sec_min": 52.6,
+    "wall_sec_max": 82.6,
+    "n": 4,
+    "runs": [
+     52.6,
+     82.6,
+     62.5,
+     66.5
+    ],
     "videos": 20,
     "requests": 170
    },
    "20": {
-    "wall_sec": 64.1,
+    "wall_sec": 65.8,
+    "wall_sec_min": 64.1,
+    "wall_sec_max": 68.9,
+    "n": 4,
+    "runs": [
+     64.1,
+     68.9,
+     67.2,
+     64.4
+    ],
     "videos": 20,
     "requests": 170
    },
    "80": {
-    "wall_sec": 64.4,
+    "wall_sec": 82.1,
+    "wall_sec_min": 64.4,
+    "wall_sec_max": 93.6,
+    "n": 4,
+    "runs": [
+     64.4,
+     93.6,
+     83.6,
+     80.6
+    ],
     "videos": 20,
     "requests": 170
    }
