@@ -21,8 +21,10 @@ implementation authenticates anything.
 
 ## Why the compute service
 
-Deno has no subprocess, so no ffmpeg. Every media operation is an HTTP call to
-`../compute-service/`; a hosted API would shrink it but not remove it.
+Hosted Edge Functions [cap memory and CPU time per request](https://supabase.com/docs/guides/functions/limits) below what Whisper,
+CLIP and a local chat model need, so every media operation is an HTTP call to
+`../compute-service/`; a hosted API would shrink it but not remove it. Running ffmpeg
+from a function was not attempted.
 
 ## Setup
 

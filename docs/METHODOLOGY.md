@@ -21,8 +21,16 @@ processing completes. Paths differ per platform (Supabase serves under
 
 Every implementation uses the same models: `openai/clip-vit-base-patch32` for frames,
 `sentence-transformers/all-MiniLM-L6-v2` for transcripts, Whisper `base.en` for
-speech, and `Qwen2.5-1.5B-Instruct` for the agent. All local, all CPU. Same fixture
-videos, frame rate, chunk length and scene threshold.
+speech, and `Qwen2.5-1.5B-Instruct` for the agent. All local, each on its library's
+default device: MiniLM on MPS and CLIP and Whisper on CPU on both paths; Qwen on Metal
+through Pixeltable's `llama_cpp` UDF and on CPU through `compute-service`, whose
+`llama-cpp-python` offloads nothing unless asked. The agent timings carry that
+difference. Same fixture videos, frame rate, chunk length and scene threshold.
+
+Not one substrate, though. Supabase's local stack is Docker, which on the measuring Mac
+is a Colima Linux VM, so its Edge Function reaches `compute-service` through
+`host.docker.internal` across the VM boundary. Convex's local backend, Pixeltable and
+`compute-service` run natively on the host, and Convex's calls stay on loopback.
 
 ## What is measured
 
@@ -79,13 +87,13 @@ only that each video has at least one.
 
 [`harness/seed.py`](../harness/seed.py) loads the fixtures into any of the three.
 
-| Suite | Tests | Needs | Asks |
-|---|---|---|---|
-| [`test_metrics.py`](../harness/test_metrics.py) | 30 | nothing running | does the measuring code measure what it claims? |
-| [`test_equivalence.py`](../harness/test_equivalence.py) | 11 | one implementation | does it satisfy the contract, and rank the right video first? |
-| [`test_differential.py`](../harness/test_differential.py) | 20 | all three | do they agree with each other? |
-| [`test_resilience.py`](../harness/test_resilience.py) | 32 | all three | what do they do with a request they should refuse? |
-| [`test_recovery.py`](../harness/test_recovery.py) | 6 | all three, `--destructive` | what does a failed or concurrent ingest leave behind? |
+| Suite | Needs | Asks |
+|---|---|---|
+| [`test_metrics.py`](../harness/test_metrics.py) | nothing running | does the measuring code measure what it claims? |
+| [`test_equivalence.py`](../harness/test_equivalence.py) | one implementation | does it satisfy the contract, and rank the right video first? |
+| [`test_differential.py`](../harness/test_differential.py) | all three | do they agree with each other? |
+| [`test_resilience.py`](../harness/test_resilience.py) | all three | what do they do with a request they should refuse? |
+| [`test_recovery.py`](../harness/test_recovery.py) | all three, `--destructive` | what does a failed or concurrent ingest leave behind? |
 
 - **Differential** runs three tiers: identical (same videos, same top hit), tolerance
   (durations within 0.25s, top-1 similarities within 0.05, transcript overlap at
@@ -121,10 +129,12 @@ where the boundary stops being loopback; [roundtrip.json](roundtrip.json)),
 
 ## Pixeltable capabilities the contract leaves out
 
-- **Hosted-model scheduling.** Eighteen provider modules declare a resource pool;
-  `RateLimitsScheduler` paces under provider-reported limits and retries with
-  backoff. The local-model corpus never sees it; the hosted tier exercises it.
-  On the other two the equivalent is 36-37 lines of request-path code.
+- **Hosted-model scheduling.** Hosted-provider UDFs declare a resource pool. The
+  OpenRouter UDF the hosted tier calls runs under `RequestRateScheduler`: a configured
+  request rate, with retries and exponential backoff; `RateLimitsScheduler` paces the
+  providers that report their own limits. The local-model corpus never sees it; the
+  hosted tier exercises it. On the other two the equivalent is request-path code
+  ([hosted.json](hosted.json), `lines_written`).
 - **Five of seven iterators** go unmeasured; this app uses `FrameIterator` and
   `AudioSplitter`.
 - **The dashboard** (`pxt dashboard`) draws lineage graphs and version history; the
@@ -144,8 +154,8 @@ a populated table is measured rather than listed: [EVOLVE.md](EVOLVE.md).
    were not written by their platforms' experts.
 5. **The contract is REST-shaped** - Pixeltable's native surface, Convex's worst
    (`http.ts` is 90 lines that exist only because we asked for REST).
-6. **`compute-service` is charged in full to both competitors** - 46% and 37% of
-   their totals; a hosted embedding API removes about half, not the ffmpeg half.
+6. **`compute-service` is charged in full to both competitors** (the README's
+   shared-compute row); a hosted embedding API removes about half, not the ffmpeg half.
 7. **Auth, RLS, realtime and cost are out of frame** and decisive for a
    multi-tenant product; see [TRADEOFFS.md](TRADEOFFS.md).
 

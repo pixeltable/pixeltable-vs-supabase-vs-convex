@@ -13,7 +13,11 @@ are noise next to them.
 stops being loopback. Every run records its wall time under that latency level, so three
 runs at 0/20/80 produce the sweep. --repeats runs the ingest more than once at one level;
 the sweep point keeps every wall time it is given, here and across invocations, because a
-sweep point of n=1 cannot tell the boundary cost from a slow afternoon.
+sweep point of n=1 cannot tell the boundary cost from a slow afternoon. Each run also
+records when it started, its index in the invocation and how many videos the consumer
+already held, since nothing resets the consumer between runs and drift has to be visible
+to be ruled out. --discard-warmup ingests once first and keeps that time apart from the
+runs.
 
 Pixeltable's row is written with basis 'structural': it has no compute-service call to
 count, which is a fact about the code, not a measurement. The two that do have one are
@@ -25,6 +29,7 @@ docs/roundtrip.json is committed; harness/check_docs.py holds the published cell
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import statistics
 import sys
@@ -77,6 +82,7 @@ class _Proxy(ThreadingHTTPServer):
                 self._forward()
 
             def _forward(self) -> None:
+                received = time.monotonic()
                 body = self.rfile.read(int(self.headers.get('Content-Length') or 0))
                 if server.add_latency_ms:
                     time.sleep(server.add_latency_ms / 1000)
@@ -86,8 +92,18 @@ class _Proxy(ThreadingHTTPServer):
                     content=body,
                     headers={'Content-Type': 'application/json'},
                 )
+                # Recorded before the response goes out: once the consumer has it, the ingest
+                # POST can return and `measure` slices the records, so a later append is lost.
                 with server.lock:
-                    server.records.append({'path': self.path, 'req_bytes': len(body), 'resp_bytes': len(resp.content)})
+                    server.records.append(
+                        {
+                            'path': self.path,
+                            'req_bytes': len(body),
+                            'resp_bytes': len(resp.content),
+                            'received': received,
+                            'answered': time.monotonic(),
+                        }
+                    )
                 self.send_response(resp.status_code)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Content-Length', str(len(resp.content)))
@@ -95,6 +111,31 @@ class _Proxy(ThreadingHTTPServer):
                 self.wfile.write(resp.content)
 
         return Handler
+
+
+def serial_requests(calls: list[dict]) -> int:
+    """How many of one video's requests the added latency is paid for, one after another.
+
+    The proxy sleeps inside each request, so requests in flight together share one delay.
+    Sorting by arrival and counting each request that arrives after every earlier one was
+    answered gives the number of sequential stages: a Promise.all fan-out counts once. This
+    is what check_docs.py's ratio model multiplies by the added latency, measured instead
+    of read off the consumer's source.
+    """
+    stages, answered = 0, float('-inf')
+    for call in sorted(calls, key=lambda c: c['received']):
+        if call['received'] >= answered:
+            stages += 1
+        answered = max(answered, call['answered'])
+    return stages
+
+
+def corpus_size(client: httpx.Client, impl: str) -> int:
+    """Videos the consumer holds, through the contract's list route."""
+    method, path = PATHS[impl]['list']
+    resp = client.request(method, path)
+    resp.raise_for_status()
+    return len(resp.json()['rows'])
 
 
 def measure(client: httpx.Client, impl: str, videos: list[Path], proxy: _Proxy, agent_iterations: int) -> dict:
@@ -117,6 +158,7 @@ def measure(client: httpx.Client, impl: str, videos: list[Path], proxy: _Proxy, 
                 'video': video.name,
                 'wall_sec': round(elapsed, 2),
                 'requests': len(calls),
+                'serial_requests': serial_requests(calls),
                 'bytes': sum(c['req_bytes'] + c['resp_bytes'] for c in calls),
             }
         )
@@ -142,6 +184,7 @@ def measure(client: httpx.Client, impl: str, videos: list[Path], proxy: _Proxy, 
             'wall_sec': round(ingest_wall, 1),
             'requests': sum(v['requests'] for v in per_video),
             'requests_per_video': round(sum(v['requests'] for v in per_video) / videos_n, 2),
+            'serial_requests': sum(v['serial_requests'] for v in per_video),
             'bytes': sum(v['bytes'] for v in per_video),
             'bytes_per_video': round(sum(v['bytes'] for v in per_video) / videos_n),
             'per_video': per_video,
@@ -157,7 +200,12 @@ def measure(client: httpx.Client, impl: str, videos: list[Path], proxy: _Proxy, 
     }
 
 
-def merge_sweep(entry: dict, add_latency_ms: float, results: list[dict]) -> dict:
+def compute_service_rev() -> str:
+    """Short hash of the compute-service source the proxy forwards to."""
+    return hashlib.sha256((ROOT / 'compute-service' / 'app.py').read_bytes()).hexdigest()[:12]
+
+
+def merge_sweep(entry: dict, add_latency_ms: float, results: list[dict], meta: list[dict], warmup: dict | None) -> dict:
     """Fold this invocation's ingest wall times into the sweep point for one latency level.
 
     The point used to be overwritten, so every published sweep number was n=1 and a single
@@ -169,29 +217,62 @@ def merge_sweep(entry: dict, add_latency_ms: float, results: list[dict]) -> dict
     thing a reader needs to see; a symmetric half-range throws that away. `wall_sec` stays
     the headline key and is now the median, which at n=1 is the value it always held, so an
     artifact written before this change reads the same.
+
+    `runs` stays a list of wall times so every reader of it is unchanged; `run_meta` is
+    index-aligned with it, and runs recorded before it existed get an entry holding only
+    their wall time rather than shifting every later entry onto the wrong run. A warm-up is
+    not a run: it goes to `warmup_wall_sec` and `warmup_meta`, which accumulate the same way
+    and never reach the median.
     """
     level = str(int(add_latency_ms))
     last = results[-1]['ingest']
-    shape = {'videos': last['videos'], 'requests': last['requests']}
+    # The service's source is part of the shape: a change to how compute-service handles
+    # concurrent requests changes the wall time the sweep subtracts, so runs against two
+    # versions of it are two measurements. Points written before this was recorded carry
+    # no revision and are dropped on the next run rather than pooled.
+    shape = {'videos': last['videos'], 'requests': last['requests'], 'compute_service_rev': compute_service_rev()}
     point = entry.setdefault('sweep', {}).get(level, {})
-    runs = list(point.get('runs') or ([point['wall_sec']] if 'wall_sec' in point else []))
-    if any(point[key] != value for key, value in shape.items() if key in point):
+    runs = _runs(point)
+    run_meta = list(point.get('run_meta') or [])
+    run_meta = [{'wall_sec': w} for w in runs[: max(0, len(runs) - len(run_meta))]] + run_meta
+    warmups = list(point.get('warmup_wall_sec') or [])
+    warmup_meta = list(point.get('warmup_meta') or [])
+    if point and any(point.get(key) != value for key, value in shape.items()):
         # A different video or request count is a different measurement. Pooling it with
         # this one would publish the mean of two things, so the earlier runs go, and say so.
         print(f'sweep {level}ms: shape changed, dropping {len(runs)} earlier run(s) rather than pooling them')
-        runs = []
+        runs, run_meta, warmups, warmup_meta = [], [], [], []
     runs += [r['ingest']['wall_sec'] for r in results]
-    return {
+    run_meta += [{'wall_sec': r['ingest']['wall_sec'], **m} for r, m in zip(results, meta, strict=True)]
+    if warmup:
+        warmups.append(warmup['wall_sec'])
+        warmup_meta.append(warmup)
+    point = {
         'wall_sec': round(statistics.median(runs), 1),
         'wall_sec_min': min(runs),
         'wall_sec_max': max(runs),
         'n': len(runs),
         'runs': runs,
+        'run_meta': run_meta,
         **shape,
+        # Not part of the shape: it is derived from request timing, and a run that read one
+        # stage differently should not discard the point's history.
+        'serial_requests': last['serial_requests'],
     }
+    if warmups:
+        point['warmup_wall_sec'] = warmups
+        point['warmup_meta'] = warmup_meta
+    return point
 
 
-def write_result(impl: str, tier: str, add_latency_ms: float, results: list[dict]) -> None:
+def _runs(point: dict) -> list[float]:
+    """A point's wall times. An artifact written before runs accumulated holds one median."""
+    return list(point.get('runs') or ([point['wall_sec']] if 'wall_sec' in point else []))
+
+
+def write_result(
+    impl: str, tier: str, add_latency_ms: float, results: list[dict], meta: list[dict], warmup: dict | None
+) -> None:
     """Merge one invocation into docs/roundtrip.json: counts refresh, sweep runs accumulate.
 
     The counts and per-video detail are the last repeat's, as they were before repeats
@@ -217,11 +298,19 @@ def write_result(impl: str, tier: str, add_latency_ms: float, results: list[dict
     entry['ingest'] = {'tier': tier, **result['ingest']}
     entry['agent'] = result['agent']
     entry['paths_called'] = result['paths_called']
-    point = merge_sweep(entry, add_latency_ms, results)
+    point = merge_sweep(entry, add_latency_ms, results, meta, warmup)
     entry['sweep'][str(int(add_latency_ms))] = point
     OUT.write_text(json.dumps(data, indent=1) + '\n')
     print(f'wrote {OUT} (agent calls seen: {agent_records[-1]})')
     print(f'sweep {int(add_latency_ms)}ms: median {point["wall_sec"]}s over n={point["n"]} {point["runs"]}')
+
+
+def _run_meta(client: httpx.Client, impl: str) -> dict:
+    """When a run started and what it started against, read before its first ingest."""
+    return {
+        'started_at': datetime.now(UTC).isoformat(timespec='seconds'),
+        'corpus_before': corpus_size(client, impl),
+    }
 
 
 def main() -> int:
@@ -241,6 +330,11 @@ def main() -> int:
         default=1,
         help='Ingest sweeps to run at this latency; the sweep point keeps every wall time, so n grows',
     )
+    parser.add_argument(
+        '--discard-warmup',
+        action='store_true',
+        help='Ingest once before the repeats and record it as warmup_wall_sec, outside the runs',
+    )
     args = parser.parse_args()
     if args.repeats < 1:
         sys.exit('--repeats must be at least 1')
@@ -257,23 +351,32 @@ def main() -> int:
         f'proxy on :{args.listen_port} -> {args.upstream}, +{args.add_latency_ms}ms per request; '
         f'{len(videos)} videos on {args.impl} x{args.repeats}'
     )
-    results = []
+    results: list[dict] = []
+    meta: list[dict] = []
+    warmup = None
     try:
         with httpx.Client(
             base_url=args.base_url.rstrip('/'),
             headers=auth_headers(args.impl, args.auth_token),
             timeout=UPSTREAM_TIMEOUT,
         ) as client:
+            if args.discard_warmup:
+                print('warm-up (recorded apart from the runs)')
+                warmup = _run_meta(client, args.impl)
+                warmup_result = measure(client, args.impl, videos, proxy, args.agent_iterations)
+                warmup['wall_sec'] = warmup_result['ingest']['wall_sec']
             # Each repeat re-ingests the same videos, which is what running this script
-            # twice already did. Nothing here resets the consumer between repeats.
+            # twice already did. Nothing here resets the consumer between repeats, which is
+            # why each run records the corpus it started against.
             for run in range(args.repeats):
                 if args.repeats > 1:
                     print(f'run {run + 1}/{args.repeats}')
+                meta.append({**_run_meta(client, args.impl), 'index': run})
                 results.append(measure(client, args.impl, videos, proxy, args.agent_iterations))
     finally:
         proxy.shutdown()
         proxy.server_close()
-    write_result(args.impl, args.tier, args.add_latency_ms, results)
+    write_result(args.impl, args.tier, args.add_latency_ms, results, meta, warmup)
     return 0
 
 

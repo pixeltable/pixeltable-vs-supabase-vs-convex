@@ -30,9 +30,19 @@ app = FastAPI(
 # Lazy model singletons
 # ---------------------------------------------------------------------------
 
-# One process, three models, and a lock. Supabase and Convex fan out one webhook or
+# One process, four models, and a lock. Supabase and Convex fan out one webhook or
 # action per row, so without this they contend on a single CLIP and a single Whisper.
+#
+# The endpoints are plain `def`, not `async def`: every one of them blocks on ffmpeg or a
+# model, and FastAPI runs a `def` endpoint in its threadpool but an `async def` one on the
+# event loop, where a blocking call stalls every other request. Concurrent requests then
+# overlap on ffmpeg and on the torch models, whose forward passes are safe to share.
+# Whisper and llama.cpp are not: Whisper installs kv-cache hooks on the shared model for
+# the length of a decode, and a llama.cpp context holds one sequence at a time. Each gets
+# its own lock around inference.
 _lock = threading.Lock()
+_whisper_lock = threading.Lock()
+_chat_lock = threading.Lock()
 _clip_model = None
 _clip_processor = None
 _whisper_model = None
@@ -162,7 +172,7 @@ class DetectScenesResponse(BaseModel):
 
 
 @app.post('/extract-frames', response_model=ExtractFramesResponse)
-async def extract_frames(req: ExtractFramesRequest):
+def extract_frames(req: ExtractFramesRequest):
     """Extract frames at given FPS using ffmpeg."""
     with tempfile.TemporaryDirectory() as tmpdir:
         pattern = str(Path(tmpdir) / 'frame_%04d.jpg')
@@ -189,7 +199,7 @@ async def extract_frames(req: ExtractFramesRequest):
 
 
 @app.post('/extract-audio', response_model=ExtractAudioResponse)
-async def extract_audio(req: ExtractAudioRequest):
+def extract_audio(req: ExtractAudioRequest):
     """Extract audio track from video using ffmpeg."""
     with tempfile.NamedTemporaryFile(suffix=f'.{req.format}', delete=False) as f:
         out_path = f.name
@@ -225,7 +235,7 @@ async def extract_audio(req: ExtractAudioRequest):
 
 
 @app.post('/transcribe', response_model=TranscribeResponse)
-async def transcribe(req: TranscribeRequest):
+def transcribe(req: TranscribeRequest):
     """Transcribe audio using Whisper."""
     model = _get_whisper()
     with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as f:
@@ -246,7 +256,8 @@ async def transcribe(req: TranscribeRequest):
             clipped = subprocess.run(cmd, capture_output=True, text=True)
             if clipped.returncode != 0:
                 raise HTTPException(status_code=500, detail=f'ffmpeg failed: {clipped.stderr[-300:]}')
-        result = model.transcribe(clip_path or tmp_path, language=req.language)
+        with _whisper_lock:
+            result = model.transcribe(clip_path or tmp_path, language=req.language)
     finally:
         Path(tmp_path).unlink(missing_ok=True)
         if clip_path is not None:
@@ -256,7 +267,7 @@ async def transcribe(req: TranscribeRequest):
 
 
 @app.post('/embed-clip', response_model=EmbedResponse)
-async def embed_clip(req: EmbedClipRequest):
+def embed_clip(req: EmbedClipRequest):
     """Embed images and/or text using CLIP."""
     import torch
 
@@ -282,7 +293,7 @@ async def embed_clip(req: EmbedClipRequest):
 
 
 @app.post('/embed-text', response_model=EmbedResponse)
-async def embed_text(req: EmbedTextRequest):
+def embed_text(req: EmbedTextRequest):
     """Embed text semantically, the counterpart to the CLIP index on frames."""
     model = _get_text_model()
     vectors = model.encode(req.texts, normalize_embeddings=True).tolist()
@@ -290,15 +301,18 @@ async def embed_text(req: EmbedTextRequest):
 
 
 @app.post('/chat', response_model=ChatResponse)
-async def chat(req: ChatRequest):
-    """Answer a chat prompt with a local model. Deno cannot host one either."""
+def chat(req: ChatRequest):
+    """Answer a chat prompt with a local model, which neither consumer hosts in its own runtime."""
     model = _get_chat_model()
-    result = model.create_chat_completion(messages=req.messages, max_tokens=req.max_tokens, temperature=req.temperature)
+    with _chat_lock:
+        result = model.create_chat_completion(
+            messages=req.messages, max_tokens=req.max_tokens, temperature=req.temperature
+        )
     return ChatResponse(content=result['choices'][0]['message']['content'] or '')
 
 
 @app.post('/detect-scenes', response_model=DetectScenesResponse)
-async def detect_scenes(req: DetectScenesRequest):
+def detect_scenes(req: DetectScenesRequest):
     """Detect scene boundaries using ffmpeg scene-change filter."""
     cmd = [
         'ffprobe',

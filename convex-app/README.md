@@ -12,8 +12,9 @@ table ids. Their ESLint plugin runs in CI: `npm run lint`.
 
 ## Why the compute service
 
-The Convex runtime cannot run ffmpeg, Whisper, CLIP or a local chat model, so every
-media operation is an HTTP call to `../compute-service/`. Against the local backend
+The [default Convex runtime](https://docs.convex.dev/functions/runtimes) exposes no subprocess, so ffmpeg, Whisper, CLIP and
+the local chat model run elsewhere and every media operation is an HTTP call to
+`../compute-service/`. Bundling them into a `"use node"` action was not attempted. Against the local backend
 `127.0.0.1:9000` works; on a hosted deployment actions run on Convex's
 infrastructure, so use a tunnel or a deployed service.
 

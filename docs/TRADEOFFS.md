@@ -12,7 +12,7 @@ the row this contract cannot exercise. Judgments are marked as judgments.
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
 | App code you maintain | 129 | 302 | 425 |
-| Plus the shared compute service | 0 | 246 | 246 |
+| Plus the shared compute service | 0 | 252 | 252 |
 | Files you open to read the backend | 1 | 7 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Install to a running local stack | `pip install` + `pxt init`, heavy deps | Docker, 12 containers | `npx convex dev`, no account |
@@ -31,7 +31,7 @@ the row this contract cannot exercise. Judgments are marked as judgments.
 | Data versioning | per-table history and revert | PITR, branching, migrations | snapshot export/import |
 | Request validation before handlers | derived from signature, 422 | 28 lines by hand | 42 lines by hand |
 | Failed ingest becomes a listed row | no, insert rejected | error row, filtered out | error row, filtered out |
-| Hosted-model pacing and retries | request-rate scheduler, 7-line swap | 36-line loop | 37-line loop |
+| Hosted-model pacing and retries | request-rate scheduler, 6-line swap | 29-line loop | 29-line loop |
 | Realtime push to clients | no | yes | yes, and it is the core idea |
 | Endpoints authenticated by default | no | **yes**, one config line | no |
 | Row-level security | no | **yes**, enabled and verified | no |
@@ -67,7 +67,7 @@ open here, and equalising means a gateway plus a check you write. Per-tenant
 `auth.uid()` policies are unwritten, so multi-tenant authorization is unmeasured.
 
 **Swap 4: equalise "add a derived column to live data".** [EVOLVE.md](EVOLVE.md)
-prices the migration-plus-backfill at two corpus sizes: 24 and 53 lines against
+prices the migration-plus-backfill at two corpus sizes: 24 and 41 lines against
 Pixeltable's 1. The clock winner flips with corpus (Pixeltable cheapest at 23 rows,
 Supabase at 123) because the fused step scales with rows while the script's fixed
 cost amortises.
@@ -130,7 +130,7 @@ has no user, no tenant and no owned row.
 | Optimistic updates | **No.** A reactive-client feature. |
 | Scheduled functions and crons | **No.** No `ctx.scheduler`, no `crons.ts`. |
 | Components (`@convex-dev/*`) | **No.** No `convex.config.ts`. |
-| `searchIndex` | **No** in the app. Priced in [EVOLVE.md](EVOLVE.md), where it turns a 53-line change into a 1-line one. |
+| `searchIndex` | **No** in the app. Priced in [EVOLVE.md](EVOLVE.md), where it turns a 41-line change into a 1-line one. |
 | Convex Auth | **No.** All five routes are unauthenticated. |
 | `generateUploadUrl` | **No.** Frames go base64 through the compute service. |
 | Transactional multi-table mutations | **Not as a design point.** Ingest splits writes across one `ctx.runMutation` per table. |

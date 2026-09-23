@@ -13,7 +13,9 @@ not checkable this way; the tables are.
 
 from __future__ import annotations
 
+import itertools
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -23,17 +25,35 @@ DOCS = ROOT / 'docs'
 IMPLS = ('pixeltable', 'supabase', 'convex')
 
 CONSUMERS = ('supabase', 'convex')
+SWEEP_BASELINE = '0'
 SWEEP_LEVELS = ('20', '80')
-# The proxy sleeps --add-latency-ms before each forwarded request and ingest is synchronous
-# on both consumers, so a level's added wall time should land near requests x added ms.
-# Under prediction means some of the delay overlapped; far over it is time the proxy did
-# not inject, which is not the boundary cost the sweep claims to report. The points that
-# agree sit at 0.8-0.9x, so 1.5x is slack of the same order as the agreement itself.
+# A delta subtracts one point from another, so both must be the same measurement.
+# bench_roundtrip.py drops a point's runs when these change, but only within one level;
+# nothing stops a `--videos 5` smoke run at 80ms from sitting beside a 20-video baseline.
+SWEEP_SHAPE = ('videos', 'requests', 'compute_service_rev')
+# Every published delta is a level's median minus the baseline's, so the evidence for it
+# is both sets of runs, not one. The test is the exact one-sided Mann-Whitney: is a run at
+# the level slower than a baseline run more often than chance allows? 0.025 is the
+# one-sided half of the usual two-sided 0.05. At n=4 against 4 the smallest p is 1/70 and
+# the next is 2/70, above it, so publishing means every run at the level is slower
+# than every baseline run. Fewer than four runs on either side can never publish (3 vs 4
+# bottoms out at 1/35); more runs let the test tolerate an outlier that separation cannot.
+SWEEP_ALPHA = 0.025
+# The proxy sleeps --add-latency-ms before each forwarded request, and a delay only adds
+# wall time when nothing else is waiting with it. Both consumers ingest a video in six
+# sequential compute calls: extract-frames, embed-clip, extract-audio, one Promise.all of
+# transcribes (one delay however many segments), embed-text, detect-scenes
+# (supabase-app/supabase/functions/api/index.ts, convex-app/convex/ingest.ts). Counting
+# every request instead charges the fan-out once per segment. bench_roundtrip.py
+# records the stages the proxy saw as `serial_requests`; this is the count for points
+# written before it did, and it is a fact about the code to re-check when the code changes.
+SERIAL_CALLS_PER_VIDEO = 6
+# Under the prediction means some delay overlapped something the model calls serial; over
+# it is time the proxy did not inject, which is not the boundary cost the sweep claims to
+# report. The rank test has already said the point differs from the baseline; this says
+# the size of the difference is the boundary's. 1.5x leaves half the prediction again for
+# the noise in a median of a handful of runs.
 SWEEP_RATIO_CEILING = 1.5
-# With n>=2 the spread is the only evidence the median is reproducible. A quarter of the
-# median is already wider than the disagreement the consistent points show; past that the
-# point is a range, and a range is not a number to publish.
-SWEEP_SPREAD_FRACTION = 0.25
 
 
 def benchmarks_cells(b: dict) -> list[str]:
@@ -54,6 +74,14 @@ def benchmarks_cells(b: dict) -> list[str]:
                 f'{r["frame_fetch"]["p50_ms"]}ms | {r["frame_fetch"]["p95_ms"]}ms |'
             )
             cells.append(f'| {entry["load"]["p50_ms"]}ms | {entry["load"]["p95_ms"]}ms |')
+        # The baseline has no ingest or search rows in SCALE.md, but its reads and load do.
+        small = b[impl]['small']
+        r = small['read']
+        cells.append(
+            f'| {r["list"]["p50_ms"]}ms | {r["list"]["p95_ms"]}ms | '
+            f'{r["frame_fetch"]["p50_ms"]}ms | {r["frame_fetch"]["p95_ms"]}ms |'
+        )
+        cells.append(f'| {small["load"]["p50_ms"]}ms | {small["load"]["p95_ms"]}ms |')
         agent = b[impl]['small']['agent']
         cells.append(f'{agent["p50_ms"]}ms')
         cells.append(f'{agent["p95_ms"]}ms')
@@ -67,8 +95,18 @@ def hosted_cells(h: dict) -> list[str]:
         cells.append(f'{e["wall_sec"]:.1f}s')
         cells.append(f'{e["p50_sec"]:.1f}s')
         cells.append(f'{e["p95_sec"]:.1f}s')
-        cells.append(str(e['lines_written']))
     return cells
+
+
+def hosted_row_failures(h: dict, doc: str) -> list[str]:
+    """A bare `29` matches anywhere, so the line count is checked at the end of its own row."""
+    failures = []
+    for impl in IMPLS:
+        prefix = f'| {impl.capitalize()} | {h[impl]["succeeded"]}/{h["questions"]} |'
+        rows = [line for line in doc.splitlines() if line.startswith(prefix)]
+        if not any(line.rstrip().endswith(f'| {h[impl]["lines_written"]} |') for line in rows):
+            failures.append(f'SCALE.md hosted row for {impl} does not end with {h[impl]["lines_written"]} lines')
+    return failures
 
 
 def readme_cells(m: dict, h: dict) -> list[str]:
@@ -92,7 +130,8 @@ def readme_cells(m: dict, h: dict) -> list[str]:
     cells += [f'{h[i]["succeeded"]}/{h["questions"]}' for i in IMPLS]
     lines = [h[i]['lines_written'] for i in IMPLS]
     cells.append(f'{lines[0]}-line')
-    cells.append(f'{min(lines[1:])}-{max(lines[1:])}')
+    lo, hi = min(lines[1:]), max(lines[1:])
+    cells.append(f'against {lo} lines' if lo == hi else f'against {lo}-{hi} lines')
     return cells
 
 
@@ -104,7 +143,8 @@ def roundtrip_cells(r: dict) -> list[str]:
     different implementations. A range cannot disagree with itself, so an outlier at one
     level hid inside it and shipped. One cell per implementation and level lets a bad point
     be wrong on its own, and n travels with it so the doc cannot present a single run as a
-    settled number.
+    settled number. A point that does not resolve shows its runs beside the baseline's,
+    because the overlap between the two is the reason it has no number.
     """
     cells = []
     for impl in CONSUMERS:
@@ -113,28 +153,72 @@ def roundtrip_cells(r: dict) -> list[str]:
         cells.append(f'{i["bytes_per_video"] / 1e6:.2f} MB')
     for impl in CONSUMERS:
         sweep = r[impl]['sweep']
+        base = _runs(sweep[SWEEP_BASELINE])
         for level in SWEEP_LEVELS:
             point = sweep[level]
-            n = point.get('n') or len(point.get('runs') or []) or 1
-            runs = point.get('runs') or []
-            if _resolves(point):
-                cells.append(f'{impl} +{level}ms: added {point["wall_sec"] - sweep["0"]["wall_sec"]:.1f}s (n={n})')
+            runs = _runs(point)
+            n = point.get('n') or len(runs)
+            if _resolves(sweep, level):
+                cells.append(f'{impl} +{level}ms: added {_delta(sweep, level):.1f}s (n={n})')
             else:
-                cells.append(f'{impl} +{level}ms: did not resolve (n={n}, {min(runs):.1f}-{max(runs):.1f}s)')
+                cells.append(
+                    f'{impl} +{level}ms: did not resolve (n={n}, {min(runs):.1f}-{max(runs):.1f}s '
+                    f'vs {min(base):.1f}-{max(base):.1f}s at {SWEEP_BASELINE}ms)'
+                )
     return cells
 
 
-def _resolves(point: dict) -> bool:
-    """Whether a sweep point's runs agree closely enough to quote a median.
+def _runs(point: dict) -> list[float]:
+    """A point's wall times. An artifact written before runs accumulated holds one median."""
+    return list(point.get('runs') or ([point['wall_sec']] if 'wall_sec' in point else []))
 
-    Below two runs there is no spread to judge, so the ratio check in `sweep_failures`
-    carries it instead. Above the fraction, the median is a number the runs do not
-    support and the cell says so rather than rounding disagreement into a point estimate.
+
+def _shape(point: dict) -> tuple:
+    return tuple(point.get(key) for key in SWEEP_SHAPE)
+
+
+def _delta(sweep: dict, level: str) -> float:
+    return sweep[level]['wall_sec'] - sweep[SWEEP_BASELINE]['wall_sec']
+
+
+def _slower_p(runs: list[float], base: list[float]) -> float:
+    """Exact one-sided Mann-Whitney p that `runs` are slower than `base`.
+
+    U counts the (run, baseline) pairs where the run is slower, a tie as half. Under the
+    null the level labels are exchangeable, so p is the share of all ways to split the
+    pooled times into groups of these sizes whose U is at least the observed one.
+    Enumerating the splits is exact with ties and needs no table; at the n the sweep keeps
+    the count is small (8 choose 4 is 70).
     """
-    runs = point.get('runs') or []
-    if len(runs) < 2:
-        return True
-    return max(runs) - min(runs) <= point['wall_sec'] * SWEEP_SPREAD_FRACTION
+
+    def u(xs: list[float], ys: list[float]) -> float:
+        return sum(1.0 if x > y else 0.5 if x == y else 0.0 for x in xs for y in ys)
+
+    pooled = runs + base
+    observed = u(runs, base)
+    as_extreme = 0
+    for picked in itertools.combinations(range(len(pooled)), len(runs)):
+        chosen = set(picked)
+        xs = [pooled[i] for i in picked]
+        ys = [v for i, v in enumerate(pooled) if i not in chosen]
+        as_extreme += u(xs, ys) >= observed
+    return as_extreme / math.comb(len(pooled), len(runs))
+
+
+def _resolves(sweep: dict, level: str) -> bool:
+    """Whether a sweep point's median delta is a number the runs support.
+
+    It resolves when it is the same measurement as the baseline, its median is slower,
+    and its runs are slower than the baseline's by the exact rank test. One run on either
+    side can never pass (its smallest p is 1/(n+1)), which is the point: n=1 cannot tell
+    the boundary cost from a slow afternoon. The spread check this replaces looked only at
+    the level's own runs, so a noisy baseline, or a level sitting inside the baseline's
+    range, still published a delta.
+    """
+    point, baseline = sweep[level], sweep[SWEEP_BASELINE]
+    if _shape(point) != _shape(baseline) or _delta(sweep, level) <= 0:
+        return False
+    return _slower_p(_runs(point), _runs(baseline)) <= SWEEP_ALPHA
 
 
 def sweep_failures(r: dict) -> list[str]:
@@ -147,17 +231,28 @@ def sweep_failures(r: dict) -> list[str]:
     failures = []
     for impl in CONSUMERS:
         sweep = r[impl]['sweep']
-        base = sweep['0']['wall_sec']
+        shapes = {level: _shape(sweep[level]) for level in (SWEEP_BASELINE, *SWEEP_LEVELS)}
+        if len(set(shapes.values())) > 1:
+            # Every delta below would subtract two different measurements, so each would
+            # fail for this one fact. Name it once and skip the rest of this consumer.
+            failures.append(f'roundtrip.json {impl} sweep points differ in {"/".join(SWEEP_SHAPE)}: {shapes}')
+            continue
         for level in SWEEP_LEVELS:
             point = sweep[level]
-            delta = point['wall_sec'] - base
-            injected = point['requests'] * int(level) / 1000
+            delta = _delta(sweep, level)
+            if delta <= 0:
+                # Added latency cannot remove wall time, so the baseline and this point were
+                # not run under the same conditions, resolved or not.
+                failures.append(f'roundtrip.json {impl} +{level}ms ran {-delta:.1f}s faster than {SWEEP_BASELINE}ms')
+                continue
+            serial = point.get('serial_requests') or point['videos'] * SERIAL_CALLS_PER_VIDEO
+            injected = serial * int(level) / 1000
             # A point that did not resolve already says so in its own cell; holding its
             # median to the ratio model as well would fail it twice for one fact.
-            if _resolves(point) and delta > injected * SWEEP_RATIO_CEILING:
+            if _resolves(sweep, level) and delta > injected * SWEEP_RATIO_CEILING:
                 failures.append(
                     f'roundtrip.json {impl} +{level}ms added {delta:.1f}s, over {SWEEP_RATIO_CEILING:g}x the '
-                    f'{injected:.1f}s the proxy injected across {point["requests"]} serialized requests'
+                    f'{injected:.1f}s the proxy injected across {serial} serial requests'
                 )
         walls = [sweep[level]['wall_sec'] for level in SWEEP_LEVELS]
         if walls != sorted(walls):
@@ -187,6 +282,10 @@ def evolve_cells(e: dict) -> list[str]:
             for key in ('control_sec', 'schema_change_sec', 'backfill_sec', 'total_sec'):
                 if key in entry and entry[key]:
                     cells.append(f'{entry[key]:.2f}s')
+            # Total, lines and files together, so a line count is tied to its own row.
+            cells.append(f'{entry["total_sec"]:.2f}s | {entry["lines_written"]} | {entry["files_touched"]} |')
+            if 'undo_lines_written' in entry:
+                cells.append(f'{entry["undo_lines_written"]} more lines')
     return cells
 
 
@@ -209,12 +308,20 @@ def main() -> int:
     for cell in hosted_cells(hosted):
         if cell not in scale:
             failures.append(f'SCALE.md missing hosted cell: {cell}')
+    failures += hosted_row_failures(hosted, scale)
 
     readme = (ROOT / 'README.md').read_text().replace('**', '')
     metrics = json.loads((DOCS / 'metrics.json').read_text())
     for cell in readme_cells(metrics, hosted):
         if cell not in readme:
             failures.append(f'README.md missing summary cell: {cell}')
+    # TRADEOFFS.md repeats some of the same rows. A repeated row has to agree; a row it
+    # leaves out is fine, which is why the check is keyed on the row's label.
+    tradeoffs = (DOCS / 'TRADEOFFS.md').read_text().replace('**', '')
+    for cell in readme_cells(metrics, hosted):
+        label = cell.split(' | ')[0] + ' |' if cell.startswith('| ') else None
+        if label and f'\n{label}' in tradeoffs and cell not in tradeoffs:
+            failures.append(f'TRADEOFFS.md repeats a summary row with other values: {cell}')
 
     evolve_doc = (DOCS / 'EVOLVE.md').read_text().replace('**', '')
     for cell in evolve_cells(json.loads((DOCS / 'evolve.json').read_text())):

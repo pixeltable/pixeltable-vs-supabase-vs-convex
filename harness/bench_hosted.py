@@ -54,6 +54,9 @@ SUPABASE_APP = ROOT / 'supabase-app'
 CONVEX_APP = ROOT / 'convex-app'
 # Defaults, not assumptions. Both are overridable so a leg can be pointed at a deployed
 # project; nothing else in this file knows where the endpoint lives.
+# Every leg is local by construction: it patches the checkout, rewrites the local env and
+# restarts the local stack, then fires at the endpoint it just restarted. A remote URL here
+# would measure a deployment that never received the patch.
 SUPABASE_URL = 'http://127.0.0.1:54321'
 CONVEX_URL = 'http://127.0.0.1:3211'
 
@@ -230,12 +233,6 @@ def _service_url() -> str | None:
 
 
 def hosted_pixeltable(key: str, model: str, questions: list[str], workers: int) -> dict:
-    # No base_url parameter, deliberately. The other two legs take one because they only
-    # need an endpoint to fire at. This one starts a private daemon, applies the schema and
-    # brings up the service itself, so pointing it at a deployed database is not a flag: it
-    # is `pxt db update` against a hosted uri and a service that lives there. The
-    # asymmetry is worth seeing rather than papering over with an option that would not work.
-
     app = ROOT / 'pixeltable' / 'app.py'
     original = app.read_text()
     # The daemon resolves credentials from the environment it was started with, and
@@ -308,23 +305,43 @@ def hosted_pixeltable(key: str, model: str, questions: list[str], workers: int) 
         except Exception as exc:
             print(f'  restore step failed: {exc}', flush=True)
     result.update(
-        lines_written=loc_of_patch(HOSTED / 'pixeltable_imports.patch')
-        + loc_of_patch(HOSTED / 'pixeltable_answer.patch'),
+        **line_counts('pixeltable'),
         files_touched=1,
         note='schema swap: the answer column re-points at openrouter.chat_completions, a request-rate pool',
     )
     return result
 
 
+# ------------------------------------------------------------------- counting
+
+# The patches each leg applies, split by who they serve. `attempts` is how hosted.json
+# sees retries; the application would not return it, so the patches that only thread it
+# through are instrumentation and are not charged to the platform.
+WRITTEN = {
+    'pixeltable': ['pixeltable_imports', 'pixeltable_answer'],
+    'supabase': ['supabase_helper', 'supabase_call'],
+    'convex': ['convex_helper', 'convex_call'],
+}
+INSTRUMENTATION = {
+    'pixeltable': [],
+    'supabase': ['supabase_return'],
+    'convex': ['convex_return', 'convex_returntype'],
+}
+SUFFIX = {'pixeltable': '.py', 'supabase': '.ts', 'convex': '.ts'}
+
+
+def line_counts(impl: str) -> dict:
+    count = lambda names: sum(loc_of_patch(HOSTED / f'{name}.patch', SUFFIX[impl]) for name in names)  # noqa: E731
+    return {'lines_written': count(WRITTEN[impl]), 'instrumentation_lines': count(INSTRUMENTATION[impl])}
+
+
 # ------------------------------------------------------------------- supabase
 
 
-def hosted_supabase(
-    key: str, token: str, model: str, questions: list[str], workers: int, base_url: str = SUPABASE_URL
-) -> dict:
+def hosted_supabase(key: str, token: str, model: str, questions: list[str], workers: int) -> dict:
     index = SUPABASE_APP / 'supabase' / 'functions' / 'api' / 'index.ts'
     original = index.read_text()
-    names = ['supabase_helper', 'supabase_call', 'supabase_return']
+    names = WRITTEN['supabase'] + INSTRUMENTATION['supabase']
     env_file = SUPABASE_APP / 'supabase' / 'functions' / '.env'
     # The file already exists in a working local stack - COMPUTE_SERVICE_URL lives here.
     # Replace only our hosted-model variables, and put the original content back after.
@@ -342,8 +359,8 @@ def hosted_supabase(
         # a stack restart rather than a function reload. Data survives in the volumes.
         run(['npx', 'supabase', 'stop'], cwd=SUPABASE_APP)
         run(['npx', 'supabase', 'start'], cwd=SUPABASE_APP)
-        _wait_ready(f'{base_url}/functions/v1/api/videos', headers)
-        result = fire_agent('supabase', base_url, headers, questions, workers)
+        _wait_ready(f'{SUPABASE_URL}/functions/v1/api/videos', headers)
+        result = fire_agent('supabase', SUPABASE_URL, headers, questions, workers)
     finally:
         # Each restore step is guarded so a single failure cannot skip the rest of the
         # cleanup; the env file holds the hosted key until it is put back, so its
@@ -365,7 +382,7 @@ def hosted_supabase(
             except Exception as exc:
                 print(f'  restore step failed: {exc}', flush=True)
     result.update(
-        lines_written=sum(loc_of_patch(HOSTED / f'{name}.patch') for name in names),
+        **line_counts('supabase'),
         files_touched=1,
         note='direct OpenRouter call from the Edge Function; the retry loop and backoff are application code',
     )
@@ -375,10 +392,10 @@ def hosted_supabase(
 # --------------------------------------------------------------------- convex
 
 
-def hosted_convex(key: str, model: str, questions: list[str], workers: int, base_url: str = CONVEX_URL) -> dict:
+def hosted_convex(key: str, model: str, questions: list[str], workers: int) -> dict:
     agent_ts = CONVEX_APP / 'convex' / 'agent.ts'
     original = agent_ts.read_text()
-    names = ['convex_helper', 'convex_call', 'convex_return', 'convex_returntype']
+    names = WRITTEN['convex'] + INSTRUMENTATION['convex']
     try:
         for name in names:
             patch(agent_ts, HOSTED / f'{name}.patch')
@@ -387,8 +404,8 @@ def hosted_convex(key: str, model: str, questions: list[str], workers: int, base
         _stop_convex_watcher()
         run(['npx', 'convex', 'dev', '--once'], cwd=CONVEX_APP)
         _start_convex_watcher(CONVEX_APP)
-        _wait_ready(f'{base_url}/videos')
-        result = fire_agent('convex', base_url, {}, questions, workers)
+        _wait_ready(f'{CONVEX_URL}/videos')
+        result = fire_agent('convex', CONVEX_URL, {}, questions, workers)
     finally:
         # Same guarded restore shape as the other legs: one failed step cannot skip the
         # rest. The env vars hold the hosted key, so their removal gets its own guard
@@ -412,7 +429,7 @@ def hosted_convex(key: str, model: str, questions: list[str], workers: int, base
         except Exception as exc:
             print(f'  restore step failed: {exc}', flush=True)
     result.update(
-        lines_written=sum(loc_of_patch(HOSTED / f'{name}.patch') for name in names),
+        **line_counts('convex'),
         files_touched=1,
         note='same retry contract as the Edge Function, written in the action',
     )
@@ -426,9 +443,22 @@ def main() -> int:
     parser.add_argument('--workers', type=int, default=6)
     parser.add_argument('--supabase-token', default='')
     parser.add_argument('--model', default=HOSTED_MODEL)
-    parser.add_argument('--supabase-url', default=SUPABASE_URL, help='point the Supabase leg at a deployed project')
-    parser.add_argument('--convex-url', default=CONVEX_URL, help='point the Convex leg at a cloud deployment')
+    parser.add_argument(
+        '--recount',
+        action='store_true',
+        help='rewrite only the line counts in docs/hosted.json from the patches; needs no key and runs nothing',
+    )
     args = parser.parse_args()
+    if args.recount:
+        # Same reasoning as bench_evolve --recount: the counts belong to the patches, and
+        # re-firing the hosted tier to refresh them would re-measure a free pool that moves.
+        existing = json.loads(OUT.read_text())
+        for impl in args.impl or sorted(PATHS):
+            if impl in existing:
+                existing[impl].update(line_counts(impl))
+        OUT.write_text(json.dumps(existing, indent=2) + '\n')
+        print(f'recounted {OUT.relative_to(ROOT)}')
+        return 0
     if args.questions < 1:
         parser.error('--questions must be at least 1')
     if args.workers < 1:
@@ -460,10 +490,8 @@ def main() -> int:
             continue
         result = {
             'pixeltable': lambda: hosted_pixeltable(key, args.model, questions, args.workers),
-            'supabase': lambda: hosted_supabase(
-                key, args.supabase_token, args.model, questions, args.workers, args.supabase_url
-            ),
-            'convex': lambda: hosted_convex(key, args.model, questions, args.workers, args.convex_url),
+            'supabase': lambda: hosted_supabase(key, args.supabase_token, args.model, questions, args.workers),
+            'convex': lambda: hosted_convex(key, args.model, questions, args.workers),
         }[impl]()
         # Stamped per leg: a run over a subset of implementations must not make stale
         # legs look freshly measured by updating only the file-level fields.

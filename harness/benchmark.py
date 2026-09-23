@@ -8,7 +8,7 @@ three implementations agree and the wrong size for saying anything about scale. 
 ingests the 20-video tier and times it, then measures search latency over the resulting
 corpus, and writes both into docs/benchmarks.json.
 
-What the numbers are and are not: one laptop, CPU only, local models, one run. They
+What the numbers are and are not: one laptop, local models on their default devices, one run. They
 compare the three implementations against each other on identical work, which is the
 question this repo asks. They are not a capacity estimate for anyone's production.
 """
@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import platform
 import statistics
 import subprocess
@@ -366,6 +367,9 @@ def main() -> int:
 
     headers = auth_headers(args.impl, args.auth_token)
     result: dict = {'tier': args.tier, 'measured_at': datetime.now(UTC).isoformat(timespec='seconds')}
+    # The measuring machine is also someone's laptop. Load is not controlled, so it is
+    # recorded: two tiers measured under different load are not the same experiment.
+    load_before = [round(x, 2) for x in os.getloadavg()]
     with httpx.Client(base_url=base_url.rstrip('/'), headers=headers, timeout=TIMEOUT) as client:
         if not args.skip_ingest:
             print(f'ingest ({args.impl}, {args.tier}):')
@@ -376,6 +380,7 @@ def main() -> int:
         result['read'] = read_latency(client, args.impl, args.iterations)
         result['load'] = concurrent_search(base_url, headers, args.impl, args.workers, args.iterations)
         result['corpus'] = corpus(client, args.impl)
+    result['host_load'] = {'before_1_5_15m': load_before, 'after_1_5_15m': [round(x, 2) for x in os.getloadavg()]}
 
     existing = json.loads(OUT.read_text()) if OUT.exists() else {}
     # Rewritten every run rather than set once: a timing is only reproducible alongside

@@ -69,13 +69,14 @@
       "backfill_sec": 2.09,
       "total_sec": 9.1,
       "corpus_videos": 23,
-      "lines_written": 53,
+      "lines_written": 41,
       "files_touched": 2,
       "note": "a push, then an action that pages rows through a query and a mutation",
       "output": [
         "  \"backfilled\": 23",
         "}"
-      ]
+      ],
+      "undo_lines_written": 13
     },
     "123": {
       "schema_change_sec": 6.19,
@@ -83,13 +84,14 @@
       "backfill_sec": 1.48,
       "total_sec": 7.66,
       "corpus_videos": 123,
-      "lines_written": 53,
+      "lines_written": 41,
       "files_touched": 2,
       "note": "a push, then an action that pages rows through a query and a mutation",
       "output": [
         "  \"backfilled\": 124",
         "}"
-      ]
+      ],
+      "undo_lines_written": 13
     }
   },
   "convex-searchindex": {

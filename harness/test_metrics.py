@@ -207,3 +207,27 @@ class TestAgainstTheRealTree:
     def test_every_implementation_has_two_vector_indexes(self, impl):
         """One for frames, one for transcripts. A pattern that stops matching reads as 0."""
         assert collect_metrics(impl, IMPLEMENTATIONS[impl]).vector_indexes == 2
+
+
+class TestLocOfPatch:
+    """The EVOLVE and hosted-tier line counts come from patches, and must count like files do."""
+
+    def test_skips_comments_in_the_target_language(self, tmp_path):
+        from harness.bench_evolve import loc_of_patch
+
+        patch = write(tmp_path, 'p.patch', 'const a = 1;\n---\n// why\nconst a = 1;\n\nconst b = 2;\n')
+        assert loc_of_patch(patch, '.ts') == 1
+
+    def test_a_changed_line_counts_as_written(self, tmp_path):
+        from harness.bench_evolve import loc_of_patch
+
+        patch = write(tmp_path, 'p.patch', 'x = f()\n---\n# note\nx = g()\n')
+        assert loc_of_patch(patch, '.py') == 1
+
+    def test_hosted_instrumentation_is_not_charged(self):
+        """`attempts` exists so hosted.json can see retries; no leg's application needs it."""
+        from harness.bench_hosted import INSTRUMENTATION, WRITTEN
+
+        for impl, names in WRITTEN.items():
+            assert not set(names) & set(INSTRUMENTATION[impl])
+            assert all('_return' not in name for name in names), f'{impl} charges a return-shape patch'

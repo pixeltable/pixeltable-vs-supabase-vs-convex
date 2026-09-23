@@ -24,13 +24,13 @@ model work, then the change. The difference is the work that scales with rows.
 |---|---|---|---|---|---|---|
 | Pixeltable | 0.53s | 0.96s | same step | **0.96s** | **1** | **1** |
 | Supabase | 0.23s | 0.08s | 2.63s | 2.71s | 24 | 2 |
-| Convex | 1.52s | 7.01s | 2.09s | 9.10s | 53 | 2 |
+| Convex | 1.52s | 7.01s | 2.09s | 9.10s | 41 | 2 |
 
 | 123 videos | Control | Schema change | Backfill | Total | Lines written | Files touched |
 |---|---|---|---|---|---|---|
 | Pixeltable | 0.81s | 5.22s | same step | 5.22s | **1** | **1** |
 | Supabase | 0.12s | 0.09s | 3.42s | **3.51s** | 24 | 2 |
-| Convex | 1.52s | 6.19s | 1.48s | 7.66s | 53 | 2 |
+| Convex | 1.52s | 6.19s | 1.48s | 7.66s | 41 | 2 |
 
 Controls: a `title_len` column for Pixeltable, an optional `titleTag` push for
 Convex, a plain `title_tag` text column for Supabase. What each adds beyond its
@@ -51,13 +51,13 @@ already have:
 
 | | Corpus | Total | Lines written | Files touched |
 |---|---|---|---|---|
-| Convex, `vectorIndex` (semantic) | 23 | 9.10s | 53 | 2 |
-| | 123 | 7.66s | 53 | 2 |
+| Convex, `vectorIndex` (semantic) | 23 | 9.10s | 41 | 2 |
+| | 123 | 7.66s | 41 | 2 |
 | Convex, `searchIndex` (lexical) | 23 | **2.75s** | **1** | **1** |
 | | 123 | **1.67s** | **1** | **1** |
 
 Postgres's equivalent is a GIN index over `to_tsvector(title)`, Pixeltable's a
-`BtreeIndex`. Read the 24 and the 53 as the cost of semantic parity; the row that
+`BtreeIndex`. Read the 24 and the 41 as the cost of semantic parity; the row that
 survives either reading is Pixeltable's 1 line, which buys the semantic version.
 
 Pixeltable's entire change:
@@ -76,8 +76,8 @@ and a mutation.
 ## Three things the clock does not show
 
 - **Reverting is not symmetric.** Supabase drops the column; Convex needs a second
-  migration - 11 of its 53 lines exist only to undo the forward one, because pushing
-  a schema without `titleEmbedding` is rejected while documents have it. The
+  migration, 13 more lines not charged above, because pushing a schema without
+  `titleEmbedding` is rejected while documents have it. The
   `searchIndex` variant has no such problem. Pixeltable re-runs
   `pxt schema update --allow-destructive`, refused by default.
 - **Pixeltable's running service has to be restarted.** An insert against an

@@ -22,7 +22,10 @@ records both observations, so widening one is an evidence question rather than a
 
 from __future__ import annotations
 
+import difflib
 import json
+import os
+import re
 from pathlib import Path
 
 import httpx
@@ -54,7 +57,10 @@ SIMILARITY_TOLERANCE = 0.05
 # the same; the casing and the boundary fragment are not.
 #
 # How different depends on the machine as well as the boundary: 1.0 overlap on one, 0.86
-# on a GitHub runner, for the same fixture and the same weights. The bound covers both.
+# on a GitHub runner, for the same fixture and the same weights. Both were read with an
+# earlier set-intersection measure that scores same-order text no higher than the current
+# one, so they are lower bounds under it. Under the current measure the laptop reads 0.95
+# at worst. The bound covers both machines.
 # At 0.8 it still fails on what it is for: the wrong video transcribed, an empty
 # transcript, or the same text written to every chunk.
 TRANSCRIPT_MIN_OVERLAP = 0.8
@@ -91,6 +97,11 @@ def responses(comparands: dict[str, str], request: pytest.FixtureRequest) -> dic
                     for q in QUERIES
                 },
             }
+    # A tolerance failure in CI is only diagnosable against the answers that produced it,
+    # and the runner is gone by the time anyone looks. The workflow uploads this file.
+    if dump := os.environ.get('DIFFERENTIAL_DUMP'):
+        Path(dump).parent.mkdir(parents=True, exist_ok=True)
+        Path(dump).write_text(json.dumps(collected, indent=2))
     return collected
 
 
@@ -135,12 +146,20 @@ class TestMustBeIdentical:
 
 
 def transcript_overlap(a: str, b: str) -> float:
-    """Token overlap after casefolding, as a fraction of the longer text."""
-    left, right = a.casefold().split(), b.casefold().split()
+    """Order-aware word similarity, 1.0 for identical text.
+
+    Casefolded and stripped of punctuation first, so 'Deletion.' matches 'deletion'. A set
+    intersection would score a transcript below 1.0 against itself whenever a word repeats,
+    and would not notice the right words in the wrong order.
+    """
+    left, right = _words(a), _words(b)
     if not left and not right:
         return 1.0
-    shared = len(set(left) & set(right))
-    return shared / max(len(left), len(right))
+    return difflib.SequenceMatcher(None, left, right, autojunk=False).ratio()
+
+
+def _words(text: str) -> list[str]:
+    return re.findall(r"[\w']+", text.casefold())
 
 
 class TestWithinTolerance:

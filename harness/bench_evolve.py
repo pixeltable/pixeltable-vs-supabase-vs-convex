@@ -44,7 +44,7 @@ sys.path.insert(0, str(ROOT))
 import tomllib  # noqa: E402
 
 from harness.conftest import PATHS, _auto_discover_pixeltable_url, auth_headers  # noqa: E402
-from harness.metrics import count_lines  # noqa: E402
+from harness.metrics import code_lines_in, count_lines  # noqa: E402
 
 EVOLVE = ROOT / 'harness' / 'evolve'
 OUT = ROOT / 'docs' / 'evolve.json'
@@ -146,26 +146,43 @@ def evolve_pixeltable() -> dict:
         'backfill_sec': 0.0,
         'total_sec': round(elapsed, 2),
         'corpus_videos': corpus,
-        'lines_written': loc_of_patch(EVOLVE / 'pixeltable.patch'),
+        **line_counts('pixeltable'),
         'files_touched': 1,
         'note': 'one command; the schema change and the backfill are the same step',
         'output': out.strip().splitlines()[-4:],
     }
 
 
-def loc_of_patch(patch_file: Path) -> int:
-    """Lines the patch writes, ignoring the context it anchors on.
+def line_counts(name: str) -> dict:
+    """What each leg writes, from the files it applies. Shared by the run and `--recount`."""
+    if name == 'pixeltable':
+        return {'lines_written': loc_of_patch(EVOLVE / 'pixeltable.patch', '.py')}
+    if name == 'supabase':
+        return {'lines_written': count_lines(EVOLVE / 'supabase_backfill.ts') + count_lines(EVOLVE / 'supabase.sql')}
+    if name == 'convex-searchindex':
+        return {'lines_written': loc_of_patch(EVOLVE / 'convex_schema_searchindex.patch', '.ts')}
+    return {
+        'lines_written': count_lines(EVOLVE / 'convex_migrations.ts')
+        + loc_of_patch(EVOLVE / 'convex_schema.patch', '.ts'),
+        # Not in lines_written: the other two legs revert with a statement the harness
+        # runs and nobody counts, so charging only Convex for its undo would not compare.
+        # Recorded because the undo being code at all is the Convex-specific part.
+        'undo_lines_written': count_lines(EVOLVE / 'convex_migrations_undo.ts'),
+    }
+
+
+def loc_of_patch(patch_file: Path, suffix: str) -> int:
+    """Code lines the patch writes, ignoring the context it anchors on.
 
     A changed line counts the same as an added one: replacing `})` with
     `}).searchIndex(...)` is a line you write, and a length difference of zero would say
-    otherwise.
+    otherwise. Blanks and comments are skipped with the rules `count_lines` applies to
+    the target file's language, given as `suffix`, so a patch and a file count alike.
     """
     before, after = patch_file.read_text().split('\n---\n')
-    unchanged = [line for line in before.splitlines() if line.strip()]
+    unchanged = code_lines_in(before, suffix)
     written = 0
-    for line in after.splitlines():
-        if not line.strip():
-            continue
+    for line in code_lines_in(after, suffix):
         if line in unchanged:
             unchanged.remove(line)
         else:
@@ -224,7 +241,7 @@ def evolve_supabase(token: str) -> dict:
         'backfill_sec': round(backfill_sec, 2),
         'total_sec': round(schema_sec + backfill_sec, 2),
         'corpus_videos': corpus,
-        'lines_written': count_lines(backfill) + count_lines(EVOLVE / 'supabase.sql'),
+        **line_counts('supabase'),
         'files_touched': 2,
         'note': 'ALTER TABLE is instant; the backfill reads, embeds and writes every row',
         'output': out.strip().splitlines()[-2:],
@@ -254,6 +271,7 @@ def evolve_convex() -> dict:
     app = ROOT / 'convex-app'
     schema = app / 'convex' / 'schema.ts'
     migrations = app / 'convex' / 'migrations.ts'
+    undo = app / 'convex' / 'migrationsUndo.ts'
     original = schema.read_text()
     corpus = count_videos('convex')
     _stop_convex_watcher()
@@ -285,9 +303,12 @@ def evolve_convex() -> dict:
         # Convex validates existing documents against the schema on push, so the field has
         # to come off every row before schema.ts can stop declaring it. Reverting this
         # migration is another migration.
-        run(['npx', 'convex', 'run', 'migrations:clearTitleEmbeddings'], cwd=app)
+        shutil.copy(EVOLVE / 'convex_migrations_undo.ts', undo)
+        run(['npx', 'convex', 'dev', '--once'], cwd=app)
+        run(['npx', 'convex', 'run', 'migrationsUndo:clearTitleEmbeddings'], cwd=app)
         schema.write_text(original)
         migrations.unlink(missing_ok=True)
+        undo.unlink(missing_ok=True)
         run(['npx', 'convex', 'dev', '--once'], cwd=app)
         _start_convex_watcher(app)
     return {
@@ -296,7 +317,7 @@ def evolve_convex() -> dict:
         'backfill_sec': round(backfill_sec, 2),
         'total_sec': round(schema_sec + backfill_sec, 2),
         'corpus_videos': corpus,
-        'lines_written': count_lines(EVOLVE / 'convex_migrations.ts') + loc_of_patch(EVOLVE / 'convex_schema.patch'),
+        **line_counts('convex'),
         'files_touched': 2,
         'note': 'a push, then an action that pages rows through a query and a mutation',
         'output': out.strip().splitlines()[-2:],
@@ -332,7 +353,7 @@ def evolve_convex_searchindex() -> dict:
         'backfill_sec': 0.0,
         'total_sec': round(schema_sec, 2),
         'corpus_videos': corpus,
-        'lines_written': loc_of_patch(EVOLVE / 'convex_schema_searchindex.patch'),
+        **line_counts('convex-searchindex'),
         'files_touched': 1,
         'note': 'lexical, not semantic: searchIndex builds over an existing field, so no backfill',
         'output': ['no backfill step'],
@@ -343,8 +364,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--supabase-token', default='')
     parser.add_argument('--only', choices=['pixeltable', 'supabase', 'convex', 'convex-searchindex'], action='append')
+    parser.add_argument(
+        '--recount',
+        action='store_true',
+        help='rewrite only the line counts in docs/evolve.json from the files in harness/evolve; runs nothing',
+    )
     args = parser.parse_args()
     wanted = args.only or ['pixeltable', 'supabase', 'convex', 'convex-searchindex']
+
+    if args.recount:
+        # The counts are a property of the files, not of a run, so a counting fix should
+        # not force the timings to be re-measured. Timings and measured_at are untouched.
+        existing = json.loads(OUT.read_text())
+        for name in wanted:
+            for result in existing.get(name, {}).values():
+                result.update(line_counts(name))
+        OUT.write_text(json.dumps(existing, indent=2) + '\n')
+        print(f'recounted {OUT.relative_to(ROOT)}')
+        return 0
 
     results: dict = {'measured_at': datetime.now(UTC).isoformat(timespec='seconds')}
     for name in wanted:

@@ -60,10 +60,23 @@ jobs:
       - name: Install Pixeltable
         run: pip install -e pixeltable/
 
+      # .mp4 is gitignored and gTTS synthesises the speech over the network, so two runs
+      # of the same script are not guaranteed the same audio. Cached on the script's hash:
+      # every run compares the platforms on the same bytes until the script changes, and a
+      # tolerance failure cannot be a TTS change in disguise.
+      - name: Restore the fixtures
+        id: fixtures
+        uses: actions/cache@v4
+        with:
+          path: fixtures/videos/*.mp4
+          key: fixtures-${{ hashFiles('fixtures/videos/generate.py') }}
+
       - name: Generate the fixtures
-        # .mp4 is gitignored, so every run builds them from the same script and the same
-        # text. gTTS needs network.
+        if: steps.fixtures.outputs.cache-hit != 'true'
         run: python fixtures/videos/generate.py
+
+      - name: Record which fixture bytes this run used
+        run: sha256sum fixtures/videos/*.mp4
 
       - name: Start the compute service
         # Bound to 0.0.0.0 because Supabase's Edge Runtime reaches it from inside a
@@ -142,18 +155,22 @@ jobs:
           SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
           CONVEX: ${{ steps.convex.outputs.url }}
         run: |
-          python -m pytest harness/test_equivalence.py -q --impl pixeltable --base-url "$PXT"
-          python -m pytest harness/test_equivalence.py -q --impl supabase \
-            --base-url http://127.0.0.1:54321 --auth-token "$SUPA_SECRET"
-          python -m pytest harness/test_equivalence.py -q --impl convex --base-url "$CONVEX"
+          python -m pytest harness/test_equivalence.py -q --junitxml=reports/equivalence-pixeltable.xml \
+            --impl pixeltable --base-url "$PXT"
+          python -m pytest harness/test_equivalence.py -q --junitxml=reports/equivalence-supabase.xml \
+            --impl supabase --base-url http://127.0.0.1:54321 --auth-token "$SUPA_SECRET"
+          python -m pytest harness/test_equivalence.py -q --junitxml=reports/equivalence-convex.xml \
+            --impl convex --base-url "$CONVEX"
 
       - name: The three agree with each other, and refuse what they should
         env:
           PXT: ${{ steps.pixeltable.outputs.url }}
           SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
           CONVEX: ${{ steps.convex.outputs.url }}
+          DIFFERENTIAL_DUMP: reports/differential-responses.json
         run: |
           python -m pytest harness/test_differential.py harness/test_resilience.py -q \
+            --junitxml=reports/differential-resilience.xml \
             --compare pixeltable="$PXT" \
             --compare supabase=http://127.0.0.1:54321 \
             --compare convex="$CONVEX" \
@@ -167,7 +184,7 @@ jobs:
           SUPA_SECRET: ${{ steps.supabase.outputs.secret }}
           CONVEX: ${{ steps.convex.outputs.url }}
         run: |
-          python -m pytest harness/test_recovery.py -q --destructive \
+          python -m pytest harness/test_recovery.py -q --destructive --junitxml=reports/recovery.xml \
             --compare pixeltable="$PXT" \
             --compare supabase=http://127.0.0.1:54321 \
             --compare convex="$CONVEX" \
@@ -180,3 +197,13 @@ jobs:
           echo '--- supabase functions ---'; tail -50 /tmp/functions.log || true
           echo '--- convex ---';           tail -50 /tmp/convex.log    || true
           echo '--- pixeltable ---';       (cd pixeltable && pxt service logs media/api 2>&1 | tail -50) || true
+
+      # Uploaded on success too: a flake is only a flake against a passing run to diff.
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-reports
+          path: reports/
+          retention-days: 30
+          if-no-files-found: ignore

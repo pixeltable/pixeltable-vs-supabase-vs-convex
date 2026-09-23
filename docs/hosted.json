@@ -20,11 +20,12 @@
       "empty": 0,
       "rows": 12
     },
-    "lines_written": 7,
+    "lines_written": 6,
     "files_touched": 1,
     "note": "schema swap: the answer column re-points at openrouter.chat_completions, a request-rate pool",
     "measured_at": "2026-09-22T22:51:17+00:00",
-    "model": "nvidia/nemotron-3-super-120b-a12b"
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "instrumentation_lines": 0
   },
   "supabase": {
     "succeeded": 12,
@@ -37,11 +38,12 @@
     "statuses": [
       200
     ],
-    "lines_written": 36,
+    "lines_written": 29,
     "files_touched": 1,
     "note": "direct OpenRouter call from the Edge Function; the retry loop and backoff are application code",
     "measured_at": "2026-09-22T22:51:17+00:00",
-    "model": "nvidia/nemotron-3-super-120b-a12b"
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "instrumentation_lines": 1
   },
   "convex": {
     "succeeded": 12,
@@ -54,11 +56,12 @@
     "statuses": [
       200
     ],
-    "lines_written": 37,
+    "lines_written": 29,
     "files_touched": 1,
     "note": "same retry contract as the Edge Function, written in the action",
     "measured_at": "2026-09-22T22:51:17+00:00",
-    "model": "nvidia/nemotron-3-super-120b-a12b"
+    "model": "nvidia/nemotron-3-super-120b-a12b",
+    "instrumentation_lines": 2
   },
   "max_tokens": 1024
 }

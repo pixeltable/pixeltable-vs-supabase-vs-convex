@@ -185,9 +185,13 @@ def code_lines(path: Path) -> list[str]:
         text = path.read_text()
     except OSError:
         return []
+    return code_lines_in(text, path.suffix, path.name)
 
-    markers = NAME_COMMENTS.get(path.name) or LINE_COMMENTS.get(path.suffix, ())
-    block = BLOCK_COMMENTS.get(path.suffix)
+
+def code_lines_in(text: str, suffix: str, name: str = '') -> list[str]:
+    """`code_lines` for text that is not a file of its own language, such as one side of a patch."""
+    markers = NAME_COMMENTS.get(name) or LINE_COMMENTS.get(suffix, ())
+    block = BLOCK_COMMENTS.get(suffix)
     lines, in_block = [], False
 
     for raw in text.splitlines():
