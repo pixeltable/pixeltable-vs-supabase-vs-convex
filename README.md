@@ -57,9 +57,10 @@ the answer changes.
 - **Request validation is derived**: a bad body is a 422 on Pixeltable, against 28 and
   46 hand-written lines.
 - **A hosted-model swap** is a 7-line schema change against 36-37 lines of
-  retry/backoff. On the paid OpenRouter endpoint all three answer 12/12; on the free
-  pool, malformed 200 bodies landed as null answers on the computed column alone -
-  7/12 against 12/12 ([docs/hosted.json](docs/hosted.json)).
+  retry/backoff ([docs/hosted.json](docs/hosted.json)). On the paid endpoint all
+  three answer 12/12; the free pool returns malformed 200 bodies
+  ([docs/hosted_probe.json](docs/hosted_probe.json)), which a computed column
+  evaluates to a null answer - 7/12 against 12/12 in the earlier run there.
 
 ## Every implementation is held to its vendor's own checker
 
