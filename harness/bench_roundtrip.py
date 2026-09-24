@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import statistics
 import sys
 import threading
@@ -310,6 +311,9 @@ def _run_meta(client: httpx.Client, impl: str) -> dict:
     return {
         'started_at': datetime.now(UTC).isoformat(timespec='seconds'),
         'corpus_before': corpus_size(client, impl),
+        # The machine is not quiet by construction; a run under twice the load of its
+        # neighbours is the first suspect when a point does not resolve.
+        'host_load_1m': round(os.getloadavg()[0], 2),
     }
 
 

@@ -12,7 +12,7 @@ the row this contract cannot exercise. Judgments are marked as judgments.
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
 | App code you maintain | 129 | 302 | 425 |
-| Plus the shared compute service | 0 | 252 | 252 |
+| Plus the shared compute service | 0 | 253 | 253 |
 | Files you open to read the backend | 1 | 7 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Install to a running local stack | `pip install` + `pxt init`, heavy deps | Docker, 12 containers | `npx convex dev`, no account |
@@ -21,7 +21,7 @@ the row this contract cannot exercise. Judgments are marked as judgments.
 | Ingest call semantics | async job, polled | synchronous response | synchronous response |
 | ffmpeg, Whisper, CLIP run in-platform | yes | no | no |
 | Round trips to a second service per agent query | 0 | 3 | 3 |
-| Concurrent search p50, 8 clients (xl) | 119.5ms | 67.0ms | 65.2ms |
+| Concurrent search p50, 8 clients (xl) | 121.0ms | 52.6ms | 57.2ms |
 | Add a derived column to live data | backfills in place* | migration + backfill script | migration action |
 | Processing fires for writes from any client | yes | no, unless you add triggers | no, unless you add a scheduler |
 | Derived value stays fresh on row update† | yes, recomputed | no, silent staleness | no |
@@ -68,9 +68,9 @@ open here, and equalising means a gateway plus a check you write. Per-tenant
 
 **Swap 4: equalise "add a derived column to live data".** [EVOLVE.md](EVOLVE.md)
 prices the migration-plus-backfill at two corpus sizes: 24 and 41 lines against
-Pixeltable's 1. The clock winner flips with corpus (Pixeltable cheapest at 23 rows,
-Supabase at 123) because the fused step scales with rows while the script's fixed
-cost amortises.
+Pixeltable's 1. On the clock Pixeltable and Supabase tie at 23 rows and Supabase is
+cheaper at 123: Pixeltable's fused step grows faster with the rows it backfills and
+indexes than Supabase's script does.
 
 **Swap 5: equalise the app shape.** The contract is single-tenant, stateless,
 request/response, write-once. A multi-tenant application with subscriptions inverts

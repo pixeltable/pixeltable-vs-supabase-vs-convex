@@ -351,7 +351,15 @@ def detect_scenes(req: DetectScenesRequest):
     return DetectScenesResponse(scenes=scenes)
 
 
+# Every launch, here and in the READMEs, CI and harness/remeasure.sh, sets keep-alive above
+# uvicorn's 5s default. A pooling client keeps idle connections longer than that (hyper,
+# under Deno's fetch, defaults to 90s), so at 5s the server can close an idle one just as
+# the client sends on it. Under load an agent query's calls land about that far apart,
+# and Supabase's failed with "connection closed before message completed". The server
+# has to outlive the client's idle timeout, not the reverse.
+KEEP_ALIVE_SEC = 120
+
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run('app:app', host='0.0.0.0', port=9000, reload=True)
+    uvicorn.run('app:app', host='0.0.0.0', port=9000, reload=True, timeout_keep_alive=KEEP_ALIVE_SEC)

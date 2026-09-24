@@ -25,7 +25,7 @@ speech, and `Qwen2.5-1.5B-Instruct` for the agent. All local, each on its librar
 default device: MiniLM on MPS and CLIP and Whisper on CPU on both paths; Qwen on Metal
 through Pixeltable's `llama_cpp` UDF and on CPU through `compute-service`, whose
 `llama-cpp-python` offloads nothing unless asked. The agent timings carry that
-difference. Same fixture videos, frame rate, chunk length and scene threshold.
+difference, and [device.json](device.json) measures it on its own. Same fixture videos, frame rate, chunk length and scene threshold.
 
 Not one substrate, though. Supabase's local stack is Docker, which on the measuring Mac
 is a Colima Linux VM, so its Edge Function reaches `compute-service` through
@@ -125,7 +125,10 @@ written to the repo), `harness/probe_hosted.py` (the provider's raw response sha
 `harness/bench_roundtrip.py` (requests and bytes across the compute-service
 boundary, per video and per agent query; `--add-latency-ms` models a deployment
 where the boundary stops being loopback; [roundtrip.json](roundtrip.json)),
-`harness/render_summary.py` (`docs/summary.svg`, regenerated and diffed in CI).
+`harness/bench_device.py` (the agent's generation step alone, per device;
+[device.json](device.json)), `harness/remeasure.sh` (every timing artifact in one
+sitting from empty stacks, platforms interleaved), `harness/render_summary.py`
+(`docs/summary.svg`, regenerated and diffed in CI).
 
 ## Pixeltable capabilities the contract leaves out
 

@@ -102,7 +102,7 @@
   },
   "compute-service": {
     "name": "compute-service",
-    "app_loc": 252,
+    "app_loc": 253,
     "config_loc": 17,
     "app_files": 1,
     "languages": [
@@ -116,7 +116,7 @@
     "orchestration_hops": null,
     "http_routes_written_by_hand": 7,
     "file_breakdown": {
-      "app.py": 252
+      "app.py": 253
     },
     "classified": {
       "runtimes_to_operate": [

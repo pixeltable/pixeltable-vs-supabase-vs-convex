@@ -286,6 +286,13 @@ def evolve_cells(e: dict) -> list[str]:
             cells.append(f'{entry["total_sec"]:.2f}s | {entry["lines_written"]} | {entry["files_touched"]} |')
             if 'undo_lines_written' in entry:
                 cells.append(f'{entry["undo_lines_written"]} more lines')
+            # What the change adds beyond its control, as EVOLVE.md's bullets state it:
+            # the fused step on Pixeltable, the script on Supabase, the push on Convex.
+            corpus = entry['corpus_videos']
+            if impl in ('pixeltable', 'convex'):
+                cells.append(f'{entry["schema_change_sec"] - entry["control_sec"]:.1f}s at {corpus} rows')
+            elif impl == 'supabase':
+                cells.append(f'{entry["backfill_sec"]:.1f}s at {corpus} rows')
     return cells
 
 
@@ -303,6 +310,17 @@ def main() -> int:
                 continue
             if entry.get('ingest', {}).get('failed_attempts') and 'no failed attempts' in scale:
                 failures.append(f'SCALE.md claims no failed attempts but {impl} {tier} recorded one')
+        for tier, entry in benchmarks[impl].items():
+            if not isinstance(entry, dict):
+                continue
+            # A failed agent query stays out of the percentiles, so the table alone would
+            # never show it; the doc has to say it happened.
+            failed = len(entry.get('agent', {}).get('failed') or [])
+            if failed:
+                total = entry['agent']['samples'] + failed
+                cell = f'{impl.capitalize()} {tier}: {failed} of {total} agent queries failed'
+                if cell not in scale:
+                    failures.append(f'SCALE.md missing agent failure: {cell}')
 
     hosted = json.loads((DOCS / 'hosted.json').read_text())
     for cell in hosted_cells(hosted):
@@ -318,10 +336,20 @@ def main() -> int:
     # TRADEOFFS.md repeats some of the same rows. A repeated row has to agree; a row it
     # leaves out is fine, which is why the check is keyed on the row's label.
     tradeoffs = (DOCS / 'TRADEOFFS.md').read_text().replace('**', '')
+    load_row = ' | '.join(f'{benchmarks[i]["xl"]["load"]["p50_ms"]}ms' for i in IMPLS)
+    if f'| Concurrent search p50, 8 clients (xl) | {load_row} |' not in tradeoffs:
+        failures.append(f'TRADEOFFS.md concurrent-search row does not read {load_row}')
     for cell in readme_cells(metrics, hosted):
         label = cell.split(' | ')[0] + ' |' if cell.startswith('| ') else None
         if label and f'\n{label}' in tradeoffs and cell not in tradeoffs:
             failures.append(f'TRADEOFFS.md repeats a summary row with other values: {cell}')
+
+    # The agent paragraph attributes the gap to the device; the attribution is only as
+    # good as the numbers it quotes, so they are held to device.json like any other cell.
+    devices = json.loads((DOCS / 'device.json').read_text())['devices']
+    for cell in (f'{devices["cpu"]["p50_ms"]}ms on CPU', f'{devices["gpu"]["p50_ms"]}ms on Metal'):
+        if cell not in scale:
+            failures.append(f'SCALE.md missing device cell: {cell}')
 
     evolve_doc = (DOCS / 'EVOLVE.md').read_text().replace('**', '')
     for cell in evolve_cells(json.loads((DOCS / 'evolve.json').read_text())):

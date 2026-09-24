@@ -233,20 +233,30 @@ def agent_latency(client: httpx.Client, impl: str, iterations: int) -> dict:
     client.request(method, path, json={'question': AGENT_QUESTIONS[0]})  # untimed warm-up
 
     samples = []
+    # Same rule as a failed ingest: recorded and published, not retried away. A failed
+    # query is not a latency, so it stays out of the percentiles and is counted beside them.
+    failures: list[dict] = []
     for _ in range(iterations):
         for question in AGENT_QUESTIONS:
             started = time.monotonic()
-            response = client.request(method, path, json={'question': question})
-            response.raise_for_status()
+            try:
+                response = client.request(method, path, json={'question': question})
+                response.raise_for_status()
+            except httpx.HTTPError as exc:
+                failures.append({'question': question, 'error': str(exc)[:200]})
+                continue
             samples.append((time.monotonic() - started) * 1000)
+    if not samples:
+        sys.exit(f'every agent query failed on {impl}: {failures[0]["error"]}')
     out = {
         'samples': len(samples),
         'p50_ms': round(percentile(samples, 50), 1),
         'p95_ms': round(percentile(samples, 95), 1),
         'min_ms': round(min(samples), 1),
         'max_ms': round(max(samples), 1),
+        'failed': failures,
     }
-    print(f'  agent: p50 {out["p50_ms"]}ms  p95 {out["p95_ms"]}ms  (n={len(samples)})')
+    print(f'  agent: p50 {out["p50_ms"]}ms  p95 {out["p95_ms"]}ms  (n={len(samples)}, {len(failures)} failed)')
     return out
 
 

@@ -81,9 +81,11 @@ jobs:
       - name: Start the compute service
         # Bound to 0.0.0.0 because Supabase's Edge Runtime reaches it from inside a
         # container. Pixeltable does not call it at all and Convex's backend is a host
-        # process, so only Supabase needs this.
+        # process, so only Supabase needs this. Keep-alive has to outlive the clients' idle
+        # pools; KEEP_ALIVE_SEC in compute-service/app.py says why.
         run: |
-          (cd compute-service && nohup python -m uvicorn app:app --host 0.0.0.0 --port 9000 > /tmp/compute.log 2>&1 &)
+          (cd compute-service && nohup python -m uvicorn app:app --host 0.0.0.0 --port 9000 --timeout-keep-alive 120 \
+            > /tmp/compute.log 2>&1 &)
           for i in $(seq 1 60); do
             curl -sf http://127.0.0.1:9000/docs > /dev/null && break || sleep 2
           done

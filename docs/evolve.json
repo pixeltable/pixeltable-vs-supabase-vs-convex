@@ -1,12 +1,17 @@
 {
-  "measured_at": "2026-09-20T03:03:26+00:00",
+  "measured_at": "2026-09-24T03:35:44+00:00",
   "pixeltable": {
     "23": {
-      "schema_change_sec": 0.96,
-      "control_sec": 0.53,
+      "schema_change_sec": 1.31,
+      "control_sec": 1.1,
       "backfill_sec": 0.0,
-      "total_sec": 0.96,
+      "total_sec": 1.31,
       "corpus_videos": 23,
+      "host_load_1_5_15m": [
+        8.26,
+        9.84,
+        9.94
+      ],
       "lines_written": 1,
       "files_touched": 1,
       "note": "one command; the schema change and the backfill are the same step",
@@ -18,11 +23,16 @@
       ]
     },
     "123": {
-      "schema_change_sec": 5.22,
-      "control_sec": 0.81,
+      "schema_change_sec": 4.38,
+      "control_sec": 1.08,
       "backfill_sec": 0.0,
-      "total_sec": 5.22,
+      "total_sec": 4.38,
       "corpus_videos": 123,
+      "host_load_1_5_15m": [
+        13.09,
+        10.36,
+        9.96
+      ],
       "lines_written": 1,
       "files_touched": 1,
       "note": "one command; the schema change and the backfill are the same step",
@@ -36,11 +46,16 @@
   },
   "supabase": {
     "23": {
-      "schema_change_sec": 0.08,
-      "control_sec": 0.23,
-      "backfill_sec": 2.63,
-      "total_sec": 2.71,
+      "schema_change_sec": 0.04,
+      "control_sec": 0.05,
+      "backfill_sec": 1.27,
+      "total_sec": 1.31,
       "corpus_videos": 23,
+      "host_load_1_5_15m": [
+        8.08,
+        9.77,
+        9.92
+      ],
       "lines_written": 24,
       "files_touched": 2,
       "note": "ALTER TABLE is instant; the backfill reads, embeds and writes every row",
@@ -49,57 +64,77 @@
       ]
     },
     "123": {
-      "schema_change_sec": 0.09,
-      "control_sec": 0.12,
-      "backfill_sec": 3.42,
-      "total_sec": 3.51,
+      "schema_change_sec": 0.04,
+      "control_sec": 0.06,
+      "backfill_sec": 2.11,
+      "total_sec": 2.16,
       "corpus_videos": 123,
+      "host_load_1_5_15m": [
+        13.09,
+        10.36,
+        9.96
+      ],
       "lines_written": 24,
       "files_touched": 2,
       "note": "ALTER TABLE is instant; the backfill reads, embeds and writes every row",
       "output": [
-        "backfilled 128 rows"
+        "backfilled 123 rows"
       ]
     }
   },
   "convex": {
     "23": {
-      "schema_change_sec": 7.01,
-      "control_sec": 1.52,
-      "backfill_sec": 2.09,
-      "total_sec": 9.1,
+      "schema_change_sec": 7.41,
+      "control_sec": 2.76,
+      "backfill_sec": 2.86,
+      "total_sec": 10.27,
       "corpus_videos": 23,
+      "host_load_1_5_15m": [
+        7.32,
+        9.25,
+        9.71
+      ],
       "lines_written": 41,
+      "undo_lines_written": 13,
       "files_touched": 2,
       "note": "a push, then an action that pages rows through a query and a mutation",
       "output": [
         "  \"backfilled\": 23",
         "}"
-      ],
-      "undo_lines_written": 13
+      ]
     },
     "123": {
-      "schema_change_sec": 6.19,
-      "control_sec": 1.52,
-      "backfill_sec": 1.48,
-      "total_sec": 7.66,
+      "schema_change_sec": 6.85,
+      "control_sec": 2.47,
+      "backfill_sec": 2.49,
+      "total_sec": 9.33,
       "corpus_videos": 123,
+      "host_load_1_5_15m": [
+        7.46,
+        9.25,
+        9.58
+      ],
       "lines_written": 41,
+      "undo_lines_written": 13,
       "files_touched": 2,
       "note": "a push, then an action that pages rows through a query and a mutation",
       "output": [
-        "  \"backfilled\": 124",
+        "  \"backfilled\": 123",
         "}"
-      ],
-      "undo_lines_written": 13
+      ]
     }
   },
   "convex-searchindex": {
     "23": {
-      "schema_change_sec": 2.75,
+      "schema_change_sec": 2.92,
       "backfill_sec": 0.0,
-      "total_sec": 2.75,
+      "total_sec": 2.92,
       "corpus_videos": 23,
+      "host_load_1_5_15m": [
+        6.06,
+        8.72,
+        9.5
+      ],
       "lines_written": 1,
       "files_touched": 1,
       "note": "lexical, not semantic: searchIndex builds over an existing field, so no backfill",
@@ -108,10 +143,15 @@
       ]
     },
     "123": {
-      "schema_change_sec": 1.67,
+      "schema_change_sec": 3.54,
       "backfill_sec": 0.0,
-      "total_sec": 1.67,
+      "total_sec": 3.54,
       "corpus_videos": 123,
+      "host_load_1_5_15m": [
+        6.06,
+        8.68,
+        9.35
+      ],
       "lines_written": 1,
       "files_touched": 1,
       "note": "lexical, not semantic: searchIndex builds over an existing field, so no backfill",
