@@ -1,5 +1,5 @@
 {
-  "measured_at": "2026-09-24T03:42:25+00:00",
+  "measured_at": "2026-09-24T21:09:19+00:00",
   "model": "Qwen/Qwen2.5-1.5B-Instruct-GGUF *q4_k_m.gguf",
   "n_ctx": 4096,
   "max_tokens": 256,
@@ -12,34 +12,34 @@
   "llama_cpp_python": "0.3.16",
   "host_load": {
     "before_1_5_15m": [
-      11.65,
-      12.01,
-      10.8
+      7.97,
+      10.84,
+      11.83
     ],
     "after_1_5_15m": [
-      15.4,
-      13.04,
-      11.26
+      12.84,
+      11.83,
+      12.15
     ]
   },
   "devices": {
     "cpu": {
       "n_gpu_layers": 0,
       "samples": 12,
-      "p50_ms": 4011.0,
-      "p95_ms": 7263.5,
-      "min_ms": 114.6,
-      "max_ms": 7263.5,
-      "mean_ms": 3999.7
+      "p50_ms": 3919.1,
+      "p95_ms": 5938.7,
+      "min_ms": 122.4,
+      "max_ms": 5938.7,
+      "mean_ms": 3763.8
     },
     "gpu": {
       "n_gpu_layers": -1,
       "samples": 12,
-      "p50_ms": 210.4,
-      "p95_ms": 318.4,
-      "min_ms": 104.7,
-      "max_ms": 318.4,
-      "mean_ms": 210.6
+      "p50_ms": 245.7,
+      "p95_ms": 616.6,
+      "min_ms": 110.1,
+      "max_ms": 616.6,
+      "mean_ms": 346.8
     }
   }
 }

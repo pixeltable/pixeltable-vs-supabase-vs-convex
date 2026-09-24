@@ -1,7 +1,7 @@
 """Shared compute service for media processing.
 
-Supabase Edge Functions run on Deno and Convex Actions run on Convex's runtime, and
-neither can execute ffmpeg, Whisper or CLIP. So both call these seven endpoints, and
+Supabase Edge Functions and Convex actions do not run ffmpeg, Whisper, CLIP or a local
+chat model here (see each app's README for why), so both call these seven endpoints, and
 both implementations are charged for every line of this file. Pixeltable runs the same
 work inside its own process, in computed columns.
 
@@ -11,19 +11,33 @@ That this service has to exist at all is the comparison point.
 from __future__ import annotations
 
 import base64
+import hmac
 import io
+import os
 import subprocess
 import tempfile
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from PIL import Image
 from pydantic import BaseModel, Field
+
+# Unset on a laptop, where only the two local consumers can reach the service. Set on any
+# deployment with a public address (cloud/deploy_compute.sh keeps it in Secrets Manager):
+# every endpoint then requires it, and both consumers send it from their own secrets.
+TOKEN = os.environ.get('COMPUTE_SERVICE_TOKEN', '')
+
+
+def require_token(request: Request) -> None:
+    if TOKEN and not hmac.compare_digest(request.headers.get('authorization', ''), f'Bearer {TOKEN}'):
+        raise HTTPException(status_code=401, detail='missing or wrong bearer token')
+
 
 app = FastAPI(
     title='Video Compute Service',
     description='External media processing that Supabase/Convex need but Pixeltable does not.',
+    dependencies=[Depends(require_token)],
 )
 
 # ---------------------------------------------------------------------------
@@ -76,10 +90,17 @@ def _get_chat_model():
     global _chat_model
     with _lock:
         if _chat_model is None:
-            from llama_cpp import Llama
+            from llama_cpp import Llama, llama_supports_gpu_offload
 
+            # Pixeltable's llama_cpp UDF offloads every layer when this build supports it and
+            # none otherwise; the same rule here, so both run the agent on the same device.
+            # llama-cpp-python's own default is 0 layers, CPU even on a Mac with Metal.
             _chat_model = Llama.from_pretrained(
-                repo_id='Qwen/Qwen2.5-1.5B-Instruct-GGUF', filename='*q4_k_m.gguf', n_ctx=4096, verbose=False
+                repo_id='Qwen/Qwen2.5-1.5B-Instruct-GGUF',
+                filename='*q4_k_m.gguf',
+                n_ctx=4096,
+                n_gpu_layers=-1 if llama_supports_gpu_offload() else 0,
+                verbose=False,
             )
     return _chat_model
 
@@ -205,6 +226,12 @@ def extract_audio(req: ExtractAudioRequest):
         out_path = f.name
 
     try:
+        # Encoded once, at the encoder's defaults, and never again: /transcribe cuts this
+        # track without a second lossy encode. Pixeltable does the same (one extract_audio
+        # encode, then audio_splitter remuxes packets), so Whisper hears equivalent audio.
+        # Forcing 16 kHz here and re-encoding every chunk once squeezed speech through two
+        # lossy passes at 24 kbps, and on a CI runner Whisper heard 'quicksword' where
+        # Pixeltable heard 'quicksort'.
         cmd = [
             'ffmpeg',
             '-y',
@@ -213,8 +240,6 @@ def extract_audio(req: ExtractAudioRequest):
             '-vn',
             '-acodec',
             'libmp3lame' if req.format == 'mp3' else 'pcm_s16le',
-            '-ar',
-            '16000',
             out_path,
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
@@ -247,12 +272,16 @@ def transcribe(req: TranscribeRequest):
     try:
         if req.start_sec is not None or req.end_sec is not None:
             # Without this the caller transcribes the whole track once per chunk and writes
-            # the same text to every row. Chunking has to be done somewhere; here it is ffmpeg.
-            clip_path = f'{tmp_path}.clip.mp3'
+            # the same text to every row. Chunking has to be done somewhere; here it is ffmpeg,
+            # decoding the track and cutting PCM at the exact time, so the one lossy step stays
+            # the encode in /extract-audio. A stream copy on MP3 packets starts each chunk on a
+            # frame whose bit reservoir is gone, and Whisper heard 'Alisha' for the 'deletion'
+            # at a boundary where Pixeltable's chunk says 'deletion'.
+            clip_path = f'{tmp_path}.clip.wav'
             cmd = ['ffmpeg', '-y', '-i', tmp_path, '-ss', str(req.start_sec or 0.0)]
             if req.end_sec is not None:
                 cmd += ['-to', str(req.end_sec)]
-            cmd += ['-acodec', 'libmp3lame', '-ar', '16000', clip_path]
+            cmd += ['-c:a', 'pcm_s16le', clip_path]
             clipped = subprocess.run(cmd, capture_output=True, text=True)
             if clipped.returncode != 0:
                 raise HTTPException(status_code=500, detail=f'ffmpeg failed: {clipped.stderr[-300:]}')

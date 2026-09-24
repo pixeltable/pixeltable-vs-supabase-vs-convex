@@ -18,8 +18,8 @@ ROOT = Path(__file__).resolve().parent.parent
 # that language, so each extension gets its own rule.
 LINE_COMMENTS = {'.py': ('#',), '.ts': ('//',), '.tsx': ('//',), '.sql': ('--',), '.toml': ('#',)}
 BLOCK_COMMENTS = {'.ts': ('/*', '*/'), '.tsx': ('/*', '*/'), '.sql': ('/*', '*/')}
-# `.env.example` has no useful suffix to key on, so it is matched by name.
-NAME_COMMENTS = {'.env.example': ('#',)}
+# `.env.example` and `Dockerfile` have no useful suffix to key on, so they are matched by name.
+NAME_COMMENTS = {'.env.example': ('#',), 'Dockerfile': ('#',)}
 
 CONFIG_NAMES = {
     'package.json',
@@ -27,6 +27,9 @@ CONFIG_NAMES = {
     'tsconfig.json',
     'config.toml',
     '.env.example',
+    # compute-service's container, for hosting it. Pixeltable's hosted database is an entry
+    # in its pyproject.toml and counts there, so the competitors' hosting config counts too.
+    'Dockerfile',
 }
 LOCK_NAMES = {'package-lock.json', 'uv.lock', 'poetry.lock'}  # generated, counted nowhere
 

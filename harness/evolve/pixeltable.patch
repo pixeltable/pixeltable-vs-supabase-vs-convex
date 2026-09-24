@@ -1,4 +1,4 @@
-    scene_count = count_items(scenes)
+    scene_count = scenes.len()
 ---
-    scene_count = count_items(scenes)
+    scene_count = scenes.len()
     __indexes__ = [pxt.EmbeddingIndex(title, embedding=SEMANTIC)]

@@ -41,28 +41,37 @@ tiers hold different footage amounts. Higher is faster.
 
 | | Tier | Wall time | Faster than realtime | Median video |
 |---|---|---|---|---|
-| Pixeltable | large | 77.4s | 7.80x | 3.5s |
-| | **xl** | **496.8s** | **7.60x** | **4.8s** |
-| Supabase | large | 55.4s | 10.90x | 2.4s |
-| | **xl** | **248.1s** | **15.23x** | **2.4s** |
-| Convex | large | 54.6s | 11.06x | 2.4s |
-| | **xl** | **263.6s** | **14.33x** | **2.6s** |
+| Pixeltable | large | 96.2s | 6.28x | 4.7s |
+| | **xl** | **518.9s** | **7.28x** | **5.0s** |
+| Supabase | large | 60.0s | 10.05x | 2.8s |
+| | **xl** | **406.3s** | **9.30x** | **3.1s** |
+| Convex | large | 53.8s | 11.22x | 2.6s |
+| | **xl** | **279.2s** | **13.53x** | **2.7s** |
 
 Pixeltable is last at both tiers. That is one run per tier, so whether the gap grows
-with the corpus is not something this table can say. Two asymmetries sit underneath,
+with the corpus is not something this table can say. Supabase's xl ingest ran slower
+per video than Convex's, through the same `compute-service` code; the difference is on
+Supabase's side of the boundary, most plausibly its Colima VM under load, and was not
+isolated. Two asymmetries sit underneath,
 neither measured separately: a different scene detector
 per side (PySceneDetect in Python against ffmpeg's `select` filter in C) and
 different frame work (a stored 320x180 still against base64 to object storage). And
-the two that reach `compute-service` pay an average of 8.5 requests and 1.35 MB
+the two that reach `compute-service` pay an average of 8.5 requests and 1.53 MB
 per video across that boundary ([roundtrip.json](roundtrip.json)): loopback for
 Convex, the Colima VM boundary for Supabase, and a network a deployment would
 charge for.
 
-These timings follow a fix to `compute-service`. Its endpoints were `async def` around
-blocking ffmpeg and model calls, which runs them on the event loop and serialized every
-request the two consumers fan out; they are now plain `def`, which FastAPI's
-documentation prescribes for blocking work. That was this repo's bug and it cost only
-the two competitors. The measuring machine was not quiet: each tier records the host
+These timings follow three fixes to `compute-service`, each a cost this repo's code put
+on the two competitors alone. Its endpoints were `async def` around blocking ffmpeg and
+model calls, which serialized every request the two consumers fan out; they are now
+plain `def`, which FastAPI's documentation prescribes for blocking work. Its chat model
+stayed on CPU, `llama-cpp-python`'s default, while Pixeltable's UDF offloads to the GPU;
+it now applies the same rule. And it squeezed speech through two lossy MP3 encodes at
+16 kHz before Whisper heard it, where Pixeltable encodes once and cuts chunks without
+re-encoding; it now does the same. Two later changes were not re-measured: chunks are
+now cut from decoded PCM rather than MP3 packets, which on the fixture corpus made its
+transcripts match Pixeltable's word for word, and a bearer-token check that is off on a
+laptop. The measuring machine was not quiet: each tier records the host
 load average before and after it ran (`host_load`), and the three platforms were
 interleaved within each tier so that load fell across all three rather than on one.
 
@@ -73,17 +82,16 @@ Ten queries, six passes, one untimed warm-up, over the corpus each tier leaves:
 
 | | Tier | Frame search p50 | p95 | Transcript search p50 | p95 |
 |---|---|---|---|---|---|
-| Pixeltable | large | 43.8ms | 48.7ms | 18.6ms | 21.1ms |
-| | **xl** | **54.5ms** | **64.1ms** | **20.8ms** | **23.4ms** |
-| Supabase | large | 40.5ms | 64.6ms | 21.9ms | 32.6ms |
-| | **xl** | **32.9ms** | **37.6ms** | **16.8ms** | **19.9ms** |
-| Convex | large | 33.3ms | 37.1ms | 13.4ms | 18.6ms |
-| | **xl** | **29.9ms** | **34.7ms** | **12.9ms** | **17.9ms** |
+| Pixeltable | large | 53.4ms | 75.9ms | 23.6ms | 33.5ms |
+| | **xl** | **50.4ms** | **64.2ms** | **23.3ms** | **45.5ms** |
+| Supabase | large | 28.9ms | 57.4ms | 16.6ms | 19.7ms |
+| | **xl** | **32.6ms** | **39.1ms** | **16.4ms** | **19.8ms** |
+| Convex | large | 26.0ms | 32.3ms | 13.3ms | 19.2ms |
+| | **xl** | **29.9ms** | **36.0ms** | **13.1ms** | **19.8ms** |
 
-Pixeltable is last on frame search at both tiers and on transcript search at xl, but
-read the size before the rank: every implementation's p50 is tens of milliseconds, and
-part of each number is embedding the query, which all three do per request. This is an
-ordering check, not a vector benchmark.
+Pixeltable is last on both searches at both tiers, but every implementation's p50 is tens of milliseconds, and part of each number is
+embedding the query, which all three do per request. This is an ordering check, not a
+vector benchmark.
 
 ## The agent
 
@@ -93,20 +101,20 @@ two. Measured on the 3-video baseline, since the retrieval inside is a fixed top
 
 | | p50 | p95 |
 |---|---|---|
-| Pixeltable | 242.3ms | 283.4ms |
-| Supabase | 4381.2ms | 5157.9ms |
-| Convex | 4036.0ms | 5287.1ms |
+| Pixeltable | 302.4ms | 388.8ms |
+| Supabase | 280.4ms | 381.3ms |
+| Convex | 220.5ms | 349.7ms |
 
-Pixeltable answers fastest, and the device is most of why. Each library runs the model
-on its default device: Pixeltable's `llama_cpp` UDF offloads to the GPU when there is
-one, Metal on this Mac, and `llama-cpp-python` behind `compute-service` stays on CPU
-unless asked. Timed alone, with the same weights, the agent's real prompts and nothing
-else in the path, generation takes 4011.0ms on CPU at p50 and 210.4ms on Metal
-([device.json](device.json), from `harness/bench_device.py`). What remains of the other
-two's time is their own retrieval and three round trips to `compute-service` (embed for
-frames, embed for transcripts, generate). On these numbers, `n_gpu_layers=-1` in
-`compute-service` would close most of the gap; that was not run, since every model here
-stays on its library's default.
+All three now run the model on Metal, and the gap this section used to report is gone:
+Convex answers fastest and Pixeltable slowest, with the other two paying three round
+trips to `compute-service` (embed for frames, embed for transcripts, generate) that
+Pixeltable does not. That gap was the device. Timed alone, with the same weights, the
+agent's real prompts and nothing else in the path, generation takes 3919.1ms on CPU at
+p50 and 245.7ms on Metal ([device.json](device.json), from `harness/bench_device.py`),
+and `compute-service` ran on CPU because `llama-cpp-python` offloads nothing unless
+asked, while Pixeltable's UDF offloads whenever the build supports it. It now applies
+the same rule. Why Pixeltable's path is slower once the device is equal, a table insert
+and a read-back against three HTTP calls, was not isolated.
 
 ## Reads
 
@@ -116,17 +124,17 @@ resolve; `test_equivalence.py` fetches one on every run as the regression guard.
 
 | | Tier | `GET /videos` p50 | p95 | Frame fetch p50 | p95 |
 |---|---|---|---|---|---|
-| Pixeltable | small / 3 videos | 1.9ms | 2.0ms | 0.6ms | 2.4ms |
-| | large / 23 | 2.2ms | 3.1ms | 0.6ms | 1.0ms |
-| | **xl / 123** | **3.9ms** | **5.5ms** | **0.6ms** | **1.0ms** |
-| Supabase | small / 3 videos | 4.1ms | 6.5ms | 2.3ms | 3.6ms |
-| | large / 23 | 7.0ms | 10.4ms | 2.9ms | 9.7ms |
-| | **xl / 123** | **7.9ms** | **10.6ms** | **2.8ms** | **8.6ms** |
-| Convex | small / 3 videos | 2.0ms | 3.2ms | 0.4ms | 0.7ms |
-| | large / 23 | 1.6ms | 4.9ms | 0.4ms | 0.8ms |
-| | **xl / 123** | **2.1ms** | **10.8ms** | **0.4ms** | **0.8ms** |
+| Pixeltable | small / 3 videos | 5.4ms | 8.0ms | 1.0ms | 2.9ms |
+| | large / 23 | 4.4ms | 5.3ms | 1.0ms | 2.8ms |
+| | **xl / 123** | **4.4ms** | **6.2ms** | **0.8ms** | **1.3ms** |
+| Supabase | small / 3 videos | 23.7ms | 33.5ms | 8.4ms | 23.7ms |
+| | large / 23 | 6.4ms | 12.8ms | 3.6ms | 12.4ms |
+| | **xl / 123** | **6.8ms** | **8.2ms** | **2.5ms** | **11.9ms** |
+| Convex | small / 3 videos | 2.4ms | 2.7ms | 0.5ms | 1.0ms |
+| | large / 23 | 2.4ms | 4.9ms | 0.4ms | 0.9ms |
+| | **xl / 123** | **2.3ms** | **8.9ms** | **0.4ms** | **0.9ms** |
 
-Convex is fastest on the read path at large and xl, and on every frame fetch. Every
+Convex is fastest on the read path at every tier. Every
 Supabase request passes the stack's Kong gateway and `withSupabase` auth verification,
 which the other two do not run; that cost was not isolated. The frame fetches are not
 byte-equal: Pixeltable serves its stored 320x180 still, the other two the full 640x360
@@ -138,15 +146,15 @@ The same ten searches, eight clients in flight at once: degradation, not speed.
 
 | | Tier | Concurrent p50 | p95 |
 |---|---|---|---|
-| Pixeltable | small | 116.7ms | 175.7ms |
-| | large | 119.0ms | 266.8ms |
-| | **xl** | **121.0ms** | **189.0ms** |
-| Supabase | small | 51.1ms | 100.1ms |
-| | large | 61.0ms | 103.0ms |
-| | **xl** | **52.6ms** | **121.3ms** |
-| Convex | small | 57.8ms | 97.1ms |
-| | large | 55.4ms | 69.2ms |
-| | **xl** | **57.2ms** | **71.3ms** |
+| Pixeltable | small | 200.9ms | 332.6ms |
+| | large | 139.1ms | 269.4ms |
+| | **xl** | **251.0ms** | **609.5ms** |
+| Supabase | small | 104.6ms | 243.9ms |
+| | large | 69.1ms | 145.7ms |
+| | **xl** | **53.2ms** | **96.4ms** |
+| Convex | small | 66.2ms | 92.9ms |
+| | large | 58.9ms | 77.0ms |
+| | **xl** | **65.3ms** | **82.1ms** |
 
 Pixeltable degrades most. The other two send every query embedding to
 `compute-service` and hold lower at every tier, and did so in this file's previous run
@@ -195,21 +203,22 @@ retry code and who could see inside the response.
   tiers answer whether the ordering survives a larger corpus, not what happens at a
   million rows.
 - **Everything runs on one machine, the assumption most favourable to the two that
-  need a second service.** Their 8.5 requests and 1.35 MB per video never leave the
+  need a second service.** Their 8.5 requests and 1.53 MB per video never leave the
   laptop. A proxy adding 20 or 80ms to every call was run four times at each level. A
   level publishes a number only when every one of its runs is slower than every run at
   0ms, which at four runs apiece is what the exact one-sided rank test at 0.025 reduces
   to ([roundtrip.json](roundtrip.json)):
 
-  - supabase +20ms: did not resolve (n=4, 49.9-51.1s vs 47.0-51.2s at 0ms)
-  - supabase +80ms: added 8.1s (n=4)
-  - convex +20ms: did not resolve (n=4, 51.1-54.9s vs 48.0-53.7s at 0ms)
-  - convex +80ms: added 13.4s (n=4)
+  - supabase +20ms: did not resolve (n=4, 53.6-74.5s vs 53.5-75.2s at 0ms)
+  - supabase +80ms: did not resolve (n=4, 67.8-75.9s vs 53.5-75.2s at 0ms)
+  - convex +20ms: did not resolve (n=4, 57.3-67.4s vs 52.5-73.2s at 0ms)
+  - convex +80ms: did not resolve (n=4, 68.4-77.4s vs 52.5-73.2s at 0ms)
 
-  At 80ms both resolve; at 20ms the delay added across the serial calls is smaller than
-  the spread between baseline runs, so neither does. Supabase added less than the delay
-  the proxy injected on its serial calls, which means some of it overlapped other work;
-  Convex added more, and why was not isolated. The levels were interleaved within each
+  None resolves in this run. The baseline's own runs spread by more than the delay the
+  proxy adds across the serial calls, even at 80ms, on a machine that was also serving
+  another Pixeltable project through the same daemon. At this noise the sweep cannot
+  size the boundary cost at all; the run before this one resolved both 80ms points, and
+  its numbers are in this file's history. The levels were interleaved within each
   of four rounds, and each run records its start time, host load and the corpus it
   started against, which grows by one ingest per run. In a deployment neither edge
   runtime can reach this laptop's `compute-service` at all, so their ingest numbers stay

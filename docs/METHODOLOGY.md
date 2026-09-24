@@ -21,11 +21,13 @@ processing completes. Paths differ per platform (Supabase serves under
 
 Every implementation uses the same models: `openai/clip-vit-base-patch32` for frames,
 `sentence-transformers/all-MiniLM-L6-v2` for transcripts, Whisper `base.en` for
-speech, and `Qwen2.5-1.5B-Instruct` for the agent. All local, each on its library's
-default device: MiniLM on MPS and CLIP and Whisper on CPU on both paths; Qwen on Metal
-through Pixeltable's `llama_cpp` UDF and on CPU through `compute-service`, whose
-`llama-cpp-python` offloads nothing unless asked. The agent timings carry that
-difference, and [device.json](device.json) measures it on its own. Same fixture videos, frame rate, chunk length and scene threshold.
+speech, and `Qwen2.5-1.5B-Instruct` for the agent. All local, on the same device on
+both paths: MiniLM on MPS, CLIP and Whisper on CPU, which is each library's default,
+and Qwen on Metal. For Qwen that is a choice rather than a default: Pixeltable's
+`llama_cpp` UDF offloads to the GPU whenever the build supports it, `llama-cpp-python`
+offloads nothing unless asked, and `compute-service` applies Pixeltable's rule so the
+agent is compared on one device. [device.json](device.json) measures what the device
+alone is worth. Same fixture videos, frame rate, chunk length and scene threshold.
 
 Not one substrate, though. Supabase's local stack is Docker, which on the measuring Mac
 is a Colima Linux VM, so its Edge Function reaches `compute-service` through
@@ -99,9 +101,14 @@ only that each video has at least one.
   (durations within 0.25s, top-1 similarities within 0.05, transcript overlap at
   least 80% - bounds fitted to two machines' ffmpeg/Whisper builds, recorded beside
   each constant), and known divergence (rank ordering below the top hit, the two
-  scene detectors).
+  scene detectors). One more divergence sits outside the suite because the contract
+  has no route that shows it: sampling at 1 fps, Pixeltable's `frame_iterator` can take
+  one frame more than ffmpeg's `fps` filter when a video runs just past a whole second,
+  so the same videos can index slightly different frame counts.
 - **Resilience** asserts a malformed request never draws a 5xx, and pins `limit`:
-  omitted is 10, `0` is no rows, past the corpus returns the corpus.
+  omitted is 10, `0` is no rows, past the corpus returns the corpus. That last one
+  holds on the 3-video corpus the suite runs on. Past 256 frames Convex returns 256,
+  the documented `vectorSearch` ceiling, which `convex/search.ts` clamps to.
 - **Recovery** is the only suite that writes, so it sits behind `--destructive` and
   the fixtures are re-seeded after. All three reject the four bad ingests and none
   lists the failure; Supabase and Convex leave a `status='error'` row they filter

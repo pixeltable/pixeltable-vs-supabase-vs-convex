@@ -20,7 +20,15 @@ dependencies = [
 ]
 
 [[tool.pixeltable.database]]
-# The local database. vars and secrets bind the config vars of a schema; a hosted database is
-# a second entry, named by its uri.
-# vars.media_dest = 's3://bucket/prefix'
-# secrets.openai_api_key = '...'
+# The local database: an entry with no name.
+
+[[tool.pixeltable.database]]
+# The hosted one, for docs/CLOUD.md. Sized like compute-service's Fargate task, so the
+# model work has the same compute on both sides; Whisper shells out to ffmpeg.
+name = 'pxt://pixeltable:comparison'
+system_dependencies = ['ffmpeg']
+cpu = 2.0
+memory_mb = 16384
+workers = 1
+# The docs also list location and region, fixed at creation; 0.7.10 rejects both, so the
+# database takes the platform's default placement and the harness records where it runs.

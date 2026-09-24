@@ -8,12 +8,18 @@
 // https://supabase.com/docs/guides/getting-started/ai-prompts/edge-functions
 
 const COMPUTE_SERVICE_URL = Deno.env.get("COMPUTE_SERVICE_URL") || "http://localhost:9000";
+// Set on a deployed project with `supabase secrets set`; unset locally, where the service
+// accepts any caller.
+const COMPUTE_SERVICE_TOKEN = Deno.env.get("COMPUTE_SERVICE_TOKEN");
 
-/** Call the external compute service. Deno cannot run ffmpeg, Whisper or CLIP itself. */
+/** Call the external compute service, which runs the ffmpeg and model work for this app. */
 export const compute = async (path: string, body: unknown) => {
   const resp = await fetch(`${COMPUTE_SERVICE_URL}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(COMPUTE_SERVICE_TOKEN ? { Authorization: `Bearer ${COMPUTE_SERVICE_TOKEN}` } : {}),
+    },
     body: JSON.stringify(body),
   });
   if (!resp.ok) throw new Error(`${path} failed: ${resp.status} ${await resp.text()}`);

@@ -22,27 +22,27 @@ model work, then the change. The difference is the work that scales with rows.
 
 | 23 videos | Control | Schema change | Backfill | Total | Lines written | Files touched |
 |---|---|---|---|---|---|---|
-| Pixeltable | 1.10s | 1.31s | same step | **1.31s** | **1** | **1** |
-| Supabase | 0.05s | 0.04s | 1.27s | **1.31s** | 24 | 2 |
-| Convex | 2.76s | 7.41s | 2.86s | 10.27s | 41 | 2 |
+| Pixeltable | 1.40s | 3.24s | same step | 3.24s | **1** | **1** |
+| Supabase | 0.06s | 0.25s | 1.42s | **1.67s** | 24 | 2 |
+| Convex | 4.29s | 8.87s | 3.59s | 12.46s | 41 | 2 |
 
 | 123 videos | Control | Schema change | Backfill | Total | Lines written | Files touched |
 |---|---|---|---|---|---|---|
-| Pixeltable | 1.08s | 4.38s | same step | 4.38s | **1** | **1** |
-| Supabase | 0.06s | 0.04s | 2.11s | **2.16s** | 24 | 2 |
-| Convex | 2.47s | 6.85s | 2.49s | 9.33s | 41 | 2 |
+| Pixeltable | 1.22s | 3.52s | same step | 3.52s | **1** | **1** |
+| Supabase | 0.06s | 0.04s | 2.03s | **2.08s** | 24 | 2 |
+| Convex | 3.30s | 8.74s | 4.31s | 13.05s | 41 | 2 |
 
 Controls: a `title_len` column for Pixeltable, an optional `titleTag` push for
 Convex, a plain `title_tag` text column for Supabase. What each adds beyond its
 control:
 
-- **Pixeltable:** 0.2s at 23 rows, 3.3s at 123 rows: the fused backfill and index
+- **Pixeltable:** 1.8s at 23 rows, 2.3s at 123 rows: the fused backfill and index
   build, the one schema step here that grows with the table.
 - **Supabase:** the DDL is metadata-only; the row-proportional work is the script,
-  1.3s at 23 rows and 2.1s at 123 rows.
-- **Convex:** the push costs 4.7s at 23 rows and 4.4s at 123 rows beyond its control,
-  flat, so registering the vector index is a fixed deployment cost. Its backfill action
-  did not grow between these two corpus sizes either.
+  1.4s at 23 rows and 2.0s at 123 rows.
+- **Convex:** the push costs 4.6s at 23 rows and 5.4s at 123 rows beyond its control,
+  close at both sizes, so registering the vector index is a fixed deployment cost; the
+  backfill action runs after it, as Supabase's script does.
 
 ### The same question asked the cheap way
 
@@ -52,10 +52,10 @@ already have:
 
 | | Corpus | Total | Lines written | Files touched |
 |---|---|---|---|---|
-| Convex, `vectorIndex` (semantic) | 23 | 10.27s | 41 | 2 |
-| | 123 | 9.33s | 41 | 2 |
-| Convex, `searchIndex` (lexical) | 23 | **2.92s** | **1** | **1** |
-| | 123 | **3.54s** | **1** | **1** |
+| Convex, `vectorIndex` (semantic) | 23 | 12.46s | 41 | 2 |
+| | 123 | 13.05s | 41 | 2 |
+| Convex, `searchIndex` (lexical) | 23 | **4.39s** | **1** | **1** |
+| | 123 | **3.41s** | **1** | **1** |
 
 Postgres's equivalent is a GIN index over `to_tsvector(title)`, Pixeltable's a
 `BtreeIndex`. Read the 24 and the 41 as the cost of semantic parity; the row that

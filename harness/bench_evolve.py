@@ -31,6 +31,7 @@ import argparse
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -91,11 +92,22 @@ def db_container() -> str:
 
 
 DB_CONTAINER = db_container()
+# The local backend's own port; 3211 is its HTTP-action proxy, which the harness calls.
+CONVEX_BACKEND_PORT = 3210
 
 
 def run(cmd: list[str], cwd: Path | None = None, env: dict | None = None, timeout: int = 1800) -> str:
+    # No stdin: a CLI that stops to ask a question must fail, not wait. `convex dev --once`
+    # asks whether to stop a backend still holding its port, and with the parent's stdin it
+    # waited out the full timeout instead of printing the refusal it gives without one.
     proc = subprocess.run(
-        cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout, env={**os.environ, **(env or {})}
+        cmd,
+        cwd=cwd,
+        stdin=subprocess.DEVNULL,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env={**os.environ, **(env or {})},
     )
     if proc.returncode != 0:
         raise RuntimeError(f'{" ".join(cmd[:4])}... failed:\n{proc.stdout[-600:]}\n{proc.stderr[-600:]}')
@@ -259,7 +271,15 @@ def _stop_convex_watcher() -> None:
     # The watcher supervises a separate convex-local-backend binary that keeps the port
     # after the watcher exits, and `--once` refuses to start while it holds one.
     subprocess.run(['pkill', '-f', 'convex-local-backend'], capture_output=True)
-    time.sleep(5)
+    # Wait for the port itself rather than a fixed pause: a backend that takes longer
+    # than the pause to exit is exactly the one `--once` then refuses to share with.
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        with socket.socket() as probe:
+            if probe.connect_ex(('127.0.0.1', CONVEX_BACKEND_PORT)) != 0:
+                return
+        time.sleep(0.5)
+    raise RuntimeError(f'a Convex backend still holds port {CONVEX_BACKEND_PORT} a minute after being stopped')
 
 
 def _start_convex_watcher(app: Path) -> None:
@@ -387,7 +407,7 @@ def main() -> int:
         print(f'recounted {OUT.relative_to(ROOT)}')
         return 0
 
-    results: dict = {'measured_at': datetime.now(UTC).isoformat(timespec='seconds')}
+    measured_at = datetime.now(UTC).isoformat(timespec='seconds')
     for name in wanted:
         print(f'--- {name} ---', flush=True)
         if name == 'supabase' and not args.supabase_token:
@@ -398,30 +418,34 @@ def main() -> int:
             'convex': evolve_convex,
             'convex-searchindex': evolve_convex_searchindex,
         }.get(name, lambda: evolve_supabase(args.supabase_token))()
-        results[name] = result
+        # Stamped and written per leg: a leg that fails must not discard the ones that
+        # finished, and a leg re-run alone must not make the others look freshly measured.
+        result['measured_at'] = measured_at
+        record(name, result)
         print(
             f'  schema {result["schema_change_sec"]}s + backfill {result["backfill_sec"]}s '
             f'= {result["total_sec"]}s, {result["lines_written"]} lines in {result["files_touched"]} file(s)',
             flush=True,
         )
-
-    # Keyed by implementation then corpus size, so runs at different corpus sizes
-    # accumulate instead of overwriting each other (same shape as benchmarks.json's
-    # tiers). A flat entry from before corpus_videos was recorded folds into the 23-video
-    # corpus the original run documented.
-    existing = json.loads(OUT.read_text()) if OUT.exists() else {}
-    for name, result in results.items():
-        if name == 'measured_at':
-            continue
-        entry = existing.get(name, {})
-        if 'schema_change_sec' in entry:
-            entry = {str(entry.get('corpus_videos') or 23): entry}
-        entry[str(result['corpus_videos'] or 'unknown')] = result
-        existing[name] = entry
-    existing['measured_at'] = results['measured_at']
-    OUT.write_text(json.dumps(existing, indent=2) + '\n')
-    print(f'wrote {OUT.relative_to(ROOT)}')
     return 0
+
+
+def record(name: str, result: dict) -> None:
+    """Merge one leg into docs/evolve.json, keyed by implementation then corpus size.
+
+    Runs at different corpus sizes accumulate instead of overwriting each other (same shape
+    as benchmarks.json's tiers). A flat entry from before corpus_videos was recorded folds
+    into the 23-video corpus the original run documented.
+    """
+    existing = json.loads(OUT.read_text()) if OUT.exists() else {}
+    entry = existing.get(name, {})
+    if 'schema_change_sec' in entry:
+        entry = {str(entry.get('corpus_videos') or 23): entry}
+    entry[str(result['corpus_videos'] or 'unknown')] = result
+    existing[name] = entry
+    existing['measured_at'] = result['measured_at']
+    OUT.write_text(json.dumps(existing, indent=2) + '\n')
+    print(f'  wrote {OUT.relative_to(ROOT)}', flush=True)
 
 
 if __name__ == '__main__':

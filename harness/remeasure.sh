@@ -2,6 +2,7 @@
 # Re-measure every timing artifact from empty stacks, in one sitting.
 #
 #     sh harness/remeasure.sh --reset
+#     sh harness/remeasure.sh --reset --from sweep     # resume a run that stopped
 #
 # Needs all three stacks and compute-service running as their READMEs describe, with
 # compute-service on :9000 started from compute-service/ as
@@ -26,6 +27,18 @@ if [ "${1:-}" != "--reset" ]; then
     echo 'refusing to run without --reset: this empties all three local corpora' >&2
     exit 2
 fi
+
+# Stages, in order: bench, device, evolve (at 123 videos), sweep, evolve23. --from skips
+# the stages before the one named, for a run that stopped partway; the corpus it resumes
+# on is whatever the stopped run left, which every artifact records beside its numbers.
+FROM=bench
+if [ "${2:-}" = "--from" ]; then
+    FROM=${3:?--from needs a stage: bench, device, evolve, sweep or evolve23}
+fi
+STAGES='bench device evolve sweep evolve23'
+case " $STAGES " in *" $FROM "*) ;; *) echo "unknown stage: $FROM" >&2; exit 2 ;; esac
+# True when STAGE comes at or after FROM.
+due() { echo "$STAGES" | awk -v from="$FROM" -v stage="$1" '{for (i = 1; i <= NF; i++) {if ($i == from) f = i; if ($i == stage) s = i}} END {exit !(s >= f)}'; }
 
 cd "$(dirname "$0")/.."
 SUPABASE=http://127.0.0.1:54321
@@ -83,29 +96,38 @@ bench() {
 }
 
 compute_on 9000
-reset_all
-seed small
-bench small --skip-ingest
-bench large
-bench xl
+PIXELTABLE=$(cd pixeltable && pxt service list 2>/dev/null | awk '/^media\/api/{print $2}')
+if due bench; then
+    reset_all
+    seed small
+    bench small --skip-ingest
+    bench large
+    bench xl
+fi
 
-stamp "agent generation per device"
-python3 harness/bench_device.py --impl convex --base-url "$CONVEX"
+if due device; then
+    stamp "agent generation per device"
+    python3 harness/bench_device.py --impl convex --base-url "$CONVEX"
+fi
 
-stamp "evolve at 123 videos"
-python3 harness/bench_evolve.py --supabase-token "$SECRET"
+if due evolve; then
+    stamp "evolve at 123 videos"
+    python3 harness/bench_evolve.py --supabase-token "$SECRET"
+fi
 
 # The proxy takes :9000, where both consumers already point, and forwards to :9100.
-compute_on 9100
-for round in 1 2 3 4; do
-    for level in 0 20 80; do
-        stamp "sweep round $round +${level}ms"
-        python3 harness/bench_roundtrip.py --impl supabase --base-url "$SUPABASE" --auth-token "$SECRET" \
-            --add-latency-ms "$level"
-        python3 harness/bench_roundtrip.py --impl convex --base-url "$CONVEX" --add-latency-ms "$level"
+if due sweep; then
+    compute_on 9100
+    for round in 1 2 3 4; do
+        for level in 0 20 80; do
+            stamp "sweep round $round +${level}ms"
+            python3 harness/bench_roundtrip.py --impl supabase --base-url "$SUPABASE" --auth-token "$SECRET" \
+                --add-latency-ms "$level"
+            python3 harness/bench_roundtrip.py --impl convex --base-url "$CONVEX" --add-latency-ms "$level"
+        done
     done
-done
-compute_on 9000
+    compute_on 9000
+fi
 
 reset_all
 seed small

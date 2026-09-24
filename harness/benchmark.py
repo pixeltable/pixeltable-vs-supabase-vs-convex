@@ -26,6 +26,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
 
@@ -35,6 +36,7 @@ from harness.seed import TIERS, video_ref, videos_for, wait_for_job  # noqa: E40
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'docs' / 'benchmarks.json'
+LOCAL_HOSTS = {'127.0.0.1', 'localhost', '::1'}
 TIMEOUT = 900.0
 
 # Pixeltable answers an ingest with a job to poll; Supabase and Convex answer when the
@@ -87,15 +89,18 @@ def versions() -> dict[str, str]:
 
 
 def service_env_versions() -> dict[str, str]:
-    """Versions in the interpreter the Pixeltable service runs under (the repo .venv).
+    """Versions in the interpreter the Pixeltable service actually runs under.
 
-    This harness runs under a different interpreter - the one that also runs
-    compute-service - so reporting only `versions()` would record the environment of
-    the two competitors' model work and 'not installed' for the platform whose
-    numbers it produced. Both are recorded; the labels say which is which.
+    The service is spawned by the pxt daemon, so its interpreter is the daemon's, which
+    `pxt health` reports. Reading a fixed path such as the repo's .venv recorded 0.7.8
+    while the service ran 0.7.10. This harness runs under yet another interpreter, the
+    one that also runs compute-service, so `versions()` alone would describe the two
+    competitors' model work. Both are recorded; the labels say which is which.
     """
-    venv_python = ROOT / '.venv' / 'bin' / 'python'
-    if not venv_python.exists():
+    try:
+        health = subprocess.run(['pxt', 'health'], capture_output=True, text=True, timeout=30)
+        python = json.loads(health.stdout)['python_executable']
+    except Exception:
         return {}
     code = (
         'import importlib.metadata as m, json\n'
@@ -105,8 +110,8 @@ def service_env_versions() -> dict[str, str]:
         f'print(json.dumps({{p: v(p) for p in {TRACKED_PACKAGES!r}}}))'
     )
     try:
-        out = subprocess.run([str(venv_python), '-c', code], capture_output=True, text=True, timeout=30)
-        return json.loads(out.stdout) if out.returncode == 0 else {}
+        out = subprocess.run([python, '-c', code], capture_output=True, text=True, timeout=30)
+        return {'python': python, **json.loads(out.stdout)} if out.returncode == 0 else {}
     except Exception:
         return {}
 
@@ -363,6 +368,12 @@ def main() -> int:
     )
     parser.add_argument('--skip-ingest', action='store_true', help='measure search only')
     parser.add_argument(
+        '--out',
+        type=Path,
+        default=OUT,
+        help='artifact to write; docs/cloud.json for a hosted run, so it never mixes with the local one',
+    )
+    parser.add_argument(
         '--workers', type=int, default=8, help='clients in flight for the concurrent-search measurement'
     )
     args = parser.parse_args()
@@ -392,7 +403,9 @@ def main() -> int:
         result['corpus'] = corpus(client, args.impl)
     result['host_load'] = {'before_1_5_15m': load_before, 'after_1_5_15m': [round(x, 2) for x in os.getloadavg()]}
 
-    existing = json.loads(OUT.read_text()) if OUT.exists() else {}
+    result['base_url'] = base_url
+    out = args.out.resolve()
+    existing = json.loads(out.read_text()) if out.exists() else {}
     # Rewritten every run rather than set once: a timing is only reproducible alongside
     # the library versions that produced it, and those move.
     existing['host'] = {
@@ -400,7 +413,9 @@ def main() -> int:
         'machine': platform.machine(),
         'python': platform.python_version(),
         'versions': versions(),
-        'service_env_versions': service_env_versions(),
+        # The local daemon's versions describe a local service only. A hosted one runs
+        # whatever its image holds, which this machine cannot read.
+        'service_env_versions': service_env_versions() if urlparse(base_url).hostname in LOCAL_HOSTS else {},
     }
     # Keyed by implementation then tier, so tiers accumulate instead of overwriting each
     # other. A flat entry from a single-tier run is migrated into its own tier first.
@@ -409,8 +424,8 @@ def main() -> int:
         entry = {entry['tier']: entry}
     entry[args.tier] = result
     existing[args.impl] = entry
-    OUT.write_text(json.dumps(existing, indent=2) + '\n')
-    print(f'wrote {OUT.relative_to(ROOT)}')
+    out.write_text(json.dumps(existing, indent=2) + '\n')
+    print(f'wrote {out}')
     return 0
 
 

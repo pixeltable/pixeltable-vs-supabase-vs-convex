@@ -28,8 +28,6 @@ from pixeltable.serving import FastAPIRouter
 
 TableModel = pxt.model_base()
 
-CATALOG = 'media'  # the catalog directory passed to `pxt schema update` / `pxt service update`
-
 VISUAL = clip.using(model_id='openai/clip-vit-base-patch32')
 SEMANTIC = sentence_transformer.using(model_id='sentence-transformers/all-MiniLM-L6-v2')
 # hosted: openai.embeddings.using(model='text-embedding-3-small')
@@ -41,19 +39,13 @@ CHUNK_SECONDS = 10.0
 # ---------------------------------------------------------------- the pipeline
 
 
-@pxt.udf
-def count_items(items: list) -> int:
-    """Length of a Json array. Stands in for pxtf.json.len()."""
-    return len(items)
-
-
 class Videos(TableModel, name='videos'):
     video: pxt.Video
     title: pxt.String
     audio = extract_audio(video, format='mp3')
     duration_sec = pxtf.video.get_duration(video)
     scenes = video.scene_detect_content(threshold=8.0)
-    scene_count = count_items(scenes)
+    scene_count = scenes.len()
 
 
 class Frames(TableModel, name='frames', base=Videos, iterator=frame_iterator(Videos.video, fps=FRAME_FPS)):
@@ -174,17 +166,17 @@ api.add_query_route(path='/search/transcripts', query=search_transcripts, method
 # fails to load: `A query over model 'Frames' cannot be serialized; bind it to a table
 # first`. A route is built before the models bind to tables, and `visual` and `spoken`
 # below are queries over `Frames` and `Chunks`. The table still does the work; only the
-# plumbing is manual.
+# plumbing is manual. The handler uses the model itself, which the service has bound to
+# whatever target it serves, so the same file runs against `media` or `pxt://org:db`.
 @api.post('/agent/query')
 def ask(question: str = Body(..., embed=True)) -> dict:
-    conversations = pxt.get_table(f'{CATALOG}.conversations')
     # `request_id` exists only so this handler can find the row it just wrote. A
     # declared insert route would return the computed outputs directly.
     request_id = str(uuid.uuid4())
-    conversations.insert([{'request_id': request_id, 'question': question}])
+    Conversations.insert([{'request_id': request_id, 'question': question}])
     row = (
-        conversations.where(conversations.request_id == request_id)
-        .select(answer=conversations.answer, visual=conversations.visual, spoken=conversations.spoken)
+        Conversations.where(Conversations.request_id == request_id)
+        .select(answer=Conversations.answer, visual=Conversations.visual, spoken=Conversations.spoken)
         .collect()[0]
     )
     return {'rows': [row]}

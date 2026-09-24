@@ -1,8 +1,8 @@
 {
   "pixeltable": {
     "name": "pixeltable",
-    "app_loc": 129,
-    "config_loc": 14,
+    "app_loc": 123,
+    "config_loc": 20,
     "app_files": 1,
     "languages": [
       "Python"
@@ -12,10 +12,10 @@
     "vector_indexes": 2,
     "foreign_keys": null,
     "db_triggers": null,
-    "orchestration_hops": 3,
+    "orchestration_hops": 2,
     "http_routes_written_by_hand": 1,
     "file_breakdown": {
-      "app.py": 129
+      "app.py": 123
     },
     "classified": {
       "runtimes_to_operate": [
@@ -29,7 +29,7 @@
   },
   "supabase": {
     "name": "supabase",
-    "app_loc": 302,
+    "app_loc": 306,
     "config_loc": 22,
     "app_files": 7,
     "languages": [
@@ -44,7 +44,7 @@
     "orchestration_hops": 13,
     "http_routes_written_by_hand": 5,
     "file_breakdown": {
-      "supabase/functions/_shared/client.ts": 31,
+      "supabase/functions/_shared/client.ts": 35,
       "supabase/functions/api/index.ts": 149,
       "supabase/migrations/001_schema.sql": 47,
       "supabase/migrations/002_search_functions.sql": 52,
@@ -66,7 +66,7 @@
   },
   "convex": {
     "name": "convex",
-    "app_loc": 425,
+    "app_loc": 426,
     "config_loc": 35,
     "app_files": 7,
     "languages": [
@@ -81,7 +81,7 @@
     "http_routes_written_by_hand": 5,
     "file_breakdown": {
       "convex/agent.ts": 33,
-      "convex/compute.ts": 10,
+      "convex/compute.ts": 11,
       "convex/http.ts": 90,
       "convex/ingest.ts": 61,
       "convex/schema.ts": 50,
@@ -102,9 +102,9 @@
   },
   "compute-service": {
     "name": "compute-service",
-    "app_loc": 253,
-    "config_loc": 17,
-    "app_files": 1,
+    "app_loc": 271,
+    "config_loc": 36,
+    "app_files": 2,
     "languages": [
       "Python"
     ],
@@ -116,7 +116,8 @@
     "orchestration_hops": null,
     "http_routes_written_by_hand": 7,
     "file_breakdown": {
-      "app.py": 253
+      "app.py": 262,
+      "prefetch.py": 9
     },
     "classified": {
       "runtimes_to_operate": [

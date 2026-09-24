@@ -59,8 +59,9 @@ SIMILARITY_TOLERANCE = 0.05
 # How different depends on the machine as well as the boundary: 1.0 overlap on one, 0.86
 # on a GitHub runner, for the same fixture and the same weights. Both were read with an
 # earlier set-intersection measure that scores same-order text no higher than the current
-# one, so they are lower bounds under it. Under the current measure the laptop reads 0.95
-# at worst. The bound covers both machines.
+# one, so they are lower bounds under it. Under the current measure, with compute-service
+# cutting chunks from decoded PCM as it now does, the laptop reads 1.0: the words match
+# and only casing differs. The bound covers both machines.
 # At 0.8 it still fails on what it is for: the wrong video transcribed, an empty
 # transcript, or the same text written to every chunk.
 TRANSCRIPT_MIN_OVERLAP = 0.8

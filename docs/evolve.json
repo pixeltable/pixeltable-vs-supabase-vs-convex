@@ -1,16 +1,16 @@
 {
-  "measured_at": "2026-09-24T03:35:44+00:00",
+  "measured_at": "2026-09-24T22:23:27+00:00",
   "pixeltable": {
     "23": {
-      "schema_change_sec": 1.31,
-      "control_sec": 1.1,
+      "schema_change_sec": 3.24,
+      "control_sec": 1.4,
       "backfill_sec": 0.0,
-      "total_sec": 1.31,
+      "total_sec": 3.24,
       "corpus_videos": 23,
       "host_load_1_5_15m": [
-        8.26,
-        9.84,
-        9.94
+        11.76,
+        11.41,
+        12.06
       ],
       "lines_written": 1,
       "files_touched": 1,
@@ -20,18 +20,19 @@
         "unchanged media/frames",
         "unchanged media/chunks",
         "unchanged media/conversations"
-      ]
+      ],
+      "measured_at": "2026-09-24T22:23:27+00:00"
     },
     "123": {
-      "schema_change_sec": 4.38,
-      "control_sec": 1.08,
+      "schema_change_sec": 3.52,
+      "control_sec": 1.22,
       "backfill_sec": 0.0,
-      "total_sec": 4.38,
+      "total_sec": 3.52,
       "corpus_videos": 123,
       "host_load_1_5_15m": [
-        13.09,
-        10.36,
-        9.96
+        9.62,
+        9.19,
+        10.11
       ],
       "lines_written": 1,
       "files_touched": 1,
@@ -41,58 +42,61 @@
         "unchanged media/frames",
         "unchanged media/chunks",
         "unchanged media/conversations"
-      ]
+      ],
+      "measured_at": "2026-09-24T21:45:01+00:00"
     }
   },
   "supabase": {
     "23": {
-      "schema_change_sec": 0.04,
-      "control_sec": 0.05,
-      "backfill_sec": 1.27,
-      "total_sec": 1.31,
+      "schema_change_sec": 0.25,
+      "control_sec": 0.06,
+      "backfill_sec": 1.42,
+      "total_sec": 1.67,
       "corpus_videos": 23,
       "host_load_1_5_15m": [
-        8.08,
-        9.77,
-        9.92
+        12.5,
+        11.57,
+        12.11
       ],
       "lines_written": 24,
       "files_touched": 2,
       "note": "ALTER TABLE is instant; the backfill reads, embeds and writes every row",
       "output": [
         "backfilled 23 rows"
-      ]
+      ],
+      "measured_at": "2026-09-24T22:23:27+00:00"
     },
     "123": {
       "schema_change_sec": 0.04,
       "control_sec": 0.06,
-      "backfill_sec": 2.11,
-      "total_sec": 2.16,
+      "backfill_sec": 2.03,
+      "total_sec": 2.08,
       "corpus_videos": 123,
       "host_load_1_5_15m": [
-        13.09,
-        10.36,
-        9.96
+        9.49,
+        9.17,
+        10.1
       ],
       "lines_written": 24,
       "files_touched": 2,
       "note": "ALTER TABLE is instant; the backfill reads, embeds and writes every row",
       "output": [
         "backfilled 123 rows"
-      ]
+      ],
+      "measured_at": "2026-09-24T21:45:01+00:00"
     }
   },
   "convex": {
     "23": {
-      "schema_change_sec": 7.41,
-      "control_sec": 2.76,
-      "backfill_sec": 2.86,
-      "total_sec": 10.27,
+      "schema_change_sec": 8.87,
+      "control_sec": 4.29,
+      "backfill_sec": 3.59,
+      "total_sec": 12.46,
       "corpus_videos": 23,
       "host_load_1_5_15m": [
-        7.32,
-        9.25,
-        9.71
+        8.68,
+        10.65,
+        11.73
       ],
       "lines_written": 41,
       "undo_lines_written": 13,
@@ -101,18 +105,19 @@
       "output": [
         "  \"backfilled\": 23",
         "}"
-      ]
+      ],
+      "measured_at": "2026-09-24T22:23:27+00:00"
     },
     "123": {
-      "schema_change_sec": 6.85,
-      "control_sec": 2.47,
-      "backfill_sec": 2.49,
-      "total_sec": 9.33,
+      "schema_change_sec": 8.74,
+      "control_sec": 3.3,
+      "backfill_sec": 4.31,
+      "total_sec": 13.05,
       "corpus_videos": 123,
       "host_load_1_5_15m": [
-        7.46,
-        9.25,
-        9.58
+        9.08,
+        9.12,
+        10.02
       ],
       "lines_written": 41,
       "undo_lines_written": 13,
@@ -121,43 +126,46 @@
       "output": [
         "  \"backfilled\": 123",
         "}"
-      ]
+      ],
+      "measured_at": "2026-09-24T21:45:01+00:00"
     }
   },
   "convex-searchindex": {
     "23": {
-      "schema_change_sec": 2.92,
+      "schema_change_sec": 4.39,
       "backfill_sec": 0.0,
-      "total_sec": 2.92,
+      "total_sec": 4.39,
       "corpus_videos": 23,
       "host_load_1_5_15m": [
-        6.06,
-        8.72,
-        9.5
+        7.72,
+        10.19,
+        11.51
       ],
       "lines_written": 1,
       "files_touched": 1,
       "note": "lexical, not semantic: searchIndex builds over an existing field, so no backfill",
       "output": [
         "no backfill step"
-      ]
+      ],
+      "measured_at": "2026-09-24T22:23:27+00:00"
     },
     "123": {
-      "schema_change_sec": 3.54,
+      "schema_change_sec": 3.41,
       "backfill_sec": 0.0,
-      "total_sec": 3.54,
+      "total_sec": 3.41,
       "corpus_videos": 123,
       "host_load_1_5_15m": [
-        6.06,
-        8.68,
-        9.35
+        8.07,
+        8.9,
+        9.9
       ],
       "lines_written": 1,
       "files_touched": 1,
       "note": "lexical, not semantic: searchIndex builds over an existing field, so no backfill",
       "output": [
         "no backfill step"
-      ]
+      ],
+      "measured_at": "2026-09-24T21:45:01+00:00"
     }
   }
 }

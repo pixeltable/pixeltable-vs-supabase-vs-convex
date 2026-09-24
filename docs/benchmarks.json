@@ -4,83 +4,84 @@
     "machine": "arm64",
     "python": "3.12.7",
     "versions": {
-      "pixeltable": "0.7.8",
+      "pixeltable": "0.7.10",
       "sentence-transformers": "5.7.0",
       "transformers": "4.57.6",
       "torch": "2.8.0",
       "openai-whisper": "20250625"
     },
     "service_env_versions": {
-      "pixeltable": "0.7.8",
+      "python": "/opt/miniconda3/bin/python",
+      "pixeltable": "0.7.10",
       "sentence-transformers": "5.7.0",
       "transformers": "4.57.6",
-      "torch": "2.14.0",
+      "torch": "2.8.0",
       "openai-whisper": "20250625"
     }
   },
   "pixeltable": {
     "large": {
       "tier": "large",
-      "measured_at": "2026-09-24T02:37:50+00:00",
+      "measured_at": "2026-09-24T20:43:38+00:00",
       "ingest": {
         "videos": 20,
         "ingested": 20,
         "video_source": "local_path",
         "failed_attempts": [],
         "seconds_of_video": 603.7,
-        "wall_sec": 77.4,
-        "first_video_sec": 4.5,
-        "median_video_sec": 3.5,
-        "realtime_factor": 7.8
+        "wall_sec": 96.2,
+        "first_video_sec": 6.1,
+        "median_video_sec": 4.7,
+        "realtime_factor": 6.28
       },
       "search": {
         "frames": {
           "samples": 30,
-          "p50_ms": 43.8,
-          "p95_ms": 48.7,
-          "min_ms": 38.9,
-          "max_ms": 49.0
+          "p50_ms": 53.4,
+          "p95_ms": 75.9,
+          "min_ms": 47.9,
+          "max_ms": 96.1
         },
         "transcripts": {
           "samples": 30,
-          "p50_ms": 18.6,
-          "p95_ms": 21.1,
-          "min_ms": 14.6,
-          "max_ms": 33.6
+          "p50_ms": 23.6,
+          "p95_ms": 33.5,
+          "min_ms": 16.8,
+          "max_ms": 223.9
         }
       },
       "agent": {
         "samples": 12,
-        "p50_ms": 281.2,
-        "p95_ms": 325.7,
-        "min_ms": 177.5,
-        "max_ms": 325.7,
+        "p50_ms": 297.5,
+        "p95_ms": 336.6,
+        "min_ms": 184.7,
+        "max_ms": 336.6,
         "failed": []
       },
       "read": {
         "list": {
           "samples": 6,
-          "p50_ms": 2.2,
-          "p95_ms": 3.1,
-          "min_ms": 2.1,
-          "max_ms": 3.1
+          "p50_ms": 4.4,
+          "p95_ms": 5.3,
+          "min_ms": 3.5,
+          "max_ms": 5.3
         },
         "frame_fetch": {
           "samples": 60,
-          "p50_ms": 0.6,
-          "p95_ms": 1.0,
-          "min_ms": 0.6,
-          "max_ms": 1.3
+          "p50_ms": 1.0,
+          "p95_ms": 2.8,
+          "min_ms": 0.7,
+          "max_ms": 5.3
         }
       },
       "load": {
         "workers": 8,
         "samples": 48,
         "wall_sec": 1.3,
-        "p50_ms": 119.0,
-        "p95_ms": 266.8,
-        "min_ms": 72.7,
-        "max_ms": 278.1
+        "p50_ms": 139.1,
+        "p95_ms": 269.4,
+        "min_ms": 66.5,
+        "max_ms": 276.1
       },
       "corpus": {
         "videos_listed": 23,
@@ -88,79 +89,79 @@
       },
       "host_load": {
         "before_1_5_15m": [
-          18.06,
-          11.91,
-          10.3
+          10.27,
+          10.82,
+          10.76
         ],
         "after_1_5_15m": [
-          10.29,
-          11.09,
-          10.15
+          13.14,
+          11.65,
+          11.08
         ]
       }
     },
     "xl": {
       "tier": "xl",
-      "measured_at": "2026-09-24T02:43:25+00:00",
+      "measured_at": "2026-09-24T20:47:34+00:00",
       "ingest": {
         "videos": 100,
         "ingested": 100,
         "video_source": "local_path",
         "failed_attempts": [],
         "seconds_of_video": 3778.3,
-        "wall_sec": 496.8,
-        "first_video_sec": 4.9,
-        "median_video_sec": 4.8,
-        "realtime_factor": 7.6
+        "wall_sec": 518.9,
+        "first_video_sec": 4.7,
+        "median_video_sec": 5.0,
+        "realtime_factor": 7.28
       },
       "search": {
         "frames": {
           "samples": 30,
-          "p50_ms": 54.5,
-          "p95_ms": 64.1,
+          "p50_ms": 50.4,
+          "p95_ms": 64.2,
           "min_ms": 44.8,
-          "max_ms": 65.0
+          "max_ms": 65.3
         },
         "transcripts": {
           "samples": 30,
-          "p50_ms": 20.8,
-          "p95_ms": 23.4,
-          "min_ms": 15.7,
-          "max_ms": 24.2
+          "p50_ms": 23.3,
+          "p95_ms": 45.5,
+          "min_ms": 16.9,
+          "max_ms": 71.2
         }
       },
       "agent": {
         "samples": 12,
-        "p50_ms": 530.5,
-        "p95_ms": 542.3,
-        "min_ms": 185.6,
-        "max_ms": 542.3,
+        "p50_ms": 376.5,
+        "p95_ms": 689.0,
+        "min_ms": 207.0,
+        "max_ms": 689.0,
         "failed": []
       },
       "read": {
         "list": {
           "samples": 6,
-          "p50_ms": 3.9,
-          "p95_ms": 5.5,
-          "min_ms": 3.6,
-          "max_ms": 5.5
+          "p50_ms": 4.4,
+          "p95_ms": 6.2,
+          "min_ms": 3.8,
+          "max_ms": 6.2
         },
         "frame_fetch": {
           "samples": 60,
-          "p50_ms": 0.6,
-          "p95_ms": 1.0,
-          "min_ms": 0.5,
-          "max_ms": 1.6
+          "p50_ms": 0.8,
+          "p95_ms": 1.3,
+          "min_ms": 0.6,
+          "max_ms": 1.7
         }
       },
       "load": {
         "workers": 8,
         "samples": 48,
-        "wall_sec": 1.3,
-        "p50_ms": 121.0,
-        "p95_ms": 189.0,
-        "min_ms": 64.4,
-        "max_ms": 210.5
+        "wall_sec": 2.2,
+        "p50_ms": 251.0,
+        "p95_ms": 609.5,
+        "min_ms": 128.3,
+        "max_ms": 637.4
       },
       "corpus": {
         "videos_listed": 123,
@@ -168,68 +169,68 @@
       },
       "host_load": {
         "before_1_5_15m": [
-          17.81,
-          14.31,
-          11.77
+          12.34,
+          12.53,
+          11.56
         ],
         "after_1_5_15m": [
-          7.36,
-          9.05,
-          10.06
+          9.44,
+          10.37,
+          10.85
         ]
       }
     },
     "small": {
       "tier": "small",
-      "measured_at": "2026-09-24T02:35:51+00:00",
+      "measured_at": "2026-09-24T20:43:10+00:00",
       "search": {
         "frames": {
           "samples": 30,
-          "p50_ms": 35.7,
-          "p95_ms": 39.0,
-          "min_ms": 32.7,
-          "max_ms": 39.7
+          "p50_ms": 40.1,
+          "p95_ms": 54.5,
+          "min_ms": 35.5,
+          "max_ms": 72.7
         },
         "transcripts": {
           "samples": 30,
-          "p50_ms": 19.3,
-          "p95_ms": 46.6,
-          "min_ms": 14.1,
-          "max_ms": 258.3
+          "p50_ms": 19.8,
+          "p95_ms": 52.6,
+          "min_ms": 15.1,
+          "max_ms": 53.3
         }
       },
       "agent": {
         "samples": 12,
-        "p50_ms": 242.3,
-        "p95_ms": 283.4,
-        "min_ms": 191.3,
-        "max_ms": 283.4,
+        "p50_ms": 302.4,
+        "p95_ms": 388.8,
+        "min_ms": 248.5,
+        "max_ms": 388.8,
         "failed": []
       },
       "read": {
         "list": {
           "samples": 6,
-          "p50_ms": 1.9,
-          "p95_ms": 2.0,
-          "min_ms": 1.6,
-          "max_ms": 2.0
+          "p50_ms": 5.4,
+          "p95_ms": 8.0,
+          "min_ms": 2.4,
+          "max_ms": 8.0
         },
         "frame_fetch": {
           "samples": 60,
-          "p50_ms": 0.6,
-          "p95_ms": 2.4,
-          "min_ms": 0.6,
-          "max_ms": 6.1
+          "p50_ms": 1.0,
+          "p95_ms": 2.9,
+          "min_ms": 0.7,
+          "max_ms": 15.9
         }
       },
       "load": {
         "workers": 8,
         "samples": 48,
-        "wall_sec": 1.2,
-        "p50_ms": 116.7,
-        "p95_ms": 175.7,
-        "min_ms": 79.3,
-        "max_ms": 201.7
+        "wall_sec": 1.6,
+        "p50_ms": 200.9,
+        "p95_ms": 332.6,
+        "min_ms": 92.5,
+        "max_ms": 342.0
       },
       "corpus": {
         "videos_listed": 3,
@@ -237,14 +238,14 @@
       },
       "host_load": {
         "before_1_5_15m": [
-          6.5,
-          7.55,
-          8.71
+          8.98,
+          10.64,
+          10.7
         ],
         "after_1_5_15m": [
-          6.22,
-          7.47,
-          8.68
+          9.84,
+          10.77,
+          10.74
         ]
       }
     }
@@ -252,66 +253,66 @@
   "convex": {
     "large": {
       "tier": "large",
-      "measured_at": "2026-09-24T02:41:31+00:00",
+      "measured_at": "2026-09-24T20:46:34+00:00",
       "ingest": {
         "videos": 20,
         "ingested": 20,
         "video_source": "local_path",
         "failed_attempts": [],
         "seconds_of_video": 603.7,
-        "wall_sec": 54.6,
-        "first_video_sec": 3.3,
-        "median_video_sec": 2.4,
-        "realtime_factor": 11.06
+        "wall_sec": 53.8,
+        "first_video_sec": 3.5,
+        "median_video_sec": 2.6,
+        "realtime_factor": 11.22
       },
       "search": {
         "frames": {
           "samples": 30,
-          "p50_ms": 33.3,
-          "p95_ms": 37.1,
-          "min_ms": 29.9,
-          "max_ms": 37.9
+          "p50_ms": 26.0,
+          "p95_ms": 32.3,
+          "min_ms": 22.0,
+          "max_ms": 33.0
         },
         "transcripts": {
           "samples": 30,
-          "p50_ms": 13.4,
-          "p95_ms": 18.6,
-          "min_ms": 12.5,
-          "max_ms": 18.7
+          "p50_ms": 13.3,
+          "p95_ms": 19.2,
+          "min_ms": 11.9,
+          "max_ms": 19.8
         }
       },
       "agent": {
         "samples": 12,
-        "p50_ms": 4439.2,
-        "p95_ms": 6340.3,
-        "min_ms": 191.9,
-        "max_ms": 6340.3,
+        "p50_ms": 241.6,
+        "p95_ms": 313.4,
+        "min_ms": 137.1,
+        "max_ms": 313.4,
         "failed": []
       },
       "read": {
         "list": {
           "samples": 6,
-          "p50_ms": 1.6,
+          "p50_ms": 2.4,
           "p95_ms": 4.9,
-          "min_ms": 1.5,
+          "min_ms": 1.8,
           "max_ms": 4.9
         },
         "frame_fetch": {
           "samples": 60,
           "p50_ms": 0.4,
-          "p95_ms": 0.8,
+          "p95_ms": 0.9,
           "min_ms": 0.3,
-          "max_ms": 2.0
+          "max_ms": 1.5
         }
       },
       "load": {
         "workers": 8,
         "samples": 48,
         "wall_sec": 0.8,
-        "p50_ms": 55.4,
-        "p95_ms": 69.2,
-        "min_ms": 30.1,
-        "max_ms": 89.8
+        "p50_ms": 58.9,
+        "p95_ms": 77.0,
+        "min_ms": 17.5,
+        "max_ms": 81.6
       },
       "corpus": {
         "videos_listed": 23,
@@ -319,136 +320,67 @@
       },
       "host_load": {
         "before_1_5_15m": [
-          18.36,
-          13.58,
-          11.24
+          17.26,
+          13.13,
+          11.68
         ],
         "after_1_5_15m": [
-          17.81,
-          14.31,
-          11.77
+          12.81,
+          12.62,
+          11.58
         ]
       }
     },
     "xl": {
       "tier": "xl",
-      "measured_at": "2026-09-24T02:57:00+00:00",
+      "measured_at": "2026-09-24T21:03:34+00:00",
       "ingest": {
         "videos": 100,
         "ingested": 100,
         "video_source": "local_path",
         "failed_attempts": [],
         "seconds_of_video": 3778.3,
-        "wall_sec": 263.6,
-        "first_video_sec": 2.9,
-        "median_video_sec": 2.6,
-        "realtime_factor": 14.33
+        "wall_sec": 279.2,
+        "first_video_sec": 3.0,
+        "median_video_sec": 2.7,
+        "realtime_factor": 13.53
       },
       "search": {
         "frames": {
           "samples": 30,
           "p50_ms": 29.9,
-          "p95_ms": 34.7,
-          "min_ms": 27.0,
+          "p95_ms": 36.0,
+          "min_ms": 25.4,
           "max_ms": 38.1
         },
         "transcripts": {
           "samples": 30,
-          "p50_ms": 12.9,
-          "p95_ms": 17.9,
-          "min_ms": 11.9,
-          "max_ms": 20.3
+          "p50_ms": 13.1,
+          "p95_ms": 19.8,
+          "min_ms": 12.4,
+          "max_ms": 20.0
         }
       },
       "agent": {
         "samples": 12,
-        "p50_ms": 3767.7,
-        "p95_ms": 4791.4,
-        "min_ms": 241.9,
-        "max_ms": 4791.4,
+        "p50_ms": 349.5,
+        "p95_ms": 646.4,
+        "min_ms": 155.6,
+        "max_ms": 646.4,
         "failed": []
       },
       "read": {
         "list": {
           "samples": 6,
-          "p50_ms": 2.1,
-          "p95_ms": 10.8,
-          "min_ms": 1.6,
-          "max_ms": 10.8
-        },
-        "frame_fetch": {
-          "samples": 60,
-          "p50_ms": 0.4,
-          "p95_ms": 0.8,
-          "min_ms": 0.3,
-          "max_ms": 1.9
-        }
-      },
-      "load": {
-        "workers": 8,
-        "samples": 48,
-        "wall_sec": 0.8,
-        "p50_ms": 57.2,
-        "p95_ms": 71.3,
-        "min_ms": 28.3,
-        "max_ms": 79.1
-      },
-      "corpus": {
-        "videos_listed": 123,
-        "seconds_listed": 4428.0
-      },
-      "host_load": {
-        "before_1_5_15m": [
-          13.86,
-          9.73,
-          9.88
-        ],
-        "after_1_5_15m": [
-          14.48,
-          10.52,
-          10.02
-        ]
-      }
-    },
-    "small": {
-      "tier": "small",
-      "measured_at": "2026-09-24T02:36:57+00:00",
-      "search": {
-        "frames": {
-          "samples": 30,
-          "p50_ms": 22.3,
-          "p95_ms": 31.7,
-          "min_ms": 18.6,
-          "max_ms": 32.5
-        },
-        "transcripts": {
-          "samples": 30,
-          "p50_ms": 12.6,
-          "p95_ms": 15.0,
-          "min_ms": 10.0,
-          "max_ms": 15.4
-        }
-      },
-      "agent": {
-        "samples": 12,
-        "p50_ms": 4036.0,
-        "p95_ms": 5287.1,
-        "min_ms": 177.9,
-        "max_ms": 5287.1,
-        "failed": []
-      },
-      "read": {
-        "list": {
-          "samples": 6,
-          "p50_ms": 2.0,
-          "p95_ms": 3.2,
+          "p50_ms": 2.3,
+          "p95_ms": 8.9,
           "min_ms": 1.8,
-          "max_ms": 3.2
+          "max_ms": 8.9
         },
         "frame_fetch": {
           "samples": 60,
           "p50_ms": 0.4,
-          "p95_ms": 0.7,
+          "p95_ms": 0.9,
           "min_ms": 0.3,
           "max_ms": 1.7
         }
@@ -456,173 +388,11 @@
       "load": {
         "workers": 8,
         "samples": 48,
-        "wall_sec": 0.7,
-        "p50_ms": 57.8,
-        "p95_ms": 97.1,
-        "min_ms": 39.6,
-        "max_ms": 99.1
-      },
-      "corpus": {
-        "videos_listed": 3,
-        "seconds_listed": 44.2
-      },
-      "host_load": {
-        "before_1_5_15m": [
-          17.56,
-          10.48,
-          9.72
-        ],
-        "after_1_5_15m": [
-          19.11,
-          12.01,
-          10.33
-        ]
-      }
-    }
-  },
-  "supabase": {
-    "large": {
-      "tier": "large",
-      "measured_at": "2026-09-24T02:39:16+00:00",
-      "ingest": {
-        "videos": 20,
-        "ingested": 20,
-        "video_source": "local_path",
-        "failed_attempts": [],
-        "seconds_of_video": 603.7,
-        "wall_sec": 55.4,
-        "first_video_sec": 4.3,
-        "median_video_sec": 2.4,
-        "realtime_factor": 10.9
-      },
-      "search": {
-        "frames": {
-          "samples": 30,
-          "p50_ms": 40.5,
-          "p95_ms": 64.6,
-          "min_ms": 29.9,
-          "max_ms": 70.3
-        },
-        "transcripts": {
-          "samples": 30,
-          "p50_ms": 21.9,
-          "p95_ms": 32.6,
-          "min_ms": 16.4,
-          "max_ms": 34.8
-        }
-      },
-      "agent": {
-        "samples": 12,
-        "p50_ms": 4520.6,
-        "p95_ms": 11354.8,
-        "min_ms": 225.6,
-        "max_ms": 11354.8,
-        "failed": []
-      },
-      "read": {
-        "list": {
-          "samples": 6,
-          "p50_ms": 7.0,
-          "p95_ms": 10.4,
-          "min_ms": 6.3,
-          "max_ms": 10.4
-        },
-        "frame_fetch": {
-          "samples": 60,
-          "p50_ms": 2.9,
-          "p95_ms": 9.7,
-          "min_ms": 2.2,
-          "max_ms": 18.9
-        }
-      },
-      "load": {
-        "workers": 8,
-        "samples": 48,
-        "wall_sec": 0.7,
-        "p50_ms": 61.0,
-        "p95_ms": 103.0,
-        "min_ms": 30.8,
-        "max_ms": 135.4
-      },
-      "corpus": {
-        "videos_listed": 23,
-        "seconds_listed": 648.2
-      },
-      "host_load": {
-        "before_1_5_15m": [
-          10.29,
-          11.09,
-          10.15
-        ],
-        "after_1_5_15m": [
-          18.36,
-          13.58,
-          11.24
-        ]
-      }
-    },
-    "xl": {
-      "tier": "xl",
-      "measured_at": "2026-09-24T02:51:56+00:00",
-      "ingest": {
-        "videos": 100,
-        "ingested": 100,
-        "video_source": "local_path",
-        "failed_attempts": [],
-        "seconds_of_video": 3778.3,
-        "wall_sec": 248.1,
-        "first_video_sec": 3.2,
-        "median_video_sec": 2.4,
-        "realtime_factor": 15.23
-      },
-      "search": {
-        "frames": {
-          "samples": 30,
-          "p50_ms": 32.9,
-          "p95_ms": 37.6,
-          "min_ms": 29.6,
-          "max_ms": 38.7
-        },
-        "transcripts": {
-          "samples": 30,
-          "p50_ms": 16.8,
-          "p95_ms": 19.9,
-          "min_ms": 16.1,
-          "max_ms": 20.0
-        }
-      },
-      "agent": {
-        "samples": 12,
-        "p50_ms": 3745.5,
-        "p95_ms": 4643.0,
-        "min_ms": 194.6,
-        "max_ms": 4643.0,
-        "failed": []
-      },
-      "read": {
-        "list": {
-          "samples": 6,
-          "p50_ms": 7.9,
-          "p95_ms": 10.6,
-          "min_ms": 6.5,
-          "max_ms": 10.6
-        },
-        "frame_fetch": {
-          "samples": 60,
-          "p50_ms": 2.8,
-          "p95_ms": 8.6,
-          "min_ms": 2.0,
-          "max_ms": 21.9
-        }
-      },
-      "load": {
-        "workers": 8,
-        "samples": 48,
         "wall_sec": 0.8,
-        "p50_ms": 52.6,
-        "p95_ms": 121.3,
-        "min_ms": 27.2,
-        "max_ms": 122.3
+        "p50_ms": 65.3,
+        "p95_ms": 82.1,
+        "min_ms": 25.7,
+        "max_ms": 92.2
       },
       "corpus": {
         "videos_listed": 123,
@@ -630,68 +400,68 @@
       },
       "host_load": {
         "before_1_5_15m": [
-          7.01,
-          8.95,
-          10.02
+          10.59,
+          13.51,
+          12.78
         ],
         "after_1_5_15m": [
-          13.86,
-          9.73,
-          9.88
+          8.32,
+          10.95,
+          11.87
         ]
       }
     },
     "small": {
       "tier": "small",
-      "measured_at": "2026-09-24T02:35:59+00:00",
+      "measured_at": "2026-09-24T20:43:31+00:00",
       "search": {
         "frames": {
           "samples": 30,
-          "p50_ms": 23.0,
-          "p95_ms": 25.8,
-          "min_ms": 20.7,
-          "max_ms": 30.1
+          "p50_ms": 28.3,
+          "p95_ms": 49.9,
+          "min_ms": 23.5,
+          "max_ms": 105.9
         },
         "transcripts": {
           "samples": 30,
-          "p50_ms": 15.9,
-          "p95_ms": 32.8,
-          "min_ms": 13.9,
-          "max_ms": 37.2
+          "p50_ms": 13.9,
+          "p95_ms": 17.9,
+          "min_ms": 12.7,
+          "max_ms": 18.4
         }
       },
       "agent": {
         "samples": 12,
-        "p50_ms": 4381.2,
-        "p95_ms": 5157.9,
-        "min_ms": 176.0,
-        "max_ms": 5157.9,
+        "p50_ms": 220.5,
+        "p95_ms": 349.7,
+        "min_ms": 154.3,
+        "max_ms": 349.7,
         "failed": []
       },
       "read": {
         "list": {
           "samples": 6,
-          "p50_ms": 4.1,
-          "p95_ms": 6.5,
-          "min_ms": 3.3,
-          "max_ms": 6.5
+          "p50_ms": 2.4,
+          "p95_ms": 2.7,
+          "min_ms": 2.0,
+          "max_ms": 2.7
         },
         "frame_fetch": {
           "samples": 60,
-          "p50_ms": 2.3,
-          "p95_ms": 3.6,
-          "min_ms": 1.8,
-          "max_ms": 12.8
+          "p50_ms": 0.5,
+          "p95_ms": 1.0,
+          "min_ms": 0.4,
+          "max_ms": 2.6
         }
       },
       "load": {
         "workers": 8,
         "samples": 48,
         "wall_sec": 0.8,
-        "p50_ms": 51.1,
-        "p95_ms": 100.1,
-        "min_ms": 24.3,
-        "max_ms": 109.7
+        "p50_ms": 66.2,
+        "p95_ms": 92.9,
+        "min_ms": 26.0,
+        "max_ms": 102.7
       },
       "corpus": {
         "videos_listed": 3,
@@ -699,14 +469,245 @@
       },
       "host_load": {
         "before_1_5_15m": [
-          6.22,
-          7.47,
-          8.68
+          10.38,
+          10.85,
+          10.77
         ],
         "after_1_5_15m": [
-          17.56,
-          10.48,
-          9.72
+          10.27,
+          10.82,
+          10.76
+        ]
+      }
+    }
+  },
+  "supabase": {
+    "large": {
+      "tier": "large",
+      "measured_at": "2026-09-24T20:45:24+00:00",
+      "ingest": {
+        "videos": 20,
+        "ingested": 20,
+        "video_source": "local_path",
+        "failed_attempts": [],
+        "seconds_of_video": 603.7,
+        "wall_sec": 60.0,
+        "first_video_sec": 3.5,
+        "median_video_sec": 2.8,
+        "realtime_factor": 10.05
+      },
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 28.9,
+          "p95_ms": 57.4,
+          "min_ms": 26.2,
+          "max_ms": 105.0
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 16.6,
+          "p95_ms": 19.7,
+          "min_ms": 15.6,
+          "max_ms": 20.2
+        }
+      },
+      "agent": {
+        "samples": 12,
+        "p50_ms": 242.7,
+        "p95_ms": 364.6,
+        "min_ms": 159.9,
+        "max_ms": 364.6,
+        "failed": []
+      },
+      "read": {
+        "list": {
+          "samples": 6,
+          "p50_ms": 6.4,
+          "p95_ms": 12.8,
+          "min_ms": 5.2,
+          "max_ms": 12.8
+        },
+        "frame_fetch": {
+          "samples": 60,
+          "p50_ms": 3.6,
+          "p95_ms": 12.4,
+          "min_ms": 2.8,
+          "max_ms": 39.4
+        }
+      },
+      "load": {
+        "workers": 8,
+        "samples": 48,
+        "wall_sec": 0.9,
+        "p50_ms": 69.1,
+        "p95_ms": 145.7,
+        "min_ms": 43.9,
+        "max_ms": 162.2
+      },
+      "corpus": {
+        "videos_listed": 23,
+        "seconds_listed": 648.2
+      },
+      "host_load": {
+        "before_1_5_15m": [
+          13.14,
+          11.65,
+          11.08
+        ],
+        "after_1_5_15m": [
+          17.26,
+          13.13,
+          11.68
+        ]
+      }
+    },
+    "xl": {
+      "tier": "xl",
+      "measured_at": "2026-09-24T20:56:31+00:00",
+      "ingest": {
+        "videos": 100,
+        "ingested": 100,
+        "video_source": "local_path",
+        "failed_attempts": [],
+        "seconds_of_video": 3778.3,
+        "wall_sec": 406.3,
+        "first_video_sec": 5.3,
+        "median_video_sec": 3.1,
+        "realtime_factor": 9.3
+      },
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 32.6,
+          "p95_ms": 39.1,
+          "min_ms": 27.3,
+          "max_ms": 39.8
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 16.4,
+          "p95_ms": 19.8,
+          "min_ms": 15.2,
+          "max_ms": 19.9
+        }
+      },
+      "agent": {
+        "samples": 12,
+        "p50_ms": 505.5,
+        "p95_ms": 2222.3,
+        "min_ms": 160.6,
+        "max_ms": 2222.3,
+        "failed": []
+      },
+      "read": {
+        "list": {
+          "samples": 6,
+          "p50_ms": 6.8,
+          "p95_ms": 8.2,
+          "min_ms": 5.0,
+          "max_ms": 8.2
+        },
+        "frame_fetch": {
+          "samples": 60,
+          "p50_ms": 2.5,
+          "p95_ms": 11.9,
+          "min_ms": 1.9,
+          "max_ms": 18.4
+        }
+      },
+      "load": {
+        "workers": 8,
+        "samples": 48,
+        "wall_sec": 0.8,
+        "p50_ms": 53.2,
+        "p95_ms": 96.4,
+        "min_ms": 28.9,
+        "max_ms": 105.8
+      },
+      "corpus": {
+        "videos_listed": 123,
+        "seconds_listed": 4428.0
+      },
+      "host_load": {
+        "before_1_5_15m": [
+          9.72,
+          10.42,
+          10.86
+        ],
+        "after_1_5_15m": [
+          10.59,
+          13.51,
+          12.78
+        ]
+      }
+    },
+    "small": {
+      "tier": "small",
+      "measured_at": "2026-09-24T20:43:21+00:00",
+      "search": {
+        "frames": {
+          "samples": 30,
+          "p50_ms": 34.1,
+          "p95_ms": 54.1,
+          "min_ms": 27.0,
+          "max_ms": 62.1
+        },
+        "transcripts": {
+          "samples": 30,
+          "p50_ms": 18.5,
+          "p95_ms": 41.9,
+          "min_ms": 15.7,
+          "max_ms": 126.2
+        }
+      },
+      "agent": {
+        "samples": 12,
+        "p50_ms": 280.4,
+        "p95_ms": 381.3,
+        "min_ms": 207.9,
+        "max_ms": 381.3,
+        "failed": []
+      },
+      "read": {
+        "list": {
+          "samples": 6,
+          "p50_ms": 23.7,
+          "p95_ms": 33.5,
+          "min_ms": 9.9,
+          "max_ms": 33.5
+        },
+        "frame_fetch": {
+          "samples": 60,
+          "p50_ms": 8.4,
+          "p95_ms": 23.7,
+          "min_ms": 5.0,
+          "max_ms": 73.2
+        }
+      },
+      "load": {
+        "workers": 8,
+        "samples": 48,
+        "wall_sec": 1.1,
+        "p50_ms": 104.6,
+        "p95_ms": 243.9,
+        "min_ms": 53.6,
+        "max_ms": 251.9
+      },
+      "corpus": {
+        "videos_listed": 3,
+        "seconds_listed": 44.2
+      },
+      "host_load": {
+        "before_1_5_15m": [
+          9.84,
+          10.77,
+          10.74
+        ],
+        "after_1_5_15m": [
+          10.38,
+          10.85,
+          10.77
         ]
       }
     }
