@@ -12,7 +12,7 @@ the row this contract cannot exercise. Judgments are marked as judgments.
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
 | App code you maintain | 123 | 306 | 426 |
-| Plus the shared compute service | 0 | 271 | 271 |
+| Plus the shared compute service | 0 | 278 | 278 |
 | Files you open to read the backend | 1 | 7 | 7 |
 | Services you operate | 1 | 2 | 2 |
 | Install to a running local stack | `pip install` + `pxt init`, heavy deps | Docker, 12 containers | `npx convex dev`, no account |

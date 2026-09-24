@@ -27,8 +27,26 @@ dependencies = [
 # model work has the same compute on both sides; Whisper shells out to ffmpeg.
 name = 'pxt://pixeltable:comparison'
 system_dependencies = ['ffmpeg']
+python_version = '3.12'
 cpu = 2.0
 memory_mb = 16384
 workers = 1
 # The docs also list location and region, fixed at creation; 0.7.10 rejects both, so the
 # database takes the platform's default placement and the harness records where it runs.
+
+# The hosted image is built from uv.lock. On Linux, CPU wheels for the two packages whose
+# default builds pull CUDA or compile from source: the same indexes compute-service's
+# Dockerfile installs from, so both sides run the same builds of the same models.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+llama-cpp-python = [{ index = "llama-cpp-cpu", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "llama-cpp-cpu"
+url = "https://abetlen.github.io/llama-cpp-python/whl/cpu"
+explicit = true

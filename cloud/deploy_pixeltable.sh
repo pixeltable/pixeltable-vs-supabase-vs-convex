@@ -11,6 +11,9 @@ set -eu
 : "${PXT_DB:?set PXT_DB=pxt://org:db}"
 cd "$(dirname "$0")/../pixeltable"
 
+# The image is built from the lockfile, which pxt uploads even though .gitignore keeps it
+# out of the repo; without one the image holds Pixeltable and none of the model libraries.
+uv lock
 pxt db update "$PXT_DB" -f
 pxt schema update app.py "$PXT_DB" -f
 pxt service update app.py "$PXT_DB" -f

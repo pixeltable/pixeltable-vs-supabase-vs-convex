@@ -86,6 +86,10 @@ def _get_whisper():
     return _whisper_model
 
 
+CHAT_REPO_ID = 'Qwen/Qwen2.5-1.5B-Instruct-GGUF'
+CHAT_FILENAME = '*q4_k_m.gguf'
+
+
 def _get_chat_model():
     global _chat_model
     with _lock:
@@ -96,8 +100,8 @@ def _get_chat_model():
             # none otherwise; the same rule here, so both run the agent on the same device.
             # llama-cpp-python's own default is 0 layers, CPU even on a Mac with Metal.
             _chat_model = Llama.from_pretrained(
-                repo_id='Qwen/Qwen2.5-1.5B-Instruct-GGUF',
-                filename='*q4_k_m.gguf',
+                repo_id=CHAT_REPO_ID,
+                filename=CHAT_FILENAME,
                 n_ctx=4096,
                 n_gpu_layers=-1 if llama_supports_gpu_offload() else 0,
                 verbose=False,

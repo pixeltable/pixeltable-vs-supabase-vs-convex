@@ -31,11 +31,13 @@ video as a URL under it, since no hosted runtime can read the harness's disk.
 
 ## Rules the measurement follows
 
-- **The same compute for the model work on both sides.** The Fargate task is 2 vCPU and
-  16 GB, x86_64, and the hosted Pixeltable database is given the same `cpu` and
-  `memory_mb`. Neither has a GPU, so the chat model runs on CPU on both, which
-  `compute-service` and Pixeltable's `llama_cpp` UDF each decide the same way: offload
-  when the build supports it.
+- **The same compute and the same builds for the model work on both sides.** The Fargate
+  task is 2 vCPU and 16 GB, x86_64, and the hosted Pixeltable database is given the same
+  `cpu` and `memory_mb`. Both install CPU wheels of torch and llama-cpp-python from the
+  same two indexes: the Dockerfile directly, and Pixeltable through `[tool.uv.sources]`,
+  since its image is built from `uv.lock`. Neither has a GPU, so the chat model runs on
+  CPU on both, which `compute-service` and Pixeltable's `llama_cpp` UDF each decide the
+  same way: offload when the build supports it.
 - **One region where the vendor lets us choose.** Fargate and the Supabase project go
   in `us-east-1`. Pixeltable's docs list a `region` for a new database, but 0.7.10
   rejects the field, so the database takes the platform's default placement; Convex takes
@@ -63,6 +65,21 @@ concurrent search, and the first ingest after deployment. Then two things the la
 cannot show: the deployment surface, counted as the resources each implementation had
 to provision (projects, functions, containers, buckets, secrets), and cost per video from
 each vendor's published pricing against the measured seconds and bytes.
+
+## Where it stands
+
+- **Fixtures:** published.
+- **Pixeltable:** `pxt db update` built the image from `uv.lock` and uploaded the
+  project, then left the database `FAILED`: its cluster had no node with room for a
+  2 CPU, 16 GB pod (`0/6 nodes are available: 3 Insufficient cpu, 3 Insufficient
+  memory`). The size is what the comparison needs, so the fix is capacity, not a
+  smaller database.
+- **compute-service:** every build step passes for `linux/amd64`, the model downloads
+  included; exporting the image failed here on a full local Docker disk. llama.cpp's
+  CPU kernels die with SIGILL under amd64 emulation on Apple silicon, so the build only
+  downloads the chat model, and the first time they run on x86 is on Fargate. Nothing is
+  deployed to AWS yet.
+- **Supabase, Convex:** waiting on account sign-in.
 
 ## Before it can run
 

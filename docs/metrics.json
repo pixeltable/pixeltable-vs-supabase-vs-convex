@@ -2,7 +2,7 @@
   "pixeltable": {
     "name": "pixeltable",
     "app_loc": 123,
-    "config_loc": 20,
+    "config_loc": 32,
     "app_files": 1,
     "languages": [
       "Python"
@@ -102,7 +102,7 @@
   },
   "compute-service": {
     "name": "compute-service",
-    "app_loc": 271,
+    "app_loc": 278,
     "config_loc": 36,
     "app_files": 2,
     "languages": [
@@ -116,8 +116,8 @@
     "orchestration_hops": null,
     "http_routes_written_by_hand": 7,
     "file_breakdown": {
-      "app.py": 262,
-      "prefetch.py": 9
+      "app.py": 264,
+      "prefetch.py": 14
     },
     "classified": {
       "runtimes_to_operate": [
