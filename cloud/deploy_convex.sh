@@ -1,20 +1,27 @@
 #!/bin/sh
-# convex-app to a production Convex deployment.
+# convex-app to its production Convex deployment.
 #
-#     CONVEX_DEPLOY_KEY=prod:... COMPUTE_SERVICE_URL=http://... COMPUTE_SERVICE_TOKEN=... \
-#         sh cloud/deploy_convex.sh
+#     COMPUTE_SERVICE_URL=http://... COMPUTE_SERVICE_TOKEN=... sh cloud/deploy_convex.sh
 #
-# The deploy key comes from the project's settings in the Convex dashboard, and selects
-# the deployment every command below acts on. It is used instead of `npx convex dev`,
-# which would rewrite convex-app/.env.local and point the local benchmark and CI at the
-# cloud. HTTP routes serve from the deployment's .convex.site URL, which `deploy` prints.
+# Needs `npx convex login`. The project and its production deployment were created once,
+# with the CLI:
+#
+#     npx convex project create platform-comparison
+#     npx convex deployment create TEAM:platform-comparison:production --type prod --default --region us
+#
+# CONVEX_DEPLOYMENT in the environment selects that deployment for `deploy`, and
+# `--deployment` does for `env`. Neither touches convex-app/.env.local, which keeps the
+# local benchmark and CI on the anonymous local deployment; `npx convex dev` against the
+# cloud project would rewrite it. HTTP routes serve from https://$CONVEX_PROD.convex.site.
 set -eu
-: "${CONVEX_DEPLOY_KEY:?set CONVEX_DEPLOY_KEY to the project production deploy key}"
+CONVEX_PROD=${CONVEX_PROD:-sleek-snake-473}
 : "${COMPUTE_SERVICE_URL:?set COMPUTE_SERVICE_URL to the deployed compute-service}"
 : "${COMPUTE_SERVICE_TOKEN:?set COMPUTE_SERVICE_TOKEN}"
 cd "$(dirname "$0")/../convex-app"
 
-npx convex deploy
-npx convex env set COMPUTE_SERVICE_URL "$COMPUTE_SERVICE_URL"
+# Before the code, so no deployed action ever runs without them.
+npx convex env set --deployment "$CONVEX_PROD" COMPUTE_SERVICE_URL "$COMPUTE_SERVICE_URL"
 # Over stdin, as Convex's CLI recommends for secrets.
-printf '%s' "$COMPUTE_SERVICE_TOKEN" | npx convex env set COMPUTE_SERVICE_TOKEN
+printf '%s' "$COMPUTE_SERVICE_TOKEN" | npx convex env set --deployment "$CONVEX_PROD" COMPUTE_SERVICE_TOKEN
+CONVEX_DEPLOYMENT="prod:$CONVEX_PROD" npx convex deploy
+echo "https://$CONVEX_PROD.convex.site"

@@ -13,7 +13,7 @@ published fixtures, and the rules the measurement follows.
 
 | | Pixeltable | Supabase | Convex |
 |---|---|---|---|
-| App | hosted database `pxt://pixeltable:comparison` | project, Edge Function `api` | production deployment |
+| App | hosted database `pxt://pixeltable:comparison` | project `platform-comparison`, Edge Function `api` | production deployment `sleek-snake-473` |
 | Model work | inside the database's own workers | `compute-service` on Fargate | `compute-service` on Fargate |
 | Media | the database's managed Media Store | Storage bucket `frames` | file storage |
 | Deploy | `cloud/deploy_pixeltable.sh` | `cloud/deploy_supabase.sh` | `cloud/deploy_convex.sh` |
@@ -38,10 +38,10 @@ video as a URL under it, since no hosted runtime can read the harness's disk.
   since its image is built from `uv.lock`. Neither has a GPU, so the chat model runs on
   CPU on both, which `compute-service` and Pixeltable's `llama_cpp` UDF each decide the
   same way: offload when the build supports it.
-- **One region where the vendor lets us choose.** Fargate and the Supabase project go
-  in `us-east-1`. Pixeltable's docs list a `region` for a new database, but 0.7.10
-  rejects the field, so the database takes the platform's default placement; Convex takes
-  its default too. Each is recorded with the run.
+- **One region where the vendor lets us choose.** Fargate, the Supabase project and the
+  Convex deployment are in `us-east-1`. Pixeltable's docs list a `region` for a new
+  database, but 0.7.10 rejects the field, so the database takes the platform's default
+  placement, which is recorded with the run.
 - **`compute-service` is authenticated.** Every endpoint checks
   `Authorization: Bearer $COMPUTE_SERVICE_TOKEN`, held in Secrets Manager for the task and
   as a secret on both consumers. It is plain HTTP on the task's public IP, because
@@ -79,7 +79,9 @@ each vendor's published pricing against the measured seconds and bytes.
   CPU kernels die with SIGILL under amd64 emulation on Apple silicon, so the build only
   downloads the chat model, and the first time they run on x86 is on Fargate. Nothing is
   deployed to AWS yet.
-- **Supabase, Convex:** waiting on account sign-in.
+- **Supabase:** project `platform-comparison` created in `us-east-1`; nothing deployed.
+- **Convex:** project `platform-comparison` and production deployment `sleek-snake-473`
+  created in US East (N. Virginia); nothing deployed.
 
 ## Before it can run
 
@@ -87,8 +89,8 @@ Accounts are yours to sign in to; the scripts assume a signed-in CLI.
 
 | Needs | For |
 |---|---|
-| `supabase login`, a project in `us-east-1`, its ref and database password | `deploy_supabase.sh` |
-| a Convex project created in the dashboard, and its production deploy key | `deploy_convex.sh` |
+| `supabase login` and the project's database password (ref `tujgsfbhxobyxhgoacsa`) | `deploy_supabase.sh` |
+| `npx convex login` (project and production deployment already created) | `deploy_convex.sh` |
 | the AWS CLI signed in, Docker able to build `linux/amd64` | `deploy_compute.sh` |
 | `PIXELTABLE_API_KEY` and the database's entry in `pixeltable/pyproject.toml` | `deploy_pixeltable.sh` |
 
