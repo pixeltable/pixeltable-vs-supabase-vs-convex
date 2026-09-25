@@ -78,11 +78,17 @@ each vendor's published pricing against the measured seconds and bytes.
 - **Supabase:** deployed to `tujgsfbhxobyxhgoacsa`: migrations, the `api` function and
   both secrets. The same one-video check passed, frame URLs on the project's public
   domain included, then the row and its stored frames were removed.
-- **Pixeltable:** the image builds from `uv.lock` and the project uploads, but the
-  database's pod never schedules. Pixeltable Cloud reported no node with room at 2 CPU and
-  16 GB, at 2 CPU and 8 GB, and at 1 CPU and 6 GB (`Insufficient cpu`, `Insufficient
-  memory`), so this is capacity, not configuration. `pyproject.toml` keeps the size that
-  matches the Fargate task.
+- **Pixeltable:** not running, and not for lack of capacity. The database was created at
+  2 CPU and 16 GB, which the control plane accepted because it checks against the largest
+  shared node's nominal 16 GB (`pixeltable_cloud/infra/capacity.py`). Karpenter adds the
+  daemonset and sidecar overhead and finds no instance that fits (`no instance type
+  satisfied resources {"cpu":"3110m","memory":"16882Mi"}`), so the pod never schedules.
+  Resizing cannot rescue it: an update that also carries a new image or project rolls the
+  pods at their current size and applies capacity only after that rollout succeeds
+  (`handlers/database.py`), so the stuck size is re-rolled each time. The scheduler's
+  `Insufficient cpu` that `pxt db status` shows describes the existing nodes, not why
+  Karpenter added none. The documented fix for a FAILED database is delete and recreate,
+  at a size that fits: 2 CPU and 8 GB does.
 
 ## Before it can run
 
