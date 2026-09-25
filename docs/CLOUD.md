@@ -32,8 +32,9 @@ video as a URL under it, since no hosted runtime can read the harness's disk.
 ## Rules the measurement follows
 
 - **The same compute and the same builds for the model work on both sides.** The Fargate
-  task is 2 vCPU and 16 GB, x86_64, and the hosted Pixeltable database is given the same
-  `cpu` and `memory_mb`. Both install CPU wheels of torch and llama-cpp-python from the
+  task is 2 vCPU and 8 GB, x86_64, and the hosted Pixeltable database is given the same
+  `cpu` and `memory_mb`. 8 GB rather than 16 because Pixeltable Cloud could not place a
+  16 GB pod; the models need about 3 GB on either side. Both install CPU wheels of torch and llama-cpp-python from the
   same two indexes: the Dockerfile directly, and Pixeltable through `[tool.uv.sources]`,
   since its image is built from `uv.lock`. Neither has a GPU, so the chat model runs on
   CPU on both, which `compute-service` and Pixeltable's `llama_cpp` UDF each decide the
@@ -69,19 +70,17 @@ each vendor's published pricing against the measured seconds and bytes.
 ## Where it stands
 
 - **Fixtures:** published.
-- **Pixeltable:** `pxt db update` built the image from `uv.lock` and uploaded the
-  project, then left the database `FAILED`: its cluster had no node with room for a
-  2 CPU, 16 GB pod (`0/6 nodes are available: 3 Insufficient cpu, 3 Insufficient
-  memory`). The size is what the comparison needs, so the fix is capacity, not a
-  smaller database.
-- **compute-service:** every build step passes for `linux/amd64`, the model downloads
-  included; exporting the image failed here on a full local Docker disk. llama.cpp's
-  CPU kernels die with SIGILL under amd64 emulation on Apple silicon, so the build only
-  downloads the chat model, and the first time they run on x86 is on Fargate. Nothing is
-  deployed to AWS yet.
-- **Supabase:** project `platform-comparison` created in `us-east-1`; nothing deployed.
-- **Convex:** project `platform-comparison` and production deployment `sleek-snake-473`
-  created in US East (N. Virginia); nothing deployed.
+- **compute-service:** running on Fargate, 2 vCPU and 8 GB, from an image CodeBuild built
+  on x86_64. The deploy's smoke test calls `/chat`, so llama.cpp's CPU kernels have run
+  there.
+- **Convex:** deployed to `sleek-snake-473`. One video went through end to end (ingest
+  from the fixtures URL, transcript search, a frame fetch), then the tables were emptied.
+- **Supabase:** project created; `deploy_supabase.sh` waits on the database password.
+- **Pixeltable:** the image builds from `uv.lock` and the project uploads, but the
+  database's pod never schedules. Pixeltable Cloud reported no node with room at 2 CPU and
+  16 GB, at 2 CPU and 8 GB, and at 1 CPU and 6 GB (`Insufficient cpu`, `Insufficient
+  memory`), so this is capacity, not configuration. `pyproject.toml` keeps the size that
+  matches the Fargate task.
 
 ## Before it can run
 
@@ -91,7 +90,7 @@ Accounts are yours to sign in to; the scripts assume a signed-in CLI.
 |---|---|
 | `supabase login` and the project's database password (ref `tujgsfbhxobyxhgoacsa`) | `deploy_supabase.sh` |
 | `npx convex login` (project and production deployment already created) | `deploy_convex.sh` |
-| the AWS CLI signed in, Docker able to build `linux/amd64` | `deploy_compute.sh` |
+| the AWS CLI signed in; CodeBuild builds the image, so no local Docker | `deploy_compute.sh` |
 | `PIXELTABLE_API_KEY` and the database's entry in `pixeltable/pyproject.toml` | `deploy_pixeltable.sh` |
 
 Order: deploy `compute-service` and note its URL, deploy the three apps with it, then run

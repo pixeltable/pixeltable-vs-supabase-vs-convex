@@ -24,12 +24,13 @@ dependencies = [
 
 [[tool.pixeltable.database]]
 # The hosted one, for docs/CLOUD.md. Sized like compute-service's Fargate task, so the
-# model work has the same compute on both sides; Whisper shells out to ffmpeg.
+# model work has the same compute on both sides: 8 GB because the platform could not
+# place a 16 GB pod, and the ~3 GB of models fit either. Whisper shells out to ffmpeg.
 name = 'pxt://pixeltable:comparison'
 system_dependencies = ['ffmpeg']
 python_version = '3.12'
 cpu = 2.0
-memory_mb = 16384
+memory_mb = 8192
 workers = 1
 # The docs also list location and region, fixed at creation; 0.7.10 rejects both, so the
 # database takes the platform's default placement and the harness records where it runs.

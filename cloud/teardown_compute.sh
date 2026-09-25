@@ -3,7 +3,7 @@
 #
 #     sh cloud/teardown_compute.sh
 #
-# The ECR repository and its image go too; a later deploy rebuilds them.
+# The ECR repository, its image and the CodeBuild project go too; a later deploy rebuilds them.
 set -u
 REGION=${AWS_REGION:-us-east-1}
 NAME=platform-comparison-compute
@@ -27,4 +27,11 @@ aws iam delete-role --role-name "$NAME-execution" 2>/dev/null
 aws secretsmanager delete-secret --secret-id "$NAME/token" --force-delete-without-recovery >/dev/null 2>&1
 aws logs delete-log-group --log-group-name "/ecs/$NAME" 2>/dev/null
 aws ecr delete-repository --repository-name "$NAME" --force >/dev/null 2>&1
+aws codebuild delete-project --name "$NAME" >/dev/null 2>&1
+aws iam delete-role-policy --role-name "$NAME-build" --policy-name build 2>/dev/null
+aws iam detach-role-policy --role-name "$NAME-build" \
+    --policy-arn arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser 2>/dev/null
+aws iam delete-role --role-name "$NAME-build" 2>/dev/null
+ACCOUNT=$(aws sts get-caller-identity --query Account)
+aws s3 rb "s3://$NAME-build-$ACCOUNT" --force >/dev/null 2>&1
 echo "removed $NAME from $REGION"
