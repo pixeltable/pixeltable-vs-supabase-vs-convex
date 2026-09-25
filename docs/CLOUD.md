@@ -70,9 +70,10 @@ each vendor's published pricing against the measured seconds and bytes.
 ## Where it stands
 
 - **Fixtures:** published.
-- **compute-service:** running on Fargate, 2 vCPU and 8 GB, from an image CodeBuild built
-  on x86_64. The deploy's smoke test calls `/chat`, so llama.cpp's CPU kernels have run
-  there.
+- **compute-service:** deployed on Fargate, 2 vCPU and 8 GB, from an image CodeBuild built
+  on x86_64; its smoke test calls `/chat`, so llama.cpp's CPU kernels have run there.
+  Paused (`cloud/pause_compute.sh`) until Pixeltable can run; `cloud/resume_compute.sh`
+  brings it back and points both consumers at its new address.
 - **Convex:** deployed to `sleek-snake-473`. One video went through end to end (ingest
   from the fixtures URL, transcript search, a frame fetch), then the tables were emptied.
 - **Supabase:** deployed to `tujgsfbhxobyxhgoacsa`: migrations, the `api` function and
