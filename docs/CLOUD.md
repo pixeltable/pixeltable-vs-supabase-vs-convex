@@ -88,7 +88,7 @@ Accounts are yours to sign in to; the scripts assume a signed-in CLI.
 | Needs | For |
 |---|---|
 | `supabase login`, a project in `us-east-1`, its ref and database password | `deploy_supabase.sh` |
-| `npx convex login`, then `npx convex dev` once to create the project | `deploy_convex.sh` |
+| a Convex project created in the dashboard, and its production deploy key | `deploy_convex.sh` |
 | the AWS CLI signed in, Docker able to build `linux/amd64` | `deploy_compute.sh` |
 | `PIXELTABLE_API_KEY` and the database's entry in `pixeltable/pyproject.toml` | `deploy_pixeltable.sh` |
 
