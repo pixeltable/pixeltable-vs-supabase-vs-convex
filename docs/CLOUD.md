@@ -75,7 +75,9 @@ each vendor's published pricing against the measured seconds and bytes.
   there.
 - **Convex:** deployed to `sleek-snake-473`. One video went through end to end (ingest
   from the fixtures URL, transcript search, a frame fetch), then the tables were emptied.
-- **Supabase:** project created; `deploy_supabase.sh` waits on the database password.
+- **Supabase:** deployed to `tujgsfbhxobyxhgoacsa`: migrations, the `api` function and
+  both secrets. The same one-video check passed, frame URLs on the project's public
+  domain included, then the row and its stored frames were removed.
 - **Pixeltable:** the image builds from `uv.lock` and the project uploads, but the
   database's pod never schedules. Pixeltable Cloud reported no node with room at 2 CPU and
   16 GB, at 2 CPU and 8 GB, and at 1 CPU and 6 GB (`Insufficient cpu`, `Insufficient
