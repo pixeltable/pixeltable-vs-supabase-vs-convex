@@ -19,9 +19,69 @@ SAMPLES = 300
 COLD_IDLE_MINUTES = 20
 COLD_PASSES = 3
 MIN_OCCUPANCY = 0.7  # the drain after the window closes lowers it; below this the client fell behind
-SECTIONS = {
-    'run': ('latency', 'reads', 'batch', 'load_c50', 'load_c100', 'media_decode', 'media_persist'),
-    'near': ('latency', 'reads'),
+# Every target a run must report, per section, whether it answered or failed. A target added to bench.py goes here
+# too, so a run that skips it fails instead of publishing without it.
+SERVED = (
+    'Cloudflare Workers',
+    'Cloudflare Workers (D1)',
+    'Convex',
+    'Modal',
+    'Modal Async (.spawn)',
+    'Neon Serverless PG',
+    'Pixeltable Compute Route',
+    'Pixeltable Compute Route (background=True)',
+    'Pixeltable Insert Route',
+    'Pixeltable Insert Route (background=True)',
+    'Prisma Postgres',
+    'Railway',
+    'Railway Postgres',
+    'Render',
+    'Render Postgres',
+    'Supabase PostgREST',
+    'Turso libSQL',
+    'Vercel',
+)
+DATABASES = (
+    'Cloudflare Workers (D1)',
+    'Convex',
+    'Neon Serverless PG',
+    'Prisma Postgres',
+    'Railway Postgres',
+    'Render Postgres',
+    'Supabase PostgREST',
+    'Turso libSQL',
+)
+# One cold target per deployment (aggregate.SHARES_DEPLOYMENT_WITH lists the routes that share one).
+COLD = tuple(
+    n
+    for n in SERVED
+    if n
+    not in (
+        'Modal Async (.spawn)',
+        'Pixeltable Compute Route (background=True)',
+        'Pixeltable Insert Route',
+        'Pixeltable Insert Route (background=True)',
+        'Cloudflare Workers (D1)',
+    )
+)
+EXPECTED = {
+    'run': {
+        'latency': SERVED,
+        'reads': (*DATABASES, 'Pixeltable Query Route'),
+        'batch': (*DATABASES, 'Pixeltable Python SDK'),
+        'load_c50': SERVED,
+        'load_c100': SERVED,
+        'media_decode': ('Modal', 'Railway', 'Render', 'Vercel'),
+        'media_persist': (
+            'Pixeltable Media Route',
+            'Pixeltable Media Route (background=True)',
+            'Railway + Postgres + object storage',
+            'Render + Postgres + object storage',
+        ),
+        'resilience': ('async_insert_c200', 'decompression_bomb', 'microburst_c350', 'sync_insert_c250'),
+    },
+    'near': {'latency': SERVED, 'reads': (*DATABASES, 'Pixeltable Query Route')},
+    'cold': {'cold': COLD},
 }
 
 
@@ -52,16 +112,15 @@ def main(day: Path) -> None:
         files = sorted(region_dir.glob('run-*.json')) + sorted(region_dir.glob('near-*.json'))
         if len(files) < 3:
             problems.append(f'{region}: {len(files)} runs, need 3')
-        names: dict[str, set[str]] = {}
         for f in files:
             d = json.loads(f.read_text())
             kind = f.name.split('-')[0]
             traffic.append((f'{region}/{f.name}', *span(f, d)))
-            for section in SECTIONS[kind]:
+            for section, expected in EXPECTED[kind].items():
                 rows = d.get(section, {})
-                if not rows:
-                    problems.append(f'{region}/{f.name}: no {section} results')
-                names.setdefault(section, set()).update(rows)
+                missing = set(expected) - set(rows)
+                if missing:
+                    problems.append(f'{region}/{f.name} {section}: no entry for {sorted(missing)}')
                 for name, row in rows.items():
                     if 'error' in row:
                         continue
@@ -79,18 +138,15 @@ def main(day: Path) -> None:
                         occupancy = busy / window / row['effective_concurrency']
                         if not MIN_OCCUPANCY <= occupancy <= row['seconds'] / window + 0.05:
                             problems.append(f'{region}/{f.name} {section} / {name}: {occupancy:.0%} of c in flight')
-        for f in files:
-            d = json.loads(f.read_text())
-            kind = f.name.split('-')[0]
-            for section in SECTIONS[kind]:
-                missing = names.get(section, set()) - set(d.get(section, {}))
-                if missing:
-                    problems.append(f'{region}/{f.name} {section}: no entry for {sorted(missing)}')
         region_colds = sorted(region_dir.glob('cold-*.json'))
         if len(region_colds) < COLD_PASSES:
             problems.append(f'{region}: {len(region_colds)} cold passes, need {COLD_PASSES}')
         for f in region_colds:
-            colds.append((f'{region}/{f.name}', *span(f, json.loads(f.read_text()))))
+            d = json.loads(f.read_text())
+            colds.append((f'{region}/{f.name}', *span(f, d)))
+            missing = set(EXPECTED['cold']['cold']) - set(d.get('cold', {}))
+            if missing:
+                problems.append(f'{region}/{f.name} cold: no entry for {sorted(missing)}')
     quiet = timedelta(minutes=COLD_IDLE_MINUTES)
     for label, start, end in colds:
         for other, begin, finish in traffic + colds:
