@@ -16,6 +16,12 @@ jobs:
       - run: pip install ruff==0.15.0   # pinned: formatting rules change between minors
       - run: ruff check pixeltable/ compute-service/ harness/ fixtures/ cloud-providers/bench.py cloud-providers/aggregate.py cloud-providers/validate.py
       - run: ruff format --check pixeltable/ compute-service/ harness/ fixtures/ cloud-providers/bench.py cloud-providers/aggregate.py cloud-providers/validate.py
+      - name: Committed cloud-providers results pass the method's checks
+        run: |
+          for day in cloud-providers/results/*/; do
+            case "$day" in *-set-aside/) continue ;; esac
+            python cloud-providers/validate.py "$day"
+          done
 
   contract:
     runs-on: ubuntu-latest

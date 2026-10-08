@@ -15,15 +15,16 @@ by the same rules, and every failure is published. Numbers live in `results/`, n
 | Latency | 5 untimed requests, then sequential requests on one kept-alive connection | 300 |
 | Point reads | one seeded row read by primary key | 300 |
 | Batch | 100 rows in one call | 5 calls |
-| Load c=50, c=100 | `c` connections warmed with `c` untimed requests, then `c` in flight for 15 s; throughput is successes over the time to the last completion | one window |
+| Load c=50, c=100 | `c` connections warmed with `c` untimed requests, then `c` in flight for 15 s; throughput is successes over the window, or to the last completion if later | one window |
 | Media | 20 videos at concurrency 5: decode only, or decode, store and insert a row | 20 videos |
-| Cold start | after 20 minutes with no traffic to any target, the first request on a new connection, then one on a second new connection | 1 |
+| Cold start | after 20 minutes with no traffic to any target, the first request on a new connection, then one on a second new connection; one route per deployment | 1 |
 | Resilience (Pixeltable only) | a c=350 microburst, c=250 synchronous inserts, c=200 background inserts, a decompression bomb | 250 to 500 |
 
 ## What makes two rows comparable
 
 - **One handler.** Every compute target serves the same function: read `{title, body}`, return
-  `title_upper` and `summary`, store nothing (`targets/fastapi/main.py` and its ports).
+  `title_upper` and `summary`, store nothing (`targets/fastapi/main.py` and its ports). Pixeltable's compute
+  route is the exception: it reads `title` and returns `title_upper` only (`targets/pixeltable/app.py`).
 - **One row.** Every database stores `docs(id, title, body)` (`targets/sql/schema.sql`; Convex: `targets/convex`).
 - **Warm connections.** HTTP and SQL targets both start every load window with open connections.
 - **Three runs, four hours apart.** A published number is the median of three runs; the charts show the
@@ -55,6 +56,23 @@ A target that failed in every run is published as failed, with its error. Vercel
 single client address under load, and Pixeltable's gateway limits one API key to about 100 requests a second
 per gateway pod: rows that hit either are labelled.
 
+## Known issues in the 2026-10-07 results
+
+- **Decode on Railway, Render and Modal used the first frame.** Their handlers call
+  `container.seek(500000, stream=stream)`, which PyAV reads in the stream's time base (1/90,000 s for the
+  fixture), so it seeks past the end of the 3.55 s clip and falls back to frame 0. Pixeltable decodes the frame at
+  0.5 s, which is more work. The deployed code is kept as it ran; convert 0.5 s through `stream.time_base` before
+  the next run.
+- **Older raw files overstate two things, and `aggregate.py` corrects both.** Vercel's c=50 rows divided their
+  successes by the time to the last success (about 10 s), while failures went on to the 15 s deadline. And three
+  cold rows (`Pixeltable Compute Route (background=True)`, `Pixeltable Insert Route`, `Cloudflare Workers (D1)`)
+  share a deployment with an earlier target in the pass, which had already woken it; they are dropped.
+
+## Deploying the targets
+
+The targets take unauthenticated writes and uploads, as the measured path does. Keep their URLs out of anything
+public, and delete the deployments, or turn their writes off, between runs.
+
 ## Not measured
 
 Global latency beyond the two client regions; Supabase's pause after a week idle and Turso's archive after
@@ -68,8 +86,9 @@ ten days; paid tiers other than those in the table; cost per request.
    on another version than the service skews the SDK batch test (0.7.14 for the published results).
 3. Copy this folder to `~/shootout` on both, pick a start time, and run
    `ROLE=us START_EPOCH=<unix time> ./remote_loop.sh` and `ROLE=eu START_EPOCH=<same time> ./remote_loop.sh`.
-4. Copy `results/` back, run `python validate.py results/<day>`, which checks sample counts, that every load
-   window kept its requests in flight and that every cold pass followed 20 silent minutes, then
+4. Copy `results/` back, run `python validate.py results/<day>`, which checks that every section is there, sample
+   counts, that every load window kept its requests in flight, and that every cold pass followed 20 minutes with
+   no traffic from either runner, other cold passes included (CI runs it on every committed day), then
    `python aggregate.py results/<day>/us-east-1` and the same for `eu-west-1`.
 
 `results/<day>/<region>/` holds one JSON file per run (`run-*`, `near-*`, `cold-*`) and the `aggregate.json`

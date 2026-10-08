@@ -2,6 +2,12 @@
 
 python aggregate.py results/2026-10-07/us-east-1
 python aggregate.py results/2026-10-07/eu-west-1    # near-*.json: latency and reads only
+
+Two corrections apply to runs recorded before bench.py fixed them, so the published numbers follow the method:
+- a load row's throughput is its successes over at least the load window. Workers keep sending until the window
+  closes, and older runs divided by the time to the last success, which overstates a target whose successes
+  stopped early while its failures went on;
+- a cold row is dropped when its target shares a deployment with an earlier cold target, which had already woken it.
 """
 
 import json
@@ -9,6 +15,22 @@ import statistics
 import sys
 from pathlib import Path
 from typing import Any
+
+# Cold targets that run on the same deployment as an earlier one in the cold pass (bench.py skips them).
+SHARES_DEPLOYMENT_WITH = {
+    'Pixeltable Compute Route (background=True)': 'Pixeltable Compute Route',
+    'Pixeltable Insert Route': 'Pixeltable Compute Route',
+    'Cloudflare Workers (D1)': 'Cloudflare Workers',
+}
+
+
+def correct_load_window(run: dict) -> None:
+    window = run.get('load_seconds', 15)
+    for section in ('load_c50', 'load_c100'):
+        for row in run.get(section, {}).values():
+            if 'error' not in row and row.get('seconds', window) < window:
+                row['seconds'] = window
+                row['throughput_rps'] = round(row['successful_requests'] / window, 2)
 
 
 def med(values):
@@ -57,6 +79,11 @@ def lat(key):
 def main(day: Path) -> None:
     runs = [json.loads(p.read_text()) for p in sorted(day.glob('run-*.json')) or sorted(day.glob('near-*.json'))]
     colds = [json.loads(p.read_text()) for p in sorted(day.glob('cold-*.json'))]
+    for run in runs:
+        correct_load_window(run)
+    for c in colds:
+        for name in SHARES_DEPLOYMENT_WITH:
+            c['cold'].pop(name, None)
     stat = {k: lat(k) for k in ('min_ms', 'p50_ms', 'mean_ms', 'p95_ms', 'p99_ms')}
     load = {
         'throughput_rps': lambda r: r.get('throughput_rps'),

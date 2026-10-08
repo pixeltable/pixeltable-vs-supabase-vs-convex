@@ -29,11 +29,12 @@ import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, NoReturn
 
 import aiohttp
 import asyncpg  # type: ignore[import-not-found, import-untyped, unused-ignore]
 import psycopg
+from aggregate import SHARES_DEPLOYMENT_WITH
 
 HERE = Path(__file__).resolve().parent
 VIDEO = (HERE / 'fixtures' / 'sample.mpg').read_bytes()
@@ -343,16 +344,18 @@ async def load(name, c):
             except Exception as e:  # noqa: BLE001
                 status = type(e).__name__
             t1 = time.perf_counter()
+            done_at.append(t1)
             if status == 'ok':
                 lat.append(t1 - t0)
-                done_at.append(t1)
             else:
                 errors[status] = errors.get(status, 0) + 1
 
     start = time.perf_counter()
     deadline = start + LOAD_SECONDS
     await asyncio.gather(*(worker(w) for w in range(width)))
-    span = (max(done_at) - start) if done_at else LOAD_SECONDS
+    # Failed attempts take time too, and workers keep sending until the deadline: successes over less than the
+    # window would overstate throughput.
+    span = max(max(done_at, default=start) - start, LOAD_SECONDS)
     if sql:
         if conns is not None:
             await asyncio.gather(*(conn.close() for conn in conns), return_exceptions=True)
@@ -516,21 +519,34 @@ async def batches():
     rows = lambda: [(key(), f't-{i}', 'b') for i in range(100)]  # noqa: E731
     out = {}
 
+    def failed() -> NoReturn:
+        raise RuntimeError('batch call failed')
+
     async def repeat(name, one_batch, warm=None):
+        # Only confirmed inserts are rated; a failed call is counted, never a zero-row sample.
+        rates, errors = [], []
         try:
             if warm:
                 await warm()
-            rates = []
-            for _ in range(5):
-                t0 = time.perf_counter()
-                n = await one_batch()
-                rates.append(n / (time.perf_counter() - t0))
-            out[name] = {
-                'reps_rows_per_sec': [round(r, 2) for r in rates],
-                'rows_per_sec': round(statistics.median(rates), 2),
-            }
         except Exception as e:  # noqa: BLE001
             out[name] = {'error': f'{type(e).__name__}: {e}'[:200]}
+            return
+        for _ in range(5):
+            t0 = time.perf_counter()
+            try:
+                n = await one_batch()
+            except Exception as e:  # noqa: BLE001
+                errors.append(f'{type(e).__name__}: {e}'[:200])
+                continue
+            rates.append(n / (time.perf_counter() - t0))
+        if not rates:
+            out[name] = {'error': errors[0]}
+            return
+        out[name] = {
+            'reps_rows_per_sec': [round(r, 2) for r in rates],
+            'rows_per_sec': round(statistics.median(rates), 2),
+            **({'failed_calls': len(errors)} if errors else {}),
+        }
 
     async with aiohttp.ClientSession() as s:
 
@@ -542,7 +558,7 @@ async def batches():
                 json={'query': f'INSERT INTO docs (id, title, body) VALUES {vals}'},
             ) as r:
                 await r.read()
-                return 100 if r.status == 200 else 0
+                return 100 if r.status == 200 else failed()
 
         async def turso():
             reqs = [
@@ -565,7 +581,7 @@ async def batches():
             }
             async with s.post(E['TURSO_ENDPOINT'], headers=turso_h(), json=body) as r:
                 await r.read()
-                return 100 if r.status == 200 else 0
+                return 100 if r.status == 200 else failed()
 
         async def supa():
             async with s.post(
@@ -574,7 +590,7 @@ async def batches():
                 json=[{'id': key(), 'title': f't-{i}', 'body': 'b'} for i in range(100)],
             ) as r:
                 await r.read()
-                return 100 if r.status in (200, 201) else 0
+                return 100 if r.status in (200, 201) else failed()
 
         async def convex():
             async with s.post(
@@ -586,7 +602,7 @@ async def batches():
                 },
             ) as r:
                 body = await r.json()
-                return 100 if body.get('status') == 'success' else 0
+                return 100 if body.get('status') == 'success' else failed()
 
         async def d1():
             async with s.post(
@@ -595,7 +611,7 @@ async def batches():
                 json={'docs': [{'title': f't-{i}', 'body': 'b'} for i in range(100)]},
             ) as r:
                 await r.read()
-                return 100 if r.status == 200 else 0
+                return 100 if r.status == 200 else failed()
 
         async def warm_get(url, h):
             async def go():
@@ -707,6 +723,12 @@ async def media_background(n=MEDIA_VIDEOS, c=5):
     errors: dict[str, int] = {}
 
     async def one(session, i):
+        try:
+            await submit_and_wait(session, i)
+        except Exception as e:  # noqa: BLE001
+            errors[type(e).__name__] = errors.get(type(e).__name__, 0) + 1
+
+    async def submit_and_wait(session, i):
         async with sem:
             form = aiohttp.FormData()
             form.add_field('clip', VIDEO, filename=f'a{i}.mpg', content_type='video/mpeg')
@@ -808,9 +830,14 @@ async def resilience():
     return out
 
 
+# A route that shares a deployment with an earlier cold target finds it awake, so only the first is a cold start.
 COLD_TARGETS = {
-    **{n: v for n, v in COMPUTE.items() if n != 'Modal Async (.spawn)'},
-    **{n: v for n, v in HTTP_WRITES.items() if 'background' not in n},
+    n: v
+    for n, v in {
+        **{n: v for n, v in COMPUTE.items() if n != 'Modal Async (.spawn)'},
+        **{n: v for n, v in HTTP_WRITES.items() if 'background' not in n},
+    }.items()
+    if n not in SHARES_DEPLOYMENT_WITH
 }
 
 
@@ -947,7 +974,8 @@ async def near():
 
 
 def save(name, data):
-    day = datetime.now(UTC).strftime('%Y-%m-%d')
+    # remote_loop.sh sets RESULTS_DAY so a cycle that crosses midnight keeps its runs and cold passes together.
+    day = os.environ.get('RESULTS_DAY') or datetime.now(UTC).strftime('%Y-%m-%d')
     region = data['client'].get('placement/region') or 'local'
     path = HERE / 'results' / day / region / f'{name}-{datetime.now(UTC).strftime("%H%M%S")}.json'
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -967,12 +995,15 @@ if __name__ == '__main__':
     elif mode == 'near':
         save('near', asyncio.run(near()))
     elif mode == 'cold':
+        started = datetime.now(UTC).isoformat(timespec='seconds')
+        measured = asyncio.run(cold())
         save(
             'cold',
             {
-                'started': datetime.now(UTC).isoformat(timespec='seconds'),
+                'started': started,
+                'finished': datetime.now(UTC).isoformat(timespec='seconds'),
                 'client': client_info(),
                 'idle_minutes': COLD_IDLE_MINUTES,
-                'cold': asyncio.run(cold()),
+                'cold': measured,
             },
         )

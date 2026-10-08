@@ -2098,33 +2098,33 @@
     },
     "Vercel": {
       "throughput_rps": {
-        "median": 1165.44,
-        "min": 1100.08,
-        "max": 1190.13,
+        "median": 772.53,
+        "min": 761.6,
+        "max": 818.27,
         "runs": 3
       },
       "error_rate": {
-        "median": 0.56,
+        "median": 0.58,
         "min": 0.55,
         "max": 0.58,
         "runs": 3
       },
       "requests": {
-        "median": 25977,
+        "median": 27350,
         "min": 25977,
         "max": 27363,
         "runs": 3
       },
       "successful_requests": {
-        "median": 11424,
+        "median": 11588,
         "min": 11424,
         "max": 12274,
         "runs": 3
       },
       "seconds": {
-        "median": 9.8,
-        "min": 9.74,
-        "max": 11.16,
+        "median": 15.0,
+        "min": 15.0,
+        "max": 15.0,
         "runs": 3
       },
       "effective_concurrency": {
@@ -2135,31 +2135,31 @@
       },
       "connections_refused_at_slot": null,
       "min_ms": {
-        "median": 7.25,
+        "median": 7.57,
         "min": 7.25,
         "max": 7.84,
         "runs": 3
       },
       "p50_ms": {
-        "median": 24.12,
+        "median": 23.94,
         "min": 23.94,
         "max": 25.3,
         "runs": 3
       },
       "mean_ms": {
-        "median": 42.53,
+        "median": 41.68,
         "min": 41.68,
         "max": 45.07,
         "runs": 3
       },
       "p95_ms": {
-        "median": 120.48,
+        "median": 120.44,
         "min": 119.58,
         "max": 120.48,
         "runs": 3
       },
       "p99_ms": {
-        "median": 137.4,
+        "median": 131.69,
         "min": 131.69,
         "max": 137.97,
         "runs": 3
@@ -3672,26 +3672,6 @@
         "runs": 3
       }
     },
-    "Cloudflare Workers (D1)": {
-      "first_request_ms": {
-        "median": 411.7,
-        "min": 173.6,
-        "max": 483.8,
-        "runs": 3
-      },
-      "fresh_connection_warm_ms": {
-        "median": 97.1,
-        "min": 84.1,
-        "max": 112.9,
-        "runs": 3
-      },
-      "wake_ms": {
-        "median": 298.8,
-        "min": 76.5,
-        "max": 399.7,
-        "runs": 3
-      }
-    },
     "Convex": {
       "first_request_ms": {
         "median": 168.3,
@@ -3769,46 +3749,6 @@
         "median": 229.6,
         "min": 143.0,
         "max": 308.0,
-        "runs": 3
-      }
-    },
-    "Pixeltable Compute Route (background=True)": {
-      "first_request_ms": {
-        "median": 11.6,
-        "min": 10.9,
-        "max": 326.1,
-        "runs": 3
-      },
-      "fresh_connection_warm_ms": {
-        "median": 9.5,
-        "min": 9.0,
-        "max": 13.3,
-        "runs": 3
-      },
-      "wake_ms": {
-        "median": 2.6,
-        "min": 1.4,
-        "max": 312.8,
-        "runs": 3
-      }
-    },
-    "Pixeltable Insert Route": {
-      "first_request_ms": {
-        "median": 76.0,
-        "min": 74.3,
-        "max": 81.7,
-        "runs": 3
-      },
-      "fresh_connection_warm_ms": {
-        "median": 72.1,
-        "min": 69.9,
-        "max": 80.2,
-        "runs": 3
-      },
-      "wake_ms": {
-        "median": 2.2,
-        "min": 1.5,
-        "max": 6.1,
         "runs": 3
       }
     },

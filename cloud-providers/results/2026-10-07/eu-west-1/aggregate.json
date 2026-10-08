@@ -937,26 +937,6 @@
         "runs": 3
       }
     },
-    "Cloudflare Workers (D1)": {
-      "first_request_ms": {
-        "median": 492.5,
-        "min": 453.9,
-        "max": 559.5,
-        "runs": 3
-      },
-      "fresh_connection_warm_ms": {
-        "median": 130.5,
-        "min": 130.4,
-        "max": 138.9,
-        "runs": 3
-      },
-      "wake_ms": {
-        "median": 362.1,
-        "min": 315.0,
-        "max": 429.0,
-        "runs": 3
-      }
-    },
     "Convex": {
       "first_request_ms": {
         "median": 462.3,
@@ -1034,46 +1014,6 @@
         "median": 148.2,
         "min": 52.0,
         "max": 270.7,
-        "runs": 3
-      }
-    },
-    "Pixeltable Compute Route (background=True)": {
-      "first_request_ms": {
-        "median": 279.5,
-        "min": 278.4,
-        "max": 282.1,
-        "runs": 3
-      },
-      "fresh_connection_warm_ms": {
-        "median": 281.6,
-        "min": 281.2,
-        "max": 282.5,
-        "runs": 3
-      },
-      "wake_ms": {
-        "median": -3.0,
-        "min": -3.2,
-        "max": 0.9,
-        "runs": 3
-      }
-    },
-    "Pixeltable Insert Route": {
-      "first_request_ms": {
-        "median": 345.2,
-        "min": 338.2,
-        "max": 575.1,
-        "runs": 3
-      },
-      "fresh_connection_warm_ms": {
-        "median": 345.1,
-        "min": 344.4,
-        "max": 346.0,
-        "runs": 3
-      },
-      "wake_ms": {
-        "median": -0.8,
-        "min": -6.9,
-        "max": 230.7,
         "runs": 3
       }
     },
