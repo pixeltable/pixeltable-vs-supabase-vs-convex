@@ -517,7 +517,7 @@ async def reads():
 async def batches():
     """100 rows in one call, 5 times per target, on a warmed connection."""
     rows = lambda: [(key(), f't-{i}', 'b') for i in range(100)]  # noqa: E731
-    out = {}
+    out: dict[str, Any] = {}
 
     def failed() -> NoReturn:
         raise RuntimeError('batch call failed')
