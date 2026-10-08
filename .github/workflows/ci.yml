@@ -14,8 +14,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install ruff==0.15.0   # pinned: formatting rules change between minors
-      - run: ruff check pixeltable/ compute-service/ harness/ fixtures/
-      - run: ruff format --check pixeltable/ compute-service/ harness/ fixtures/
+      - run: ruff check pixeltable/ compute-service/ harness/ fixtures/ cloud-providers/bench.py cloud-providers/aggregate.py cloud-providers/validate.py
+      - run: ruff format --check pixeltable/ compute-service/ harness/ fixtures/ cloud-providers/bench.py cloud-providers/aggregate.py cloud-providers/validate.py
 
   contract:
     runs-on: ubuntu-latest
