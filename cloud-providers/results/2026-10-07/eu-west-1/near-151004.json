@@ -1,0 +1,265 @@
+{
+  "started": "2026-10-07T14:56:25+00:00",
+  "client": {
+    "hostname": "ip-172-31-36-140.eu-west-1.compute.internal",
+    "python": "3.11.16",
+    "aiohttp": "3.14.4",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.14",
+    "placement/region": "eu-west-1",
+    "placement/availability-zone": "eu-west-1c",
+    "instance-type": "c5.xlarge"
+  },
+  "latency": {
+    "Cloudflare Workers": {
+      "count": 300,
+      "min_ms": 6.93,
+      "p50_ms": 9.61,
+      "mean_ms": 9.95,
+      "p95_ms": 13.25,
+      "p99_ms": 15.49,
+      "max_ms": 18.12,
+      "errors": 0
+    },
+    "Railway": {
+      "count": 300,
+      "min_ms": 165.04,
+      "p50_ms": 172.46,
+      "mean_ms": 196.55,
+      "p95_ms": 244.92,
+      "p99_ms": 248.72,
+      "max_ms": 312.88,
+      "errors": 0
+    },
+    "Render": {
+      "count": 300,
+      "min_ms": 99.65,
+      "p50_ms": 105.95,
+      "mean_ms": 106.49,
+      "p95_ms": 112.75,
+      "p99_ms": 119.38,
+      "max_ms": 193.14,
+      "errors": 0
+    },
+    "Vercel": {
+      "count": 300,
+      "min_ms": 80.87,
+      "p50_ms": 92.13,
+      "mean_ms": 93.86,
+      "p95_ms": 107.86,
+      "p99_ms": 140.49,
+      "max_ms": 183.54,
+      "errors": 0
+    },
+    "Modal": {
+      "count": 300,
+      "min_ms": 114.9,
+      "p50_ms": 125.12,
+      "mean_ms": 126.21,
+      "p95_ms": 136.03,
+      "p99_ms": 160.99,
+      "max_ms": 204.31,
+      "errors": 0
+    },
+    "Pixeltable Compute Route": {
+      "count": 300,
+      "min_ms": 103.37,
+      "p50_ms": 108.42,
+      "mean_ms": 109.01,
+      "p95_ms": 114.24,
+      "p99_ms": 131.76,
+      "max_ms": 165.94,
+      "errors": 0
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "count": 300,
+      "min_ms": 72.71,
+      "p50_ms": 73.75,
+      "mean_ms": 77.04,
+      "p95_ms": 88.56,
+      "p99_ms": 126.29,
+      "max_ms": 229.31,
+      "errors": 0
+    },
+    "Modal Async (.spawn)": {
+      "count": 300,
+      "min_ms": 166.78,
+      "p50_ms": 190.81,
+      "mean_ms": 193.44,
+      "p95_ms": 218.47,
+      "p99_ms": 240.7,
+      "max_ms": 298.71,
+      "errors": 0
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 70.72,
+      "p50_ms": 72.09,
+      "mean_ms": 77.35,
+      "p95_ms": 77.33,
+      "p99_ms": 287.17,
+      "max_ms": 694.44,
+      "errors": 0
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 85.03,
+      "p50_ms": 99.63,
+      "mean_ms": 106.7,
+      "p95_ms": 142.93,
+      "p99_ms": 165.62,
+      "max_ms": 513.67,
+      "errors": 0
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 86.18,
+      "p50_ms": 105.31,
+      "mean_ms": 122.88,
+      "p95_ms": 304.44,
+      "p99_ms": 320.9,
+      "max_ms": 328.08,
+      "errors": 0
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 106.75,
+      "p50_ms": 114.48,
+      "mean_ms": 118.4,
+      "p95_ms": 128.9,
+      "p99_ms": 198.57,
+      "max_ms": 561.27,
+      "errors": 0
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 105.62,
+      "p50_ms": 118.88,
+      "mean_ms": 141.36,
+      "p95_ms": 184.96,
+      "p99_ms": 553.99,
+      "max_ms": 994.5,
+      "errors": 0
+    },
+    "Pixeltable Insert Route": {
+      "count": 300,
+      "min_ms": 125.9,
+      "p50_ms": 132.29,
+      "mean_ms": 134.29,
+      "p95_ms": 147.41,
+      "p99_ms": 178.57,
+      "max_ms": 207.61,
+      "errors": 0
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "count": 300,
+      "min_ms": 72.67,
+      "p50_ms": 74.15,
+      "mean_ms": 82.12,
+      "p95_ms": 91.58,
+      "p99_ms": 129.05,
+      "max_ms": 1468.76,
+      "errors": 0
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 106.29,
+      "p50_ms": 107.93,
+      "mean_ms": 108.71,
+      "p95_ms": 111.3,
+      "p99_ms": 114.67,
+      "max_ms": 213.91
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 71.09,
+      "p50_ms": 71.44,
+      "mean_ms": 72.31,
+      "p95_ms": 73.29,
+      "p99_ms": 97.24,
+      "max_ms": 141.43
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  },
+  "reads": {
+    "Pixeltable Query Route": {
+      "count": 300,
+      "min_ms": 86.52,
+      "p50_ms": 89.84,
+      "mean_ms": 90.17,
+      "p95_ms": 92.6,
+      "p99_ms": 110.5,
+      "max_ms": 140.9
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 69.39,
+      "p50_ms": 69.75,
+      "mean_ms": 70.01,
+      "p95_ms": 70.46,
+      "p99_ms": 74.68,
+      "max_ms": 94.96
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 69.53,
+      "p50_ms": 70.36,
+      "mean_ms": 72.5,
+      "p95_ms": 80.12,
+      "p99_ms": 101.93,
+      "max_ms": 147.76
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 89.42,
+      "p50_ms": 109.84,
+      "mean_ms": 124.1,
+      "p95_ms": 307.04,
+      "p99_ms": 315.35,
+      "max_ms": 331.28
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 95.79,
+      "p50_ms": 101.32,
+      "mean_ms": 102.94,
+      "p95_ms": 110.65,
+      "p99_ms": 117.96,
+      "max_ms": 437.38
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 95.88,
+      "p50_ms": 104.0,
+      "mean_ms": 106.2,
+      "p95_ms": 118.07,
+      "p99_ms": 143.21,
+      "max_ms": 181.34
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 116.31,
+      "p50_ms": 116.78,
+      "mean_ms": 117.37,
+      "p95_ms": 118.61,
+      "p99_ms": 120.16,
+      "max_ms": 235.45
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 69.95,
+      "p50_ms": 70.21,
+      "mean_ms": 71.27,
+      "p95_ms": 74.36,
+      "p99_ms": 82.89,
+      "max_ms": 140.21
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  },
+  "finished": "2026-10-07T15:10:04+00:00"
+}

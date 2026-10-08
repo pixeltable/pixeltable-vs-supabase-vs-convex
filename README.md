@@ -161,6 +161,9 @@ OPENROUTER_API_KEY=sk-or-... python harness/bench_hosted.py --supabase-token $SE
 - [docs/EVOLVE.md](docs/EVOLVE.md): adding a column to live data, measured.
 - [docs/METHODOLOGY.md](docs/METHODOLOGY.md): what is measured and where this favours
   Pixeltable.
+- [cloud-providers/](cloud-providers/README.md): a separate benchmark of eleven cloud free plans
+  (latency, cold start, reads, writes, batch, load, media), with its harness, the code every target ran
+  and the raw results behind [pixeltable.com/compare/cloud-providers](https://www.pixeltable.com/compare/cloud-providers).
 
 ## Contributing
 

@@ -1,0 +1,3977 @@
+{
+  "runs": [
+    {
+      "started": "2026-10-07T14:04:25+00:00",
+      "finished": "2026-10-07T14:25:35+00:00",
+      "client": {
+        "hostname": "ip-172-31-10-96.ec2.internal",
+        "python": "3.11.16",
+        "aiohttp": "3.14.4",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.14",
+        "placement/region": "us-east-1",
+        "placement/availability-zone": "us-east-1a",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-07T18:04:25+00:00",
+      "finished": "2026-10-07T18:39:39+00:00",
+      "client": {
+        "hostname": "ip-172-31-10-96.ec2.internal",
+        "python": "3.11.16",
+        "aiohttp": "3.14.4",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.14",
+        "placement/region": "us-east-1",
+        "placement/availability-zone": "us-east-1a",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-07T22:04:25+00:00",
+      "finished": "2026-10-07T22:26:56+00:00",
+      "client": {
+        "hostname": "ip-172-31-10-96.ec2.internal",
+        "python": "3.11.16",
+        "aiohttp": "3.14.4",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.14",
+        "placement/region": "us-east-1",
+        "placement/availability-zone": "us-east-1a",
+        "instance-type": "c5.xlarge"
+      }
+    }
+  ],
+  "cold_runs": [
+    {
+      "started": "2026-10-08T00:45:25+00:00",
+      "idle_minutes": 20.0,
+      "client": {
+        "hostname": "ip-172-31-10-96.ec2.internal",
+        "python": "3.11.16",
+        "aiohttp": "3.14.4",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.14",
+        "placement/region": "us-east-1",
+        "placement/availability-zone": "us-east-1a",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-07T22:54:25+00:00",
+      "idle_minutes": 20.0,
+      "client": {
+        "hostname": "ip-172-31-10-96.ec2.internal",
+        "python": "3.11.16",
+        "aiohttp": "3.14.4",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.14",
+        "placement/region": "us-east-1",
+        "placement/availability-zone": "us-east-1a",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-07T23:55:25+00:00",
+      "idle_minutes": 20.0,
+      "client": {
+        "hostname": "ip-172-31-10-96.ec2.internal",
+        "python": "3.11.16",
+        "aiohttp": "3.14.4",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.14",
+        "placement/region": "us-east-1",
+        "placement/availability-zone": "us-east-1a",
+        "instance-type": "c5.xlarge"
+      }
+    }
+  ],
+  "latency": {
+    "Cloudflare Workers": {
+      "min_ms": {
+        "median": 69.63,
+        "min": 14.05,
+        "max": 253.32,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 72.57,
+        "min": 18.0,
+        "max": 1136.1,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 79.18,
+        "min": 19.4,
+        "max": 2826.02,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 93.37,
+        "min": 25.49,
+        "max": 8300.16,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 353.78,
+        "min": 38.15,
+        "max": 31501.72,
+        "runs": 3
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "min_ms": {
+        "median": 45.05,
+        "min": 33.73,
+        "max": 230.52,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 127.49,
+        "min": 40.32,
+        "max": 274.21,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 149.53,
+        "min": 45.15,
+        "max": 445.22,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 226.79,
+        "min": 56.97,
+        "max": 956.38,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 657.2,
+        "min": 153.79,
+        "max": 1776.62,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "min_ms": {
+        "median": 23.09,
+        "min": 20.82,
+        "max": 24.11,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 31.76,
+        "min": 27.57,
+        "max": 50.81,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 35.39,
+        "min": 30.83,
+        "max": 64.04,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 48.21,
+        "min": 36.55,
+        "max": 145.37,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 78.67,
+        "min": 50.5,
+        "max": 166.3,
+        "runs": 3
+      }
+    },
+    "Modal": {
+      "min_ms": {
+        "median": 67.52,
+        "min": 50.92,
+        "max": 95.89,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 85.01,
+        "min": 61.77,
+        "max": 125.68,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 160.5,
+        "min": 64.07,
+        "max": 188.65,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 225.53,
+        "min": 76.49,
+        "max": 358.67,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 244.88,
+        "min": 135.28,
+        "max": 471.71,
+        "runs": 3
+      }
+    },
+    "Modal Async (.spawn)": {
+      "min_ms": {
+        "median": 127.42,
+        "min": 101.72,
+        "max": 179.77,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 176.58,
+        "min": 121.89,
+        "max": 309.86,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 285.55,
+        "min": 126.03,
+        "max": 351.78,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 375.29,
+        "min": 145.86,
+        "max": 573.47,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 452.91,
+        "min": 185.53,
+        "max": 598.65,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "min_ms": {
+        "median": 2.58,
+        "min": 2.25,
+        "max": 3.84,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 3.75,
+        "min": 3.31,
+        "max": 5.38,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 3.89,
+        "min": 3.57,
+        "max": 5.99,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 4.97,
+        "min": 4.66,
+        "max": 9.65,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 7.75,
+        "min": 7.13,
+        "max": 15.54,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route": {
+      "min_ms": {
+        "median": 35.77,
+        "min": 33.52,
+        "max": 36.84,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 41.47,
+        "min": 38.98,
+        "max": 42.32,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 42.85,
+        "min": 38.92,
+        "max": 43.47,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 47.47,
+        "min": 42.7,
+        "max": 54.49,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 71.08,
+        "min": 45.59,
+        "max": 82.33,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "min_ms": {
+        "median": 4.91,
+        "min": 4.79,
+        "max": 4.97,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 7.8,
+        "min": 7.53,
+        "max": 8.05,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 9.87,
+        "min": 9.31,
+        "max": 9.99,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 25.17,
+        "min": 22.73,
+        "max": 25.24,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 35.3,
+        "min": 30.31,
+        "max": 38.37,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route": {
+      "min_ms": {
+        "median": 55.48,
+        "min": 55.24,
+        "max": 56.85,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 62.02,
+        "min": 59.57,
+        "max": 64.27,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 63.58,
+        "min": 61.27,
+        "max": 64.95,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 73.63,
+        "min": 71.97,
+        "max": 80.03,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 92.15,
+        "min": 89.96,
+        "max": 93.78,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "min_ms": {
+        "median": 4.33,
+        "min": 4.25,
+        "max": 4.36,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 5.23,
+        "min": 5.04,
+        "max": 5.58,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 6.04,
+        "min": 5.83,
+        "max": 6.26,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 9.27,
+        "min": 8.5,
+        "max": 9.34,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 15.01,
+        "min": 13.6,
+        "max": 16.78,
+        "runs": 3
+      }
+    },
+    "Prisma Postgres": {
+      "error": [
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+      ]
+    },
+    "Railway": {
+      "min_ms": {
+        "median": 84.02,
+        "min": 83.75,
+        "max": 84.12,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 86.75,
+        "min": 86.73,
+        "max": 87.15,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 100.08,
+        "min": 98.18,
+        "max": 105.05,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 159.01,
+        "min": 157.99,
+        "max": 160.62,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 165.65,
+        "min": 161.46,
+        "max": 166.58,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "min_ms": {
+        "median": 2.94,
+        "min": 2.24,
+        "max": 3.08,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 4.65,
+        "min": 3.28,
+        "max": 5.3,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 5.36,
+        "min": 3.98,
+        "max": 5.69,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 9.03,
+        "min": 7.51,
+        "max": 9.08,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 15.41,
+        "min": 10.55,
+        "max": 20.08,
+        "runs": 3
+      }
+    },
+    "Render": {
+      "min_ms": {
+        "median": 14.81,
+        "min": 13.92,
+        "max": 15.24,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 19.39,
+        "min": 18.72,
+        "max": 19.49,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 20.54,
+        "min": 19.53,
+        "max": 20.57,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 27.85,
+        "min": 26.91,
+        "max": 27.92,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 32.19,
+        "min": 29.81,
+        "max": 35.3,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "min_ms": {
+        "median": 3.35,
+        "min": 3.32,
+        "max": 3.85,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 3.76,
+        "min": 3.62,
+        "max": 4.19,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 4.66,
+        "min": 3.8,
+        "max": 5.94,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 7.06,
+        "min": 4.91,
+        "max": 7.15,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 11.38,
+        "min": 6.83,
+        "max": 70.25,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "min_ms": {
+        "median": 15.76,
+        "min": 14.54,
+        "max": 16.61,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 22.03,
+        "min": 19.97,
+        "max": 25.8,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 28.45,
+        "min": 22.76,
+        "max": 35.16,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 58.74,
+        "min": 40.07,
+        "max": 83.06,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 82.88,
+        "min": 54.81,
+        "max": 124.71,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "min_ms": {
+        "median": 17.44,
+        "min": 17.26,
+        "max": 20.76,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 26.15,
+        "min": 24.12,
+        "max": 52.43,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 31.01,
+        "min": 28.87,
+        "max": 56.5,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 49.29,
+        "min": 46.86,
+        "max": 96.47,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 87.69,
+        "min": 67.74,
+        "max": 128.62,
+        "runs": 3
+      }
+    },
+    "Vercel": {
+      "min_ms": {
+        "median": 10.64,
+        "min": 10.2,
+        "max": 10.91,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 23.07,
+        "min": 22.45,
+        "max": 24.12,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 26.11,
+        "min": 24.2,
+        "max": 26.28,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 40.85,
+        "min": 38.75,
+        "max": 42.8,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 53.39,
+        "min": 48.88,
+        "max": 70.34,
+        "runs": 3
+      }
+    }
+  },
+  "reads": {
+    "Cloudflare Workers (D1)": {
+      "min_ms": {
+        "median": 27.22,
+        "min": 25.91,
+        "max": 81.77,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 34.59,
+        "min": 34.35,
+        "max": 221.74,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 36.29,
+        "min": 36.09,
+        "max": 306.95,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 48.22,
+        "min": 45.37,
+        "max": 865.25,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 60.97,
+        "min": 54.88,
+        "max": 1276.71,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "min_ms": {
+        "median": 9.45,
+        "min": 8.8,
+        "max": 10.1,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 13.35,
+        "min": 10.98,
+        "max": 14.48,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 15.58,
+        "min": 11.19,
+        "max": 16.67,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 18.65,
+        "min": 13.27,
+        "max": 30.26,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 25.23,
+        "min": 19.54,
+        "max": 46.82,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "min_ms": {
+        "median": 3.21,
+        "min": 2.07,
+        "max": 3.3,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 3.59,
+        "min": 2.43,
+        "max": 3.6,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 3.78,
+        "min": 2.53,
+        "max": 3.91,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 4.47,
+        "min": 3.04,
+        "max": 5.02,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 7.53,
+        "min": 3.54,
+        "max": 12.39,
+        "runs": 3
+      }
+    },
+    "Pixeltable Query Route": {
+      "min_ms": {
+        "median": 17.09,
+        "min": 16.88,
+        "max": 18.28,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 22.36,
+        "min": 21.01,
+        "max": 22.64,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 58.01,
+        "min": 53.07,
+        "max": 60.07,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 207.46,
+        "min": 195.1,
+        "max": 208.93,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 350.33,
+        "min": 336.09,
+        "max": 365.48,
+        "runs": 3
+      }
+    },
+    "Prisma Postgres": {
+      "error": [
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+      ]
+    },
+    "Railway Postgres": {
+      "min_ms": {
+        "median": 1.83,
+        "min": 1.42,
+        "max": 2.14,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 2.13,
+        "min": 1.62,
+        "max": 2.4,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 2.21,
+        "min": 1.91,
+        "max": 2.47,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 2.74,
+        "min": 2.73,
+        "max": 3.41,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 4.65,
+        "min": 3.96,
+        "max": 5.27,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "min_ms": {
+        "median": 2.84,
+        "min": 1.99,
+        "max": 2.91,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 2.99,
+        "min": 2.18,
+        "max": 3.09,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 3.14,
+        "min": 2.49,
+        "max": 3.43,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 4.35,
+        "min": 3.97,
+        "max": 5.31,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 6.25,
+        "min": 5.69,
+        "max": 7.1,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "min_ms": {
+        "median": 18.83,
+        "min": 13.91,
+        "max": 19.48,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 23.66,
+        "min": 19.15,
+        "max": 26.36,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 25.46,
+        "min": 24.06,
+        "max": 31.6,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 44.92,
+        "min": 36.79,
+        "max": 64.14,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 62.12,
+        "min": 53.13,
+        "max": 72.87,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "min_ms": {
+        "median": 1.79,
+        "min": 1.79,
+        "max": 2.28,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 2.18,
+        "min": 2.04,
+        "max": 4.71,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 2.6,
+        "min": 2.34,
+        "max": 5.08,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 4.19,
+        "min": 4.01,
+        "max": 8.04,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 9.06,
+        "min": 5.18,
+        "max": 16.82,
+        "runs": 3
+      }
+    }
+  },
+  "batch": {
+    "Cloudflare Workers (D1)": {
+      "rows_per_sec": {
+        "median": 1157.51,
+        "min": 1102.86,
+        "max": 1164.98,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "rows_per_sec": {
+        "median": 317.09,
+        "min": 314.43,
+        "max": 336.83,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "rows_per_sec": {
+        "median": 1552.89,
+        "min": 1300.78,
+        "max": 2102.85,
+        "runs": 3
+      }
+    },
+    "Pixeltable Python SDK": {
+      "rows_per_sec": {
+        "median": 206.2,
+        "min": 103.63,
+        "max": 293.72,
+        "runs": 3
+      }
+    },
+    "Prisma Postgres": {
+      "error": [
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+      ]
+    },
+    "Railway Postgres": {
+      "rows_per_sec": {
+        "median": 542.92,
+        "min": 536.1,
+        "max": 575.65,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "rows_per_sec": {
+        "median": 2139.77,
+        "min": 1190.49,
+        "max": 4791.01,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "rows_per_sec": {
+        "median": 1132.92,
+        "min": 719.72,
+        "max": 1546.61,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "rows_per_sec": {
+        "median": 440.02,
+        "min": 233.88,
+        "max": 1994.03,
+        "runs": 3
+      }
+    }
+  },
+  "load_c50": {
+    "Cloudflare Workers": {
+      "throughput_rps": {
+        "median": 2455.96,
+        "min": 1882.47,
+        "max": 2791.5,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 40381,
+        "min": 28562,
+        "max": 42304,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 40381,
+        "min": 28562,
+        "max": 42304,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 16.44,
+        "min": 15.15,
+        "max": 16.44,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 5.4,
+        "min": 5.4,
+        "max": 11.36,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 13.61,
+        "min": 13.61,
+        "max": 19.33,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 18.66,
+        "min": 17.74,
+        "max": 26.29,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 24.29,
+        "min": 24.29,
+        "max": 88.19,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 204.17,
+        "min": 83.73,
+        "max": 204.17,
+        "runs": 3
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "throughput_rps": {
+        "median": 292.1,
+        "min": 224.99,
+        "max": 302.47,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 4613,
+        "min": 4600,
+        "max": 5319,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 4613,
+        "min": 4600,
+        "max": 5319,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.79,
+        "min": 15.21,
+        "max": 23.64,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 42.21,
+        "min": 42.21,
+        "max": 59.85,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 120.8,
+        "min": 94.5,
+        "max": 149.98,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 163.81,
+        "min": 143.64,
+        "max": 164.18,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 395.77,
+        "min": 309.15,
+        "max": 395.77,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 791.62,
+        "min": 634.46,
+        "max": 896.44,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "throughput_rps": {
+        "median": 1440.14,
+        "min": 1336.62,
+        "max": 1476.85,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 21654,
+        "min": 20111,
+        "max": 22221,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 21654,
+        "min": 20111,
+        "max": 22221,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.04,
+        "min": 15.04,
+        "max": 15.05,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 18.63,
+        "min": 18.56,
+        "max": 19.44,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 31.31,
+        "min": 31.28,
+        "max": 33.94,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 34.67,
+        "min": 33.79,
+        "max": 37.33,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 57.53,
+        "min": 50.47,
+        "max": 57.53,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 80.87,
+        "min": 68.98,
+        "max": 88.88,
+        "runs": 3
+      }
+    },
+    "Modal": {
+      "throughput_rps": {
+        "median": 328.62,
+        "min": 313.8,
+        "max": 339.52,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 5790,
+        "min": 5790,
+        "max": 5968,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 5790,
+        "min": 5790,
+        "max": 5968,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 17.62,
+        "min": 17.58,
+        "max": 18.61,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 39.24,
+        "min": 37.79,
+        "max": 41.09,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 72.77,
+        "min": 65.23,
+        "max": 72.77,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 131.18,
+        "min": 131.18,
+        "max": 134.16,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 314.28,
+        "min": 314.28,
+        "max": 399.16,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1069.89,
+        "min": 1067.83,
+        "max": 1166.78,
+        "runs": 3
+      }
+    },
+    "Modal Async (.spawn)": {
+      "throughput_rps": {
+        "median": 251.76,
+        "min": 237.95,
+        "max": 255.14,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 3887,
+        "min": 3754,
+        "max": 4067,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 3887,
+        "min": 3754,
+        "max": 4067,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.44,
+        "min": 15.44,
+        "max": 15.94,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 88.42,
+        "min": 78.34,
+        "max": 93.32,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 136.14,
+        "min": 130.47,
+        "max": 136.14,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 194.53,
+        "min": 186.32,
+        "max": 201.76,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 373.2,
+        "min": 373.2,
+        "max": 429.3,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 798.53,
+        "min": 798.53,
+        "max": 823.79,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "throughput_rps": {
+        "median": 3195.35,
+        "min": 3046.11,
+        "max": 3554.26,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 47956,
+        "min": 45720,
+        "max": 53338,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 47956,
+        "min": 45720,
+        "max": 53338,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.01,
+        "min": 15.01,
+        "max": 15.01,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 4.66,
+        "min": 3.88,
+        "max": 4.66,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 14.9,
+        "min": 10.02,
+        "max": 14.9,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 15.64,
+        "min": 14.06,
+        "max": 16.41,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 26.25,
+        "min": 26.25,
+        "max": 29.94,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 39.25,
+        "min": 39.25,
+        "max": 90.62,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route": {
+      "throughput_rps": {
+        "median": 93.24,
+        "min": 91.18,
+        "max": 93.57,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 1433,
+        "min": 1398,
+        "max": 1438,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 1433,
+        "min": 1398,
+        "max": 1438,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.37,
+        "min": 15.33,
+        "max": 15.37,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 180.11,
+        "min": 173.28,
+        "max": 201.99,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 432.89,
+        "min": 432.89,
+        "max": 449.11,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 530.35,
+        "min": 528.41,
+        "max": 542.62,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 1114.83,
+        "min": 1035.38,
+        "max": 1123.28,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1987.93,
+        "min": 1813.99,
+        "max": 1987.93,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "throughput_rps": {
+        "median": 126.14,
+        "min": 125.5,
+        "max": 126.23,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 1934,
+        "min": 1929,
+        "max": 1939,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 1934,
+        "min": 1929,
+        "max": 1939,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.33,
+        "min": 15.33,
+        "max": 15.37,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 60.08,
+        "min": 60.08,
+        "max": 93.91,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 395.21,
+        "min": 394.97,
+        "max": 395.21,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 392.32,
+        "min": 391.48,
+        "max": 393.79,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 440.1,
+        "min": 440.1,
+        "max": 460.53,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 461.0,
+        "min": 461.0,
+        "max": 672.97,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route": {
+      "throughput_rps": {
+        "median": 15.21,
+        "min": 15.09,
+        "max": 15.82,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 272,
+        "min": 270,
+        "max": 282,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 272,
+        "min": 270,
+        "max": 282,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 17.89,
+        "min": 17.83,
+        "max": 17.89,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 620.45,
+        "min": 551.72,
+        "max": 620.45,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 2568.08,
+        "min": 2520.48,
+        "max": 2610.84,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 2953.6,
+        "min": 2843.73,
+        "max": 2968.55,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 6368.91,
+        "min": 5916.68,
+        "max": 6368.91,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 8416.12,
+        "min": 7651.55,
+        "max": 8416.12,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "throughput_rps": {
+        "median": 197.31,
+        "min": 183.71,
+        "max": 198.73,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 3008,
+        "min": 2802,
+        "max": 3030,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 3008,
+        "min": 2802,
+        "max": 3030,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.25,
+        "min": 15.25,
+        "max": 15.25,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 20.78,
+        "min": 6.17,
+        "max": 31.66,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 249.75,
+        "min": 249.02,
+        "max": 249.75,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 251.35,
+        "min": 249.5,
+        "max": 269.83,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 253.83,
+        "min": 253.83,
+        "max": 344.56,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1593.57,
+        "min": 1482.06,
+        "max": 1969.09,
+        "runs": 3
+      }
+    },
+    "Prisma Postgres": {
+      "error": [
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+      ]
+    },
+    "Railway": {
+      "throughput_rps": {
+        "median": 564.72,
+        "min": 564.67,
+        "max": 569.31,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 8518,
+        "min": 8518,
+        "max": 8589,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 8518,
+        "min": 8518,
+        "max": 8589,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.08,
+        "min": 15.08,
+        "max": 15.16,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 82.71,
+        "min": 82.64,
+        "max": 82.79,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 86.04,
+        "min": 85.67,
+        "max": 86.09,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 88.27,
+        "min": 87.53,
+        "max": 88.27,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 97.78,
+        "min": 95.76,
+        "max": 97.78,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 127.62,
+        "min": 127.62,
+        "max": 130.7,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "throughput_rps": {
+        "median": 2358.17,
+        "min": 2236.33,
+        "max": 2638.51,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 35414,
+        "min": 33562,
+        "max": 39622,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 35414,
+        "min": 33562,
+        "max": 39622,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.02,
+        "min": 15.01,
+        "max": 15.02,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 2.1,
+        "min": 2.07,
+        "max": 2.28,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 5.12,
+        "min": 5.12,
+        "max": 5.58,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 21.19,
+        "min": 18.94,
+        "max": 22.35,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 83.93,
+        "min": 78.05,
+        "max": 85.18,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 110.97,
+        "min": 101.81,
+        "max": 168.34,
+        "runs": 3
+      }
+    },
+    "Render": {
+      "throughput_rps": {
+        "median": 158.87,
+        "min": 150.36,
+        "max": 162.55,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 2431,
+        "min": 2300,
+        "max": 2472,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 2431,
+        "min": 2300,
+        "max": 2472,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.3,
+        "min": 15.21,
+        "max": 15.3,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 18.94,
+        "min": 18.94,
+        "max": 94.04,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 300.92,
+        "min": 300.03,
+        "max": 303.54,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 311.84,
+        "min": 305.98,
+        "max": 330.36,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 408.01,
+        "min": 402.89,
+        "max": 412.21,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 510.85,
+        "min": 501.58,
+        "max": 599.8,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "throughput_rps": {
+        "median": 367.81,
+        "min": 338.56,
+        "max": 374.42,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 5590,
+        "min": 5147,
+        "max": 5618,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 5590,
+        "min": 5147,
+        "max": 5618,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.2,
+        "min": 15.0,
+        "max": 15.2,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 2.45,
+        "min": 2.45,
+        "max": 2.76,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 102.77,
+        "min": 102.02,
+        "max": 104.4,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 135.22,
+        "min": 133.49,
+        "max": 146.93,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 297.29,
+        "min": 296.56,
+        "max": 300.07,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 397.14,
+        "min": 397.14,
+        "max": 400.39,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "throughput_rps": {
+        "median": 933.03,
+        "min": 928.68,
+        "max": 939.6,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 14040,
+        "min": 14040,
+        "max": 14140,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 14040,
+        "min": 14040,
+        "max": 14140,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.05,
+        "min": 15.05,
+        "max": 15.15,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 15.66,
+        "min": 14.75,
+        "max": 15.66,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 45.17,
+        "min": 43.91,
+        "max": 45.17,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 53.46,
+        "min": 53.08,
+        "max": 53.46,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 92.69,
+        "min": 92.69,
+        "max": 99.64,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 249.57,
+        "min": 201.25,
+        "max": 249.57,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "throughput_rps": {
+        "median": 37.86,
+        "min": 15.73,
+        "max": 42.33,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 613,
+        "min": 270,
+        "max": 679,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 613,
+        "min": 270,
+        "max": 679,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 16.19,
+        "min": 16.04,
+        "max": 17.17,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 38.03,
+        "min": 30.86,
+        "max": 47.56,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 1303.74,
+        "min": 1165.95,
+        "max": 3249.19,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 1268.26,
+        "min": 1142.51,
+        "max": 2989.36,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 1692.22,
+        "min": 1321.96,
+        "max": 3978.33,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1819.73,
+        "min": 1356.73,
+        "max": 4058.81,
+        "runs": 3
+      }
+    },
+    "Vercel": {
+      "throughput_rps": {
+        "median": 772.53,
+        "min": 761.6,
+        "max": 818.27,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.58,
+        "min": 0.55,
+        "max": 0.58,
+        "runs": 3
+      },
+      "requests": {
+        "median": 27350,
+        "min": 25977,
+        "max": 27363,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 11588,
+        "min": 11424,
+        "max": 12274,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.0,
+        "min": 15.0,
+        "max": 15.0,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 50,
+        "min": 50,
+        "max": 50,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 7.57,
+        "min": 7.25,
+        "max": 7.84,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 23.94,
+        "min": 23.94,
+        "max": 25.3,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 41.68,
+        "min": 41.68,
+        "max": 45.07,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 120.44,
+        "min": 119.58,
+        "max": 120.48,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 131.69,
+        "min": 131.69,
+        "max": 137.97,
+        "runs": 3
+      },
+      "errors_all_runs": {
+        "http_403": 35524,
+        "ClientOSError": 33,
+        "ServerDisconnectedError": 117,
+        "ClientConnectorError": 9730
+      }
+    }
+  },
+  "load_c100": {
+    "Cloudflare Workers": {
+      "throughput_rps": {
+        "median": 4475.93,
+        "min": 3426.9,
+        "max": 4857.41,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 70069,
+        "min": 53992,
+        "max": 73333,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 70069,
+        "min": 53992,
+        "max": 73333,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.65,
+        "min": 15.1,
+        "max": 15.76,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 6.82,
+        "min": 6.82,
+        "max": 11.22,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 16.69,
+        "min": 16.69,
+        "max": 20.59,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 21.46,
+        "min": 20.46,
+        "max": 27.84,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 27.8,
+        "min": 27.8,
+        "max": 90.17,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 202.08,
+        "min": 87.89,
+        "max": 202.08,
+        "runs": 3
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "throughput_rps": {
+        "median": 283.85,
+        "min": 236.67,
+        "max": 343.89,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 5417,
+        "min": 4348,
+        "max": 5534,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 5417,
+        "min": 4348,
+        "max": 5534,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 19.08,
+        "min": 16.09,
+        "max": 19.08,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 83.28,
+        "min": 51.21,
+        "max": 118.05,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 226.23,
+        "min": 226.23,
+        "max": 312.29,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 280.79,
+        "min": 273.01,
+        "max": 346.28,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 455.55,
+        "min": 455.55,
+        "max": 611.12,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 823.48,
+        "min": 799.8,
+        "max": 895.01,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "throughput_rps": {
+        "median": 2884.96,
+        "min": 2636.73,
+        "max": 2929.98,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 43355,
+        "min": 39648,
+        "max": 44056,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 43355,
+        "min": 39648,
+        "max": 44056,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.03,
+        "min": 15.03,
+        "max": 15.04,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 19.11,
+        "min": 18.97,
+        "max": 21.19,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 32.34,
+        "min": 31.95,
+        "max": 34.38,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 34.61,
+        "min": 34.08,
+        "max": 37.85,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 47.46,
+        "min": 44.97,
+        "max": 60.62,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 62.58,
+        "min": 58.43,
+        "max": 84.09,
+        "runs": 3
+      }
+    },
+    "Modal": {
+      "throughput_rps": {
+        "median": 311.56,
+        "min": 304.12,
+        "max": 319.18,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.01,
+        "runs": 3
+      },
+      "requests": {
+        "median": 5900,
+        "min": 5900,
+        "max": 5943,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 5900,
+        "min": 5900,
+        "max": 5904,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 18.94,
+        "min": 18.49,
+        "max": 19.41,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 41.04,
+        "min": 36.06,
+        "max": 46.22,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 184.94,
+        "min": 112.31,
+        "max": 209.72,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 278.57,
+        "min": 257.94,
+        "max": 278.57,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 1066.68,
+        "min": 675.48,
+        "max": 1066.68,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1414.81,
+        "min": 1226.18,
+        "max": 5059.96,
+        "runs": 3
+      },
+      "errors_all_runs": {
+        "http_429": 39
+      }
+    },
+    "Modal Async (.spawn)": {
+      "throughput_rps": {
+        "median": 306.57,
+        "min": 305.49,
+        "max": 348.76,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 5908,
+        "min": 5908,
+        "max": 5964,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 5908,
+        "min": 5908,
+        "max": 5964,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 19.27,
+        "min": 17.01,
+        "max": 19.52,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 83.59,
+        "min": 76.96,
+        "max": 83.59,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 150.79,
+        "min": 144.87,
+        "max": 171.62,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 286.25,
+        "min": 264.75,
+        "max": 286.25,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 844.44,
+        "min": 662.31,
+        "max": 844.44,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1577.65,
+        "min": 1364.63,
+        "max": 1577.65,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "throughput_rps": {
+        "median": 3792.53,
+        "min": 2225.92,
+        "max": 4029.13,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.01,
+        "min": 0.0,
+        "max": 0.01,
+        "runs": 3
+      },
+      "requests": {
+        "median": 57542,
+        "min": 33417,
+        "max": 60488,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 56917,
+        "min": 33417,
+        "max": 60488,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.01,
+        "min": 15.01,
+        "max": 15.01,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 4.52,
+        "min": 3.52,
+        "max": 6.37,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 20.93,
+        "min": 20.1,
+        "max": 43.93,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 26.23,
+        "min": 24.8,
+        "max": 44.86,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 53.25,
+        "min": 46.55,
+        "max": 67.01,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 95.99,
+        "min": 55.77,
+        "max": 108.03,
+        "runs": 3
+      },
+      "errors_all_runs": {
+        "http_500": 625
+      }
+    },
+    "Pixeltable Compute Route": {
+      "throughput_rps": {
+        "median": 39.74,
+        "min": 37.88,
+        "max": 52.44,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 664,
+        "min": 634,
+        "max": 817,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 664,
+        "min": 634,
+        "max": 817,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 16.71,
+        "min": 15.58,
+        "max": 16.74,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 1267.79,
+        "min": 461.63,
+        "max": 1267.79,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 2119.25,
+        "min": 1574.42,
+        "max": 2537.74,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 2384.89,
+        "min": 1874.61,
+        "max": 2484.04,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 4225.59,
+        "min": 3493.61,
+        "max": 4225.59,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 5519.74,
+        "min": 4664.8,
+        "max": 5623.64,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "throughput_rps": {
+        "median": 138.38,
+        "min": 125.39,
+        "max": 151.29,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.02,
+        "min": 0.0,
+        "max": 0.02,
+        "runs": 3
+      },
+      "requests": {
+        "median": 2222,
+        "min": 1971,
+        "max": 2423,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 2182,
+        "min": 1971,
+        "max": 2385,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.77,
+        "min": 15.72,
+        "max": 15.77,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 36.94,
+        "min": 36.56,
+        "max": 83.23,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 767.36,
+        "min": 729.61,
+        "max": 792.63,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 705.79,
+        "min": 645.92,
+        "max": 780.56,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 854.73,
+        "min": 854.73,
+        "max": 901.27,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 898.63,
+        "min": 884.87,
+        "max": 1682.6,
+        "runs": 3
+      },
+      "errors_all_runs": {
+        "http_429": 78
+      }
+    },
+    "Pixeltable Insert Route": {
+      "throughput_rps": {
+        "median": 15.17,
+        "min": 14.9,
+        "max": 15.59,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 288,
+        "min": 284,
+        "max": 288,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 288,
+        "min": 284,
+        "max": 288,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 18.99,
+        "min": 18.47,
+        "max": 19.06,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 2256.88,
+        "min": 1960.96,
+        "max": 2256.88,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 5191.06,
+        "min": 5191.06,
+        "max": 5358.17,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 5755.21,
+        "min": 5682.14,
+        "max": 5912.55,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 9848.68,
+        "min": 8584.48,
+        "max": 9848.68,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 12490.42,
+        "min": 10786.03,
+        "max": 12552.47,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "throughput_rps": {
+        "median": 200.0,
+        "min": 198.38,
+        "max": 201.85,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.1,
+        "min": 0.03,
+        "max": 0.1,
+        "runs": 3
+      },
+      "requests": {
+        "median": 3448,
+        "min": 3172,
+        "max": 3452,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 3099,
+        "min": 3075,
+        "max": 3129,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.49,
+        "min": 15.49,
+        "max": 15.5,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 62.96,
+        "min": 39.72,
+        "max": 62.96,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 499.37,
+        "min": 499.37,
+        "max": 499.41,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 491.76,
+        "min": 487.08,
+        "max": 495.8,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 510.14,
+        "min": 506.9,
+        "max": 888.35,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1828.51,
+        "min": 1674.69,
+        "max": 1964.48,
+        "runs": 3
+      },
+      "errors_all_runs": {
+        "http_429": 769
+      }
+    },
+    "Prisma Postgres": {
+      "error": [
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+      ]
+    },
+    "Railway": {
+      "throughput_rps": {
+        "median": 1125.62,
+        "min": 1104.25,
+        "max": 1129.74,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 17008,
+        "min": 16658,
+        "max": 17045,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 17008,
+        "min": 16658,
+        "max": 17045,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.11,
+        "min": 15.09,
+        "max": 15.11,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 82.92,
+        "min": 82.43,
+        "max": 82.92,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 86.33,
+        "min": 86.06,
+        "max": 86.87,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 88.39,
+        "min": 88.26,
+        "max": 90.27,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 97.59,
+        "min": 97.09,
+        "max": 106.68,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 123.55,
+        "min": 120.77,
+        "max": 137.62,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "throughput_rps": {
+        "median": 3088.83,
+        "min": 2575.41,
+        "max": 3196.86,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 46370,
+        "min": 38662,
+        "max": 47988,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 46370,
+        "min": 38662,
+        "max": 47988,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.01,
+        "min": 15.01,
+        "max": 15.01,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 4.19,
+        "min": 2.03,
+        "max": 4.19,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 10.15,
+        "min": 9.86,
+        "max": 10.15,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 32.36,
+        "min": 31.27,
+        "max": 38.81,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 86.66,
+        "min": 86.65,
+        "max": 90.93,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 91.1,
+        "min": 90.91,
+        "max": 288.45,
+        "runs": 3
+      }
+    },
+    "Render": {
+      "throughput_rps": {
+        "median": 156.35,
+        "min": 151.03,
+        "max": 157.88,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 2440,
+        "min": 2341,
+        "max": 2449,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 2440,
+        "min": 2341,
+        "max": 2449,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.61,
+        "min": 15.5,
+        "max": 15.61,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 18.47,
+        "min": 18.47,
+        "max": 94.34,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 606.41,
+        "min": 605.07,
+        "max": 611.11,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 630.91,
+        "min": 626.33,
+        "max": 651.81,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 799.22,
+        "min": 798.18,
+        "max": 904.4,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 893.88,
+        "min": 804.44,
+        "max": 1087.65,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "throughput_rps": {
+        "median": 345.8,
+        "min": 321.91,
+        "max": 347.55,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 5257,
+        "min": 4925,
+        "max": 5283,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 5257,
+        "min": 4925,
+        "max": 5283,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.2,
+        "min": 15.2,
+        "max": 15.3,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 96,
+        "min": 94,
+        "max": 96,
+        "runs": 3
+      },
+      "connections_refused_at_slot": {
+        "median": 96,
+        "min": 94,
+        "max": 96,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 2.61,
+        "min": 2.61,
+        "max": 2.64,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 293.08,
+        "min": 205.46,
+        "max": 297.83,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 276.61,
+        "min": 269.17,
+        "max": 294.13,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 503.21,
+        "min": 501.2,
+        "max": 594.13,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 804.85,
+        "min": 702.19,
+        "max": 804.85,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "throughput_rps": {
+        "median": 961.23,
+        "min": 919.33,
+        "max": 971.33,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 14496,
+        "min": 13929,
+        "max": 14662,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 14496,
+        "min": 13929,
+        "max": 14662,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.08,
+        "min": 15.08,
+        "max": 15.15,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 17.57,
+        "min": 16.33,
+        "max": 18.72,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 89.48,
+        "min": 86.99,
+        "max": 89.48,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 103.74,
+        "min": 102.51,
+        "max": 108.03,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 216.91,
+        "min": 216.91,
+        "max": 248.24,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 338.4,
+        "min": 324.12,
+        "max": 398.56,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "throughput_rps": {
+        "median": 31.44,
+        "min": 13.14,
+        "max": 40.72,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 581,
+        "min": 294,
+        "max": 710,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 581,
+        "min": 294,
+        "max": 710,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 18.48,
+        "min": 17.44,
+        "max": 22.38,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": {
+        "median": 52.04,
+        "min": 35.74,
+        "max": 81.22,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 3067.83,
+        "min": 2364.91,
+        "max": 7692.23,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 2879.89,
+        "min": 2277.07,
+        "max": 6405.14,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 3520.19,
+        "min": 2639.48,
+        "max": 8388.42,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 3546.75,
+        "min": 2679.92,
+        "max": 8555.58,
+        "runs": 3
+      }
+    },
+    "Vercel": {
+      "throughput_rps": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "error_rate": {
+        "median": 1.0,
+        "min": 1.0,
+        "max": 1.0,
+        "runs": 3
+      },
+      "requests": {
+        "median": 25094,
+        "min": 24051,
+        "max": 26469,
+        "runs": 3
+      },
+      "successful_requests": {
+        "median": 0,
+        "min": 0,
+        "max": 0,
+        "runs": 3
+      },
+      "seconds": {
+        "median": 15.0,
+        "min": 15.0,
+        "max": 15.0,
+        "runs": 3
+      },
+      "effective_concurrency": {
+        "median": 100,
+        "min": 100,
+        "max": 100,
+        "runs": 3
+      },
+      "connections_refused_at_slot": null,
+      "min_ms": null,
+      "p50_ms": null,
+      "mean_ms": null,
+      "p95_ms": null,
+      "p99_ms": null,
+      "errors_all_runs": {
+        "http_403": 33984,
+        "ServerDisconnectedError": 239,
+        "ClientOSError": 61,
+        "ClientConnectorError": 41330
+      }
+    }
+  },
+  "media_decode": {
+    "Modal": {
+      "videos_per_sec": {
+        "median": 5.16,
+        "min": 4.51,
+        "max": 9.95,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 126.97,
+        "min": 59.39,
+        "max": 150.14,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 494.39,
+        "min": 213.6,
+        "max": 1137.4,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 945.4,
+        "min": 456.03,
+        "max": 1017.57,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 1239.65,
+        "min": 535.62,
+        "max": 3650.67,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 1309.64,
+        "min": 537.25,
+        "max": 3652.47,
+        "runs": 3
+      },
+      "ack_p50_ms": null
+    },
+    "Railway": {
+      "videos_per_sec": {
+        "median": 11.24,
+        "min": 10.03,
+        "max": 11.3,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 134.46,
+        "min": 131.3,
+        "max": 138.13,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 477.68,
+        "min": 476.24,
+        "max": 481.6,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 403.47,
+        "min": 400.72,
+        "max": 425.43,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 513.08,
+        "min": 509.83,
+        "max": 542.51,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 539.43,
+        "min": 517.49,
+        "max": 547.47,
+        "runs": 3
+      },
+      "ack_p50_ms": null
+    },
+    "Render": {
+      "videos_per_sec": {
+        "median": 25.37,
+        "min": 23.16,
+        "max": 28.78,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 39.78,
+        "min": 36.47,
+        "max": 46.35,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 188.89,
+        "min": 110.78,
+        "max": 200.35,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 178.0,
+        "min": 163.08,
+        "max": 195.89,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 353.04,
+        "min": 304.07,
+        "max": 355.51,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 403.45,
+        "min": 392.67,
+        "max": 494.21,
+        "runs": 3
+      },
+      "ack_p50_ms": null
+    },
+    "Vercel": {
+      "videos_per_sec": {
+        "median": 0.0,
+        "min": 0.0,
+        "max": 0.0,
+        "runs": 3
+      },
+      "min_ms": null,
+      "p50_ms": null,
+      "mean_ms": null,
+      "p95_ms": null,
+      "p99_ms": null,
+      "ack_p50_ms": null,
+      "errors_all_runs": {
+        "http_403": 60
+      }
+    }
+  },
+  "media_persist": {
+    "Pixeltable Media Route": {
+      "videos_per_sec": {
+        "median": 2.38,
+        "min": 2.08,
+        "max": 2.4,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 457.93,
+        "min": 437.83,
+        "max": 519.35,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 1562.49,
+        "min": 1474.71,
+        "max": 1643.55,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 1863.87,
+        "min": 1854.33,
+        "max": 2109.21,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 4068.42,
+        "min": 3417.12,
+        "max": 4749.65,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 4589.09,
+        "min": 4113.95,
+        "max": 5192.8,
+        "runs": 3
+      },
+      "ack_p50_ms": null
+    },
+    "Pixeltable Media Route (background=True)": {
+      "videos_per_sec": {
+        "median": 2.33,
+        "min": 1.98,
+        "max": 2.48,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 560.28,
+        "min": 524.1,
+        "max": 825.6,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 1553.07,
+        "min": 1424.63,
+        "max": 1707.07,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 1994.07,
+        "min": 1807.05,
+        "max": 2206.08,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 3359.07,
+        "min": 2589.21,
+        "max": 3895.48,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 5702.41,
+        "min": 4385.52,
+        "max": 6989.79,
+        "runs": 3
+      },
+      "ack_p50_ms": {
+        "median": 9.06,
+        "min": 7.93,
+        "max": 9.1,
+        "runs": 3
+      }
+    },
+    "Railway + Postgres + object storage": {
+      "videos_per_sec": {
+        "median": 3.41,
+        "min": 3.05,
+        "max": 3.67,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 819.49,
+        "min": 809.7,
+        "max": 1078.81,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 1336.02,
+        "min": 1215.31,
+        "max": 1494.88,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 1324.35,
+        "min": 1296.19,
+        "max": 1505.97,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 1838.35,
+        "min": 1637.55,
+        "max": 2010.05,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 2032.03,
+        "min": 1720.88,
+        "max": 2108.19,
+        "runs": 3
+      },
+      "ack_p50_ms": null
+    },
+    "Render + Postgres + object storage": {
+      "videos_per_sec": {
+        "median": 9.42,
+        "min": 7.95,
+        "max": 9.42,
+        "runs": 3
+      },
+      "min_ms": {
+        "median": 298.83,
+        "min": 290.66,
+        "max": 326.6,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 441.42,
+        "min": 431.37,
+        "max": 482.42,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 498.29,
+        "min": 497.44,
+        "max": 533.09,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 764.52,
+        "min": 764.07,
+        "max": 907.26,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 839.89,
+        "min": 773.71,
+        "max": 910.66,
+        "runs": 3
+      },
+      "ack_p50_ms": null
+    }
+  },
+  "cold": {
+    "Cloudflare Workers": {
+      "first_request_ms": {
+        "median": 69.5,
+        "min": 66.8,
+        "max": 93.1,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 65.5,
+        "min": 61.4,
+        "max": 68.3,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 8.1,
+        "min": 1.3,
+        "max": 24.8,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "first_request_ms": {
+        "median": 168.3,
+        "min": 144.2,
+        "max": 184.9,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 94.2,
+        "min": 51.5,
+        "max": 202.0,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 74.1,
+        "min": -17.1,
+        "max": 92.7,
+        "runs": 3
+      }
+    },
+    "Modal": {
+      "first_request_ms": {
+        "median": 3768.8,
+        "min": 3260.4,
+        "max": 4294.5,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 150.4,
+        "min": 106.7,
+        "max": 384.0,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 3618.4,
+        "min": 3153.7,
+        "max": 3910.5,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "first_request_ms": {
+        "median": 1643.8,
+        "min": 1605.9,
+        "max": 2587.5,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 32.8,
+        "min": 25.7,
+        "max": 91.4,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 1580.2,
+        "min": 1552.4,
+        "max": 2554.7,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route": {
+      "first_request_ms": {
+        "median": 488.2,
+        "min": 356.1,
+        "max": 551.9,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 322.3,
+        "min": 48.1,
+        "max": 345.2,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 229.6,
+        "min": 143.0,
+        "max": 308.0,
+        "runs": 3
+      }
+    },
+    "Prisma Postgres": {
+      "error": [
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions.",
+        "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+      ]
+    },
+    "Railway": {
+      "first_request_ms": {
+        "median": 3123.4,
+        "min": 3115.1,
+        "max": 3133.8,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 180.0,
+        "min": 176.0,
+        "max": 182.3,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 2943.4,
+        "min": 2939.1,
+        "max": 2951.5,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "first_request_ms": {
+        "median": 83.6,
+        "min": 56.7,
+        "max": 104.0,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 32.4,
+        "min": 30.0,
+        "max": 37.1,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 51.2,
+        "min": 19.6,
+        "max": 74.0,
+        "runs": 3
+      }
+    },
+    "Render": {
+      "first_request_ms": {
+        "median": 21155.1,
+        "min": 12191.7,
+        "max": 22184.4,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 44.0,
+        "min": 32.1,
+        "max": 48.1,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 21123.0,
+        "min": 12147.7,
+        "max": 22136.3,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "first_request_ms": {
+        "median": 272.7,
+        "min": 258.3,
+        "max": 283.6,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 290.8,
+        "min": 200.5,
+        "max": 656.3,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": -7.2,
+        "min": -398.0,
+        "max": 72.2,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "first_request_ms": {
+        "median": 602.0,
+        "min": 575.9,
+        "max": 700.0,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 67.6,
+        "min": 64.0,
+        "max": 70.1,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 534.4,
+        "min": 505.8,
+        "max": 636.0,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "first_request_ms": {
+        "median": 230.7,
+        "min": 214.7,
+        "max": 343.7,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 31.9,
+        "min": 31.4,
+        "max": 41.2,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 198.8,
+        "min": 183.3,
+        "max": 302.5,
+        "runs": 3
+      }
+    },
+    "Vercel": {
+      "first_request_ms": {
+        "median": 56.3,
+        "min": 47.9,
+        "max": 69.5,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 47.3,
+        "min": 45.1,
+        "max": 47.5,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 11.2,
+        "min": 0.6,
+        "max": 22.0,
+        "runs": 3
+      }
+    }
+  },
+  "resilience": {
+    "microburst_c350": {
+      "rps": {
+        "median": 87.9,
+        "min": 87.6,
+        "max": 92.1,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 400.17,
+        "min": 373.23,
+        "max": 403.53,
+        "runs": 3
+      },
+      "statuses_all_runs": {
+        "429": 860,
+        "200": 640
+      },
+      "requests_per_run": 500,
+      "concurrency": 350
+    },
+    "sync_insert_c250": {
+      "rps": {
+        "median": 10.9,
+        "min": 10.8,
+        "max": 11.3,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 16074.47,
+        "min": 15568.05,
+        "max": 17771.37,
+        "runs": 3
+      },
+      "statuses_all_runs": {
+        "429": 119,
+        "200": 631
+      },
+      "requests_per_run": 250,
+      "concurrency": 250
+    },
+    "async_insert_c200": {
+      "rps": {
+        "median": 310.1,
+        "min": 216.1,
+        "max": 401.1,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 481.48,
+        "min": 422.97,
+        "max": 837.16,
+        "runs": 3
+      },
+      "statuses_all_runs": {
+        "200": 1029,
+        "429": 171
+      },
+      "requests_per_run": 400,
+      "concurrency": 200
+    },
+    "decompression_bomb": {
+      "statuses": [
+        400
+      ],
+      "seconds": {
+        "median": 0.09,
+        "min": 0.09,
+        "max": 0.1,
+        "runs": 3
+      },
+      "response": "{\"detail\":{\"error_code\":\"GENERIC_USER_ERROR\",\"message\":\"Exception in task: Image size (625000000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.\",\"retryable\":false}}"
+    }
+  }
+}

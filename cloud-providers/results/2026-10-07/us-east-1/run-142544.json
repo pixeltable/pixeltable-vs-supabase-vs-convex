@@ -1,0 +1,1218 @@
+{
+  "started": "2026-10-07T14:04:25+00:00",
+  "client": {
+    "hostname": "ip-172-31-10-96.ec2.internal",
+    "python": "3.11.16",
+    "aiohttp": "3.14.4",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.14",
+    "placement/region": "us-east-1",
+    "placement/availability-zone": "us-east-1a",
+    "instance-type": "c5.xlarge"
+  },
+  "load_seconds": 15.0,
+  "latency": {
+    "Cloudflare Workers": {
+      "count": 300,
+      "min_ms": 69.63,
+      "p50_ms": 72.57,
+      "mean_ms": 79.18,
+      "p95_ms": 93.37,
+      "p99_ms": 353.78,
+      "max_ms": 364.32,
+      "errors": 0
+    },
+    "Railway": {
+      "count": 300,
+      "min_ms": 84.12,
+      "p50_ms": 86.73,
+      "mean_ms": 105.05,
+      "p95_ms": 160.62,
+      "p99_ms": 166.58,
+      "max_ms": 837.86,
+      "errors": 0
+    },
+    "Render": {
+      "count": 300,
+      "min_ms": 13.92,
+      "p50_ms": 18.72,
+      "mean_ms": 19.53,
+      "p95_ms": 26.91,
+      "p99_ms": 29.81,
+      "max_ms": 38.75,
+      "errors": 0
+    },
+    "Vercel": {
+      "count": 300,
+      "min_ms": 10.2,
+      "p50_ms": 22.45,
+      "mean_ms": 26.11,
+      "p95_ms": 38.75,
+      "p99_ms": 53.39,
+      "max_ms": 804.89,
+      "errors": 0
+    },
+    "Modal": {
+      "count": 300,
+      "min_ms": 67.52,
+      "p50_ms": 85.01,
+      "mean_ms": 188.65,
+      "p95_ms": 358.67,
+      "p99_ms": 471.71,
+      "max_ms": 3981.59,
+      "errors": 0
+    },
+    "Pixeltable Compute Route": {
+      "count": 300,
+      "min_ms": 36.84,
+      "p50_ms": 42.32,
+      "mean_ms": 43.47,
+      "p95_ms": 47.47,
+      "p99_ms": 71.08,
+      "max_ms": 252.8,
+      "errors": 0
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "count": 300,
+      "min_ms": 4.97,
+      "p50_ms": 7.8,
+      "mean_ms": 9.87,
+      "p95_ms": 25.17,
+      "p99_ms": 35.3,
+      "max_ms": 43.73,
+      "errors": 0
+    },
+    "Modal Async (.spawn)": {
+      "count": 300,
+      "min_ms": 127.42,
+      "p50_ms": 176.58,
+      "mean_ms": 351.78,
+      "p95_ms": 573.47,
+      "p99_ms": 598.65,
+      "max_ms": 2602.2,
+      "errors": 0
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 3.84,
+      "p50_ms": 5.38,
+      "mean_ms": 5.99,
+      "p95_ms": 9.65,
+      "p99_ms": 15.54,
+      "max_ms": 33.56,
+      "errors": 0
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 20.76,
+      "p50_ms": 52.43,
+      "mean_ms": 56.5,
+      "p95_ms": 96.47,
+      "p99_ms": 128.62,
+      "max_ms": 390.41,
+      "errors": 0
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 14.54,
+      "p50_ms": 19.97,
+      "mean_ms": 22.76,
+      "p95_ms": 40.07,
+      "p99_ms": 54.81,
+      "max_ms": 104.56,
+      "errors": 0
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 20.82,
+      "p50_ms": 27.57,
+      "mean_ms": 30.83,
+      "p95_ms": 36.55,
+      "p99_ms": 50.5,
+      "max_ms": 470.61,
+      "errors": 0
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 33.73,
+      "p50_ms": 40.32,
+      "mean_ms": 45.15,
+      "p95_ms": 56.97,
+      "p99_ms": 153.79,
+      "max_ms": 427.57,
+      "errors": 0
+    },
+    "Pixeltable Insert Route": {
+      "count": 300,
+      "min_ms": 55.24,
+      "p50_ms": 59.57,
+      "mean_ms": 61.27,
+      "p95_ms": 73.63,
+      "p99_ms": 89.96,
+      "max_ms": 122.28,
+      "errors": 0
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "count": 300,
+      "min_ms": 4.36,
+      "p50_ms": 5.23,
+      "mean_ms": 6.04,
+      "p95_ms": 9.34,
+      "p99_ms": 16.78,
+      "max_ms": 55.07,
+      "errors": 0
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 2.94,
+      "p50_ms": 4.65,
+      "mean_ms": 5.36,
+      "p95_ms": 9.08,
+      "p99_ms": 15.41,
+      "max_ms": 20.32
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 3.32,
+      "p50_ms": 3.76,
+      "mean_ms": 5.94,
+      "p95_ms": 7.06,
+      "p99_ms": 70.25,
+      "max_ms": 96.79
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  },
+  "reads": {
+    "Pixeltable Query Route": {
+      "count": 300,
+      "min_ms": 18.28,
+      "p50_ms": 22.36,
+      "mean_ms": 60.07,
+      "p95_ms": 207.46,
+      "p99_ms": 365.48,
+      "max_ms": 1222.21
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 2.07,
+      "p50_ms": 2.43,
+      "mean_ms": 2.53,
+      "p95_ms": 3.04,
+      "p99_ms": 3.54,
+      "max_ms": 8.12
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 2.28,
+      "p50_ms": 4.71,
+      "mean_ms": 5.08,
+      "p95_ms": 8.04,
+      "p99_ms": 16.82,
+      "max_ms": 20.25
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 19.48,
+      "p50_ms": 23.66,
+      "mean_ms": 25.46,
+      "p95_ms": 36.79,
+      "p99_ms": 53.13,
+      "max_ms": 91.11
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 10.1,
+      "p50_ms": 13.35,
+      "mean_ms": 15.58,
+      "p95_ms": 18.65,
+      "p99_ms": 25.23,
+      "max_ms": 356.54
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 25.91,
+      "p50_ms": 34.35,
+      "mean_ms": 36.09,
+      "p95_ms": 48.22,
+      "p99_ms": 60.97,
+      "max_ms": 150.27
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 1.83,
+      "p50_ms": 2.13,
+      "mean_ms": 2.21,
+      "p95_ms": 2.73,
+      "p99_ms": 3.96,
+      "max_ms": 5.87
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 2.84,
+      "p50_ms": 2.99,
+      "mean_ms": 3.14,
+      "p95_ms": 3.97,
+      "p99_ms": 5.69,
+      "max_ms": 6.85
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  },
+  "batch": {
+    "Neon Serverless PG": {
+      "reps_rows_per_sec": [
+        954.11,
+        1300.78,
+        1244.38,
+        1307.99,
+        1369.34
+      ],
+      "rows_per_sec": 1300.78
+    },
+    "Turso libSQL": {
+      "reps_rows_per_sec": [
+        118.87,
+        254.21,
+        259.62,
+        102.02,
+        233.88
+      ],
+      "rows_per_sec": 233.88
+    },
+    "Supabase PostgREST": {
+      "reps_rows_per_sec": [
+        963.29,
+        1637.01,
+        1704.47,
+        1348.92,
+        1546.61
+      ],
+      "rows_per_sec": 1546.61
+    },
+    "Convex": {
+      "reps_rows_per_sec": [
+        301.65,
+        228.4,
+        344.22,
+        317.09,
+        365.51
+      ],
+      "rows_per_sec": 317.09
+    },
+    "Cloudflare Workers (D1)": {
+      "reps_rows_per_sec": [
+        1001.01,
+        674.04,
+        1313.35,
+        1317.36,
+        1157.51
+      ],
+      "rows_per_sec": 1157.51
+    },
+    "Railway Postgres": {
+      "reps_rows_per_sec": [
+        768.87,
+        497.53,
+        542.92,
+        864.74,
+        507.27
+      ],
+      "rows_per_sec": 542.92
+    },
+    "Render Postgres": {
+      "reps_rows_per_sec": [
+        968.66,
+        6064.97,
+        1190.49,
+        6142.33,
+        1133.56
+      ],
+      "rows_per_sec": 1190.49
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    },
+    "Pixeltable Python SDK": {
+      "reps_rows_per_sec": [
+        103.63,
+        27.5,
+        180.89,
+        305.14,
+        68.66
+      ],
+      "rows_per_sec": 103.63
+    }
+  },
+  "load_c50": {
+    "Cloudflare Workers": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.15,
+      "requests": 42304,
+      "successful_requests": 42304,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2791.5,
+      "latency": {
+        "count": 42304,
+        "min_ms": 5.92,
+        "p50_ms": 15.95,
+        "mean_ms": 17.74,
+        "p95_ms": 26.22,
+        "p99_ms": 83.73,
+        "max_ms": 328.33
+      }
+    },
+    "Railway": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.08,
+      "requests": 8518,
+      "successful_requests": 8518,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 564.72,
+      "latency": {
+        "count": 8518,
+        "min_ms": 82.71,
+        "p50_ms": 86.04,
+        "mean_ms": 88.27,
+        "p95_ms": 97.78,
+        "p99_ms": 127.62,
+        "max_ms": 355.98
+      }
+    },
+    "Render": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.3,
+      "requests": 2300,
+      "successful_requests": 2300,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 150.36,
+      "latency": {
+        "count": 2300,
+        "min_ms": 94.04,
+        "p50_ms": 303.54,
+        "mean_ms": 330.36,
+        "p95_ms": 412.21,
+        "p99_ms": 599.8,
+        "max_ms": 620.89
+      }
+    },
+    "Vercel": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 11.16,
+      "requests": 27363,
+      "successful_requests": 12274,
+      "error_rate": 0.5514,
+      "errors": {
+        "http_403": 12909,
+        "ClientOSError": 8,
+        "ServerDisconnectedError": 42,
+        "ClientConnectorError": 2130
+      },
+      "throughput_rps": 1100.08,
+      "latency": {
+        "count": 12274,
+        "min_ms": 7.84,
+        "p50_ms": 25.3,
+        "mean_ms": 45.07,
+        "p95_ms": 119.58,
+        "p99_ms": 137.97,
+        "max_ms": 342.21
+      }
+    },
+    "Modal": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 17.58,
+      "requests": 5968,
+      "successful_requests": 5968,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 339.52,
+      "latency": {
+        "count": 5968,
+        "min_ms": 37.79,
+        "p50_ms": 67.37,
+        "mean_ms": 134.16,
+        "p95_ms": 399.16,
+        "p99_ms": 1166.78,
+        "max_ms": 5260.39
+      }
+    },
+    "Pixeltable Compute Route": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.37,
+      "requests": 1438,
+      "successful_requests": 1438,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 93.57,
+      "latency": {
+        "count": 1438,
+        "min_ms": 173.28,
+        "p50_ms": 449.11,
+        "mean_ms": 528.41,
+        "p95_ms": 1035.38,
+        "p99_ms": 1813.99,
+        "max_ms": 2360.73
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.33,
+      "requests": 1934,
+      "successful_requests": 1934,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 126.14,
+      "latency": {
+        "count": 1934,
+        "min_ms": 60.08,
+        "p50_ms": 395.21,
+        "mean_ms": 392.32,
+        "p95_ms": 440.1,
+        "p99_ms": 461.0,
+        "max_ms": 482.22
+      }
+    },
+    "Modal Async (.spawn)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.94,
+      "requests": 4067,
+      "successful_requests": 4067,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 255.14,
+      "latency": {
+        "count": 4067,
+        "min_ms": 78.34,
+        "p50_ms": 130.47,
+        "mean_ms": 186.32,
+        "p95_ms": 409.86,
+        "p99_ms": 799.39,
+        "max_ms": 1956.38
+      }
+    },
+    "Neon Serverless PG": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.01,
+      "requests": 53338,
+      "successful_requests": 53338,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 3554.26,
+      "latency": {
+        "count": 53338,
+        "min_ms": 3.88,
+        "p50_ms": 10.02,
+        "mean_ms": 14.06,
+        "p95_ms": 26.97,
+        "p99_ms": 78.91,
+        "max_ms": 490.49
+      }
+    },
+    "Turso libSQL": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 17.17,
+      "requests": 270,
+      "successful_requests": 270,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 15.73,
+      "latency": {
+        "count": 270,
+        "min_ms": 47.56,
+        "p50_ms": 3249.19,
+        "mean_ms": 2989.36,
+        "p95_ms": 3978.33,
+        "p99_ms": 4058.81,
+        "max_ms": 4082.54
+      }
+    },
+    "Supabase PostgREST": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.05,
+      "requests": 14040,
+      "successful_requests": 14040,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 933.03,
+      "latency": {
+        "count": 14040,
+        "min_ms": 15.66,
+        "p50_ms": 45.17,
+        "mean_ms": 53.46,
+        "p95_ms": 92.69,
+        "p99_ms": 249.57,
+        "max_ms": 677.08
+      }
+    },
+    "Convex": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.05,
+      "requests": 22221,
+      "successful_requests": 22221,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 1476.85,
+      "latency": {
+        "count": 22221,
+        "min_ms": 18.56,
+        "p50_ms": 31.28,
+        "mean_ms": 33.79,
+        "p95_ms": 50.47,
+        "p99_ms": 68.98,
+        "max_ms": 417.06
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.21,
+      "requests": 4600,
+      "successful_requests": 4600,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 302.47,
+      "latency": {
+        "count": 4600,
+        "min_ms": 42.99,
+        "p50_ms": 149.98,
+        "mean_ms": 164.18,
+        "p95_ms": 309.15,
+        "p99_ms": 634.46,
+        "max_ms": 867.26
+      }
+    },
+    "Pixeltable Insert Route": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 17.89,
+      "requests": 270,
+      "successful_requests": 270,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 15.09,
+      "latency": {
+        "count": 270,
+        "min_ms": 598.35,
+        "p50_ms": 2610.84,
+        "mean_ms": 2968.55,
+        "p95_ms": 5916.68,
+        "p99_ms": 7885.17,
+        "max_ms": 9940.06
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.25,
+      "requests": 3030,
+      "successful_requests": 3030,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 198.73,
+      "latency": {
+        "count": 3030,
+        "min_ms": 6.17,
+        "p50_ms": 249.14,
+        "mean_ms": 249.5,
+        "p95_ms": 260.8,
+        "p99_ms": 1482.06,
+        "max_ms": 1574.46
+      }
+    },
+    "Railway Postgres": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.02,
+      "requests": 35414,
+      "successful_requests": 35414,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2358.17,
+      "latency": {
+        "count": 35414,
+        "min_ms": 2.1,
+        "p50_ms": 5.12,
+        "mean_ms": 21.19,
+        "p95_ms": 83.93,
+        "p99_ms": 110.97,
+        "max_ms": 488.87
+      }
+    },
+    "Render Postgres": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.2,
+      "requests": 5590,
+      "successful_requests": 5590,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 367.81,
+      "latency": {
+        "count": 5590,
+        "min_ms": 2.45,
+        "p50_ms": 102.77,
+        "mean_ms": 135.22,
+        "p95_ms": 297.29,
+        "p99_ms": 397.14,
+        "max_ms": 599.05
+      }
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  },
+  "load_c100": {
+    "Cloudflare Workers": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.1,
+      "requests": 73333,
+      "successful_requests": 73333,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 4857.41,
+      "latency": {
+        "count": 73333,
+        "min_ms": 7.09,
+        "p50_ms": 18.44,
+        "mean_ms": 20.46,
+        "p95_ms": 31.39,
+        "p99_ms": 87.89,
+        "max_ms": 285.07
+      }
+    },
+    "Railway": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.09,
+      "requests": 16658,
+      "successful_requests": 16658,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 1104.25,
+      "latency": {
+        "count": 16658,
+        "min_ms": 82.66,
+        "p50_ms": 86.87,
+        "mean_ms": 90.27,
+        "p95_ms": 106.68,
+        "p99_ms": 137.62,
+        "max_ms": 489.57
+      }
+    },
+    "Render": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.5,
+      "requests": 2341,
+      "successful_requests": 2341,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 151.03,
+      "latency": {
+        "count": 2341,
+        "min_ms": 94.34,
+        "p50_ms": 611.11,
+        "mean_ms": 651.81,
+        "p95_ms": 904.4,
+        "p99_ms": 1087.65,
+        "max_ms": 1101.5
+      }
+    },
+    "Vercel": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.0,
+      "requests": 26469,
+      "successful_requests": 0,
+      "error_rate": 1.0,
+      "errors": {
+        "http_403": 12915,
+        "ServerDisconnectedError": 79,
+        "ClientOSError": 21,
+        "ClientConnectorError": 13454
+      },
+      "throughput_rps": 0.0,
+      "latency": {
+        "count": 0
+      }
+    },
+    "Modal": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 19.41,
+      "requests": 5943,
+      "successful_requests": 5904,
+      "error_rate": 0.0066,
+      "errors": {
+        "http_429": 39
+      },
+      "throughput_rps": 304.12,
+      "latency": {
+        "count": 5904,
+        "min_ms": 36.06,
+        "p50_ms": 112.31,
+        "mean_ms": 257.94,
+        "p95_ms": 1059.8,
+        "p99_ms": 5059.96,
+        "max_ms": 5628.63
+      }
+    },
+    "Pixeltable Compute Route": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 16.74,
+      "requests": 634,
+      "successful_requests": 634,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 37.88,
+      "latency": {
+        "count": 634,
+        "min_ms": 867.15,
+        "p50_ms": 2537.74,
+        "mean_ms": 2484.04,
+        "p95_ms": 4135.28,
+        "p99_ms": 5623.64,
+        "max_ms": 6899.3
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.76,
+      "requests": 2423,
+      "successful_requests": 2385,
+      "error_rate": 0.0157,
+      "errors": {
+        "http_429": 38
+      },
+      "throughput_rps": 151.29,
+      "latency": {
+        "count": 2385,
+        "min_ms": 36.56,
+        "p50_ms": 729.61,
+        "mean_ms": 645.92,
+        "p95_ms": 901.27,
+        "p99_ms": 1682.6,
+        "max_ms": 1760.07
+      }
+    },
+    "Modal Async (.spawn)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 19.52,
+      "requests": 5964,
+      "successful_requests": 5964,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 305.49,
+      "latency": {
+        "count": 5964,
+        "min_ms": 76.96,
+        "p50_ms": 171.62,
+        "mean_ms": 270.2,
+        "p95_ms": 687.92,
+        "p99_ms": 1410.27,
+        "max_ms": 5976.66
+      }
+    },
+    "Neon Serverless PG": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.01,
+      "requests": 33417,
+      "successful_requests": 33417,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2225.92,
+      "latency": {
+        "count": 33417,
+        "min_ms": 3.52,
+        "p50_ms": 43.93,
+        "mean_ms": 44.86,
+        "p95_ms": 67.01,
+        "p99_ms": 108.03,
+        "max_ms": 300.89
+      }
+    },
+    "Turso libSQL": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 22.38,
+      "requests": 294,
+      "successful_requests": 294,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 13.14,
+      "latency": {
+        "count": 294,
+        "min_ms": 81.22,
+        "p50_ms": 7692.23,
+        "mean_ms": 6405.14,
+        "p95_ms": 8388.42,
+        "p99_ms": 8555.58,
+        "max_ms": 8630.81
+      }
+    },
+    "Supabase PostgREST": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.08,
+      "requests": 14496,
+      "successful_requests": 14496,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 961.23,
+      "latency": {
+        "count": 14496,
+        "min_ms": 17.57,
+        "p50_ms": 89.48,
+        "mean_ms": 103.74,
+        "p95_ms": 216.91,
+        "p99_ms": 338.4,
+        "max_ms": 745.76
+      }
+    },
+    "Convex": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.03,
+      "requests": 43355,
+      "successful_requests": 43355,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2884.96,
+      "latency": {
+        "count": 43355,
+        "min_ms": 19.11,
+        "p50_ms": 32.34,
+        "mean_ms": 34.61,
+        "p95_ms": 47.46,
+        "p99_ms": 62.58,
+        "max_ms": 474.18
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 18.37,
+      "requests": 4348,
+      "successful_requests": 4348,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 236.67,
+      "latency": {
+        "count": 4348,
+        "min_ms": 51.21,
+        "p50_ms": 312.29,
+        "mean_ms": 346.28,
+        "p95_ms": 611.12,
+        "p99_ms": 895.01,
+        "max_ms": 4185.71
+      }
+    },
+    "Pixeltable Insert Route": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 19.06,
+      "requests": 284,
+      "successful_requests": 284,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 14.9,
+      "latency": {
+        "count": 284,
+        "min_ms": 1960.96,
+        "p50_ms": 5244.21,
+        "mean_ms": 5912.55,
+        "p95_ms": 8818.41,
+        "p99_ms": 12552.47,
+        "max_ms": 12568.66
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.5,
+      "requests": 3452,
+      "successful_requests": 3129,
+      "error_rate": 0.0936,
+      "errors": {
+        "http_429": 323
+      },
+      "throughput_rps": 201.85,
+      "latency": {
+        "count": 3129,
+        "min_ms": 44.59,
+        "p50_ms": 499.38,
+        "mean_ms": 487.08,
+        "p95_ms": 506.9,
+        "p99_ms": 1674.69,
+        "max_ms": 1786.72
+      }
+    },
+    "Railway Postgres": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.01,
+      "requests": 38662,
+      "successful_requests": 38662,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2575.41,
+      "latency": {
+        "count": 38662,
+        "min_ms": 2.03,
+        "p50_ms": 9.86,
+        "mean_ms": 38.81,
+        "p95_ms": 90.93,
+        "p99_ms": 288.45,
+        "max_ms": 702.59
+      }
+    },
+    "Render Postgres": {
+      "concurrency": 100,
+      "effective_concurrency": 94,
+      "seconds": 15.2,
+      "requests": 5283,
+      "successful_requests": 5283,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 347.55,
+      "latency": {
+        "count": 5283,
+        "min_ms": 2.64,
+        "p50_ms": 205.46,
+        "mean_ms": 269.17,
+        "p95_ms": 501.2,
+        "p99_ms": 702.19,
+        "max_ms": 1396.43
+      },
+      "connections_refused_at_slot": 94
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  },
+  "media_decode": {
+    "Railway": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 1.77,
+      "videos_per_sec": 11.3,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 131.3,
+        "p50_ms": 477.68,
+        "mean_ms": 400.72,
+        "p95_ms": 513.08,
+        "p99_ms": 517.49,
+        "max_ms": 517.49
+      }
+    },
+    "Render": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 0.69,
+      "videos_per_sec": 28.78,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 36.47,
+        "p50_ms": 110.78,
+        "mean_ms": 163.08,
+        "p95_ms": 353.04,
+        "p99_ms": 403.45,
+        "max_ms": 403.45
+      }
+    },
+    "Vercel": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 0.03,
+      "videos_per_sec": 0.0,
+      "errors": {
+        "http_403": 20
+      },
+      "latency": {
+        "count": 0
+      }
+    },
+    "Modal": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 2.01,
+      "videos_per_sec": 9.95,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 126.97,
+        "p50_ms": 494.39,
+        "mean_ms": 456.03,
+        "p95_ms": 535.62,
+        "p99_ms": 537.25,
+        "max_ms": 537.25
+      }
+    }
+  },
+  "media_persist": {
+    "Pixeltable Media Route": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 8.32,
+      "videos_per_sec": 2.4,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 519.35,
+        "p50_ms": 1643.55,
+        "mean_ms": 1854.33,
+        "p95_ms": 3417.12,
+        "p99_ms": 4589.09,
+        "max_ms": 4589.09
+      }
+    },
+    "Railway + Postgres + object storage": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 5.45,
+      "videos_per_sec": 3.67,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 819.49,
+        "p50_ms": 1215.31,
+        "mean_ms": 1296.19,
+        "p95_ms": 1838.35,
+        "p99_ms": 2032.03,
+        "max_ms": 2032.03
+      }
+    },
+    "Render + Postgres + object storage": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 2.51,
+      "videos_per_sec": 7.95,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 298.83,
+        "p50_ms": 482.42,
+        "mean_ms": 533.09,
+        "p95_ms": 907.26,
+        "p99_ms": 910.66,
+        "max_ms": 910.66
+      }
+    },
+    "Pixeltable Media Route (background=True)": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 10.1,
+      "videos_per_sec": 1.98,
+      "errors": {},
+      "ack": {
+        "count": 20,
+        "min_ms": 6.99,
+        "p50_ms": 9.1,
+        "mean_ms": 19.93,
+        "p95_ms": 54.03,
+        "p99_ms": 56.9,
+        "max_ms": 56.9
+      },
+      "latency": {
+        "count": 20,
+        "min_ms": 825.6,
+        "p50_ms": 1553.07,
+        "mean_ms": 2206.08,
+        "p95_ms": 3359.07,
+        "p99_ms": 6989.79,
+        "max_ms": 6989.79
+      }
+    }
+  },
+  "resilience": {
+    "microburst_c350": {
+      "requests": 500,
+      "concurrency": 350,
+      "seconds": 5.71,
+      "rps": 87.6,
+      "statuses": {
+        "429": 288,
+        "200": 212
+      },
+      "latency": {
+        "count": 500,
+        "min_ms": 6.17,
+        "p50_ms": 373.23,
+        "mean_ms": 2152.94,
+        "p95_ms": 5134.68,
+        "p99_ms": 5442.03,
+        "max_ms": 5699.65
+      }
+    },
+    "sync_insert_c250": {
+      "requests": 250,
+      "concurrency": 250,
+      "seconds": 23.21,
+      "rps": 10.8,
+      "statuses": {
+        "429": 40,
+        "200": 210
+      },
+      "latency": {
+        "count": 250,
+        "min_ms": 12.27,
+        "p50_ms": 17771.37,
+        "mean_ms": 15130.96,
+        "p95_ms": 20484.05,
+        "p99_ms": 21851.41,
+        "max_ms": 23179.93
+      }
+    },
+    "async_insert_c200": {
+      "requests": 400,
+      "concurrency": 200,
+      "seconds": 1.85,
+      "rps": 216.1,
+      "statuses": {
+        "200": 400
+      },
+      "latency": {
+        "count": 400,
+        "min_ms": 60.03,
+        "p50_ms": 837.16,
+        "mean_ms": 799.73,
+        "p95_ms": 1674.6,
+        "p99_ms": 1729.27,
+        "max_ms": 1739.38
+      }
+    },
+    "decompression_bomb": {
+      "status": 400,
+      "seconds": 0.1,
+      "response": "{\"detail\":{\"error_code\":\"GENERIC_USER_ERROR\",\"message\":\"Exception in task: Image size (625000000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.\",\"retryable\":false}}"
+    }
+  },
+  "finished": "2026-10-07T14:25:35+00:00"
+}

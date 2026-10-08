@@ -14,8 +14,14 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install ruff==0.15.0   # pinned: formatting rules change between minors
-      - run: ruff check pixeltable/ compute-service/ harness/ fixtures/
-      - run: ruff format --check pixeltable/ compute-service/ harness/ fixtures/
+      - run: ruff check pixeltable/ compute-service/ harness/ fixtures/ cloud-providers/bench.py cloud-providers/aggregate.py cloud-providers/validate.py cloud-providers/test_scripts.py
+      - run: ruff format --check pixeltable/ compute-service/ harness/ fixtures/ cloud-providers/bench.py cloud-providers/aggregate.py cloud-providers/validate.py cloud-providers/test_scripts.py
+      - name: Committed cloud-providers results pass the method's checks
+        run: |
+          for day in cloud-providers/results/*/; do
+            case "$day" in *-set-aside/) continue ;; esac
+            python cloud-providers/validate.py "$day"
+          done
 
   contract:
     runs-on: ubuntu-latest
@@ -29,6 +35,8 @@ jobs:
         run: python -m pytest harness/ --collect-only -q
       - name: The measuring code is tested, because every published number comes from it
         run: python -m pytest harness/test_metrics.py -q
+      - name: The cloud-providers validator and aggregation, against the committed results
+        run: python -m pytest cloud-providers/test_scripts.py -q
 
   supabase:
     runs-on: ubuntu-latest

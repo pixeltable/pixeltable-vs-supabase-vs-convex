@@ -1,0 +1,95 @@
+{
+  "started": "2026-10-08T00:45:25+00:00",
+  "client": {
+    "hostname": "ip-172-31-10-96.ec2.internal",
+    "python": "3.11.16",
+    "aiohttp": "3.14.4",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.14",
+    "placement/region": "us-east-1",
+    "placement/availability-zone": "us-east-1a",
+    "instance-type": "c5.xlarge"
+  },
+  "idle_minutes": 20.0,
+  "cold": {
+    "Cloudflare Workers": {
+      "first_request_ms": 93.1,
+      "fresh_connection_warm_ms": 68.3,
+      "wake_ms": 24.8
+    },
+    "Railway": {
+      "first_request_ms": 3123.4,
+      "fresh_connection_warm_ms": 180.0,
+      "wake_ms": 2943.4
+    },
+    "Render": {
+      "first_request_ms": 22184.4,
+      "fresh_connection_warm_ms": 48.1,
+      "wake_ms": 22136.3
+    },
+    "Vercel": {
+      "first_request_ms": 47.9,
+      "fresh_connection_warm_ms": 47.3,
+      "wake_ms": 0.6
+    },
+    "Modal": {
+      "first_request_ms": 3768.8,
+      "fresh_connection_warm_ms": 150.4,
+      "wake_ms": 3618.4
+    },
+    "Pixeltable Compute Route": {
+      "first_request_ms": 551.9,
+      "fresh_connection_warm_ms": 322.3,
+      "wake_ms": 229.6
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "first_request_ms": 10.9,
+      "fresh_connection_warm_ms": 9.5,
+      "wake_ms": 1.4
+    },
+    "Neon Serverless PG": {
+      "first_request_ms": 1605.9,
+      "fresh_connection_warm_ms": 25.7,
+      "wake_ms": 1580.2
+    },
+    "Turso libSQL": {
+      "first_request_ms": 343.7,
+      "fresh_connection_warm_ms": 41.2,
+      "wake_ms": 302.5
+    },
+    "Supabase PostgREST": {
+      "first_request_ms": 575.9,
+      "fresh_connection_warm_ms": 70.1,
+      "wake_ms": 505.8
+    },
+    "Convex": {
+      "first_request_ms": 144.2,
+      "fresh_connection_warm_ms": 51.5,
+      "wake_ms": 92.7
+    },
+    "Cloudflare Workers (D1)": {
+      "first_request_ms": 173.6,
+      "fresh_connection_warm_ms": 97.1,
+      "wake_ms": 76.5
+    },
+    "Pixeltable Insert Route": {
+      "first_request_ms": 76.0,
+      "fresh_connection_warm_ms": 69.9,
+      "wake_ms": 6.1
+    },
+    "Railway Postgres": {
+      "first_request_ms": 83.6,
+      "fresh_connection_warm_ms": 32.4,
+      "wake_ms": 51.2
+    },
+    "Render Postgres": {
+      "first_request_ms": 283.6,
+      "fresh_connection_warm_ms": 290.8,
+      "wake_ms": -7.2
+    },
+    "Prisma Postgres": {
+      "error": "UnknownPostgresError: Failed to identify your database: Your account has restrictions: planLimitReached. Please contact Prisma support to resolve account restrictions."
+    }
+  }
+}
