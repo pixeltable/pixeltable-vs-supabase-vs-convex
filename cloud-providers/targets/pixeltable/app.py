@@ -53,9 +53,9 @@ ingest.add_insert_route(
     Docs, path='/docs/async', inputs=[Docs.title, Docs.body], outputs=[Docs.id, Docs.title_upper, Docs.summary], background=True
 )
 ingest.add_update_route(Docs, path='/docs/update', inputs=[Docs.title], outputs=[Docs.id, Docs.title_upper])
-ingest.add_compute_route(Docs, path='/titles', inputs=[Docs.title], outputs=[Docs.title_upper])
+ingest.add_compute_route(Docs, path='/titles', inputs=[Docs.title], outputs=[Docs.title_upper, Docs.summary])
 ingest.add_compute_route(
-    Docs, path='/titles/async', inputs=[Docs.title], outputs=[Docs.title_upper], background=True
+    Docs, path='/titles/async', inputs=[Docs.title], outputs=[Docs.title_upper, Docs.summary], background=True
 )
 
 

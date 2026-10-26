@@ -12,6 +12,20 @@ class DocInput(BaseModel):
     title: str
     body: str
 
+
+def frame_at(container, seconds: float = 0.5):
+    """The frame Pixeltable's extract_frame(timestamp=seconds) returns, found the same way: the first at or after
+    `seconds` from the stream's start, or here the first frame of a shorter clip. Given a stream, seek() counts in
+    that stream's time base, not in microseconds."""
+    stream = container.streams.video[0]
+    start = stream.start_time or 0
+    container.seek(int(seconds / stream.time_base) + start, backward=True, stream=stream)
+    for frame in container.decode(stream):
+        if frame.pts is not None and (frame.pts - start) * stream.time_base >= seconds:
+            return frame.to_image()
+    container.seek(0)
+    return next((frame.to_image() for frame in container.decode(stream)), None)
+
 @app.get("/")
 def health():
     return {"status": "ok", "service": "comparison-benchmark"}
@@ -36,20 +50,8 @@ async def insert_clip(clip: UploadFile = File(...), title: str = Form(...)):
     container = av.open(io.BytesIO(content))
     duration = float(container.duration / av.time_base) if container.duration else 0.0
     
-    # Extract frame at ~0.5s or first frame
-    frame_image = None
-    stream = container.streams.video[0]
-    container.seek(500000, stream=stream)  # Seek 0.5s in microseconds
-    for frame in container.decode(video=0):
-        frame_image = frame.to_image()
-        break
-    
-    if frame_image is None:
-        container.seek(0)
-        for frame in container.decode(video=0):
-            frame_image = frame.to_image()
-            break
-            
+    frame_image = frame_at(container)
+
     # Generate thumbnail
     w, h = 320, 180
     if frame_image:
@@ -103,12 +105,7 @@ async def persist_clip(clip: UploadFile = File(...), title: str = Form(...)):
     content = await clip.read()
     container = av.open(io.BytesIO(content))
     duration = float(container.duration / av.time_base) if container.duration else 0.0
-    stream = container.streams.video[0]
-    container.seek(500000, stream=stream)
-    frame_image = next((frame.to_image() for frame in container.decode(video=0)), None)
-    if frame_image is None:  # the clip is shorter than the seek; take the first frame, as /clip does
-        container.seek(0)
-        frame_image = next((frame.to_image() for frame in container.decode(video=0)), None)
+    frame_image = frame_at(container)
     thumb = io.BytesIO()
     frame_image.resize((256, 144)).save(thumb, format="JPEG")
     video_key, thumb_key = f"videos/{clip_id}.mpg", f"thumbs/{clip_id}.jpg"

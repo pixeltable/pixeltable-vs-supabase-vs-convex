@@ -23,8 +23,8 @@ by the same rules, and every failure is published. Numbers live in `results/`, n
 ## What makes two rows comparable
 
 - **One handler.** Every compute target serves the same function: read `{title, body}`, return
-  `title_upper` and `summary`, store nothing (`targets/fastapi/main.py` and its ports). Pixeltable's compute
-  route is the exception: it reads `title` and returns `title_upper` only (`targets/pixeltable/app.py`).
+  `title_upper` and `summary`, store nothing (`targets/fastapi/main.py` and its ports; Pixeltable's compute
+  route in `targets/pixeltable/app.py`).
 - **One row.** Every database stores `docs(id, title, body)` (`targets/sql/schema.sql`; Convex: `targets/convex`).
 - **Warm connections.** HTTP and SQL targets both start every load window with open connections.
 - **Three runs, four hours apart.** A published number is the median of three runs; the charts show the
@@ -61,8 +61,10 @@ per gateway pod: rows that hit either are labelled.
 - **Decode on Railway, Render and Modal used the first frame.** Their handlers call
   `container.seek(500000, stream=stream)`, which PyAV reads in the stream's time base (1/90,000 s for the
   fixture), so it seeks past the end of the 3.55 s clip and falls back to frame 0. Pixeltable decodes the frame at
-  0.5 s, which is more work. The deployed code is kept as it ran; convert 0.5 s through `stream.time_base` before
-  the next run.
+  0.5 s, which is more work. Later runs call `frame_at()`, which finds the frame the way Pixeltable's
+  `extract_frame()` does.
+- **Pixeltable's compute route returned `title_upper` only**, without the `summary` every other compute target
+  returns. Later runs return both.
 - **Older raw files overstate two things, and `aggregate.py` corrects both.** Vercel's c=50 rows divided their
   successes by the time to the last success (about 10 s), while failures went on to the 15 s deadline. And three
   cold rows (`Pixeltable Compute Route (background=True)`, `Pixeltable Insert Route`, `Cloudflare Workers (D1)`)
