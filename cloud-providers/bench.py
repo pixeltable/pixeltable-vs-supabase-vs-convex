@@ -740,12 +740,10 @@ async def media_background(n=MEDIA_VIDEOS, c=5):
                 if r.status != 200:
                     errors[f'http_{r.status}'] = errors.get(f'http_{r.status}', 0) + 1
                     return
-                job = (await r.json())['id']
+                job_url = (await r.json())['job_url']
                 ack.append(time.perf_counter() - t0)
             while time.perf_counter() - t0 < 120:
-                async with session.get(
-                    f'{PXT}/media/_pxt/jobs/{job}', headers={**UA, 'Authorization': f'Bearer {E["PXT_TOKEN"]}'}
-                ) as r:
+                async with session.get(job_url, headers={**UA, 'Authorization': f'Bearer {E["PXT_TOKEN"]}'}) as r:
                     if r.status == 200 and (await r.json()).get('status') == 'done':
                         total.append(time.perf_counter() - t0)
                         return
