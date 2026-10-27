@@ -195,11 +195,14 @@ HTTP_WRITES = {
     ),
 }
 
-SQL_WRITES = {
+SQL_DSNS = {
     'Railway Postgres': 'RAILWAY_PG_DSN',
     'Render Postgres': 'RENDER_PG_DSN',
     'Prisma Postgres': 'PRISMA_POSTGRES_DSN',
 }
+# a database whose DSN is left unset is not run; every result file names it under 'not_run'
+SQL_WRITES = {name: var for name, var in SQL_DSNS.items() if E.get(var)}
+NOT_RUN = sorted(SQL_DSNS.keys() - SQL_WRITES.keys())
 
 KIND = {
     **{name: 'http-compute' for name in COMPUTE},
@@ -933,6 +936,7 @@ async def run():
     out = {
         'started': datetime.now(UTC).isoformat(timespec='seconds'),
         'client': client_info(),
+        'not_run': NOT_RUN,
         'load_seconds': LOAD_SECONDS,
     }
     targets = [*COMPUTE, *HTTP_WRITES, *SQL_WRITES]
@@ -964,7 +968,7 @@ async def run():
 
 async def near():
     """Latency and reads only: what a second-region client measures. No load is sent from there."""
-    out = {'started': datetime.now(UTC).isoformat(timespec='seconds'), 'client': client_info()}
+    out = {'started': datetime.now(UTC).isoformat(timespec='seconds'), 'client': client_info(), 'not_run': NOT_RUN}
     out['latency'] = {n: await guarded(latency(n)) for n in [*COMPUTE, *HTTP_WRITES, *SQL_WRITES]}
     out['reads'] = await reads()
     out['finished'] = datetime.now(UTC).isoformat(timespec='seconds')
@@ -1001,6 +1005,7 @@ if __name__ == '__main__':
                 'started': started,
                 'finished': datetime.now(UTC).isoformat(timespec='seconds'),
                 'client': client_info(),
+                'not_run': NOT_RUN,
                 'idle_minutes': COLD_IDLE_MINUTES,
                 'cold': measured,
             },
