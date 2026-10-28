@@ -1,0 +1,81 @@
+{
+  "started": "2026-10-27T18:30:30+00:00",
+  "finished": "2026-10-27T18:30:54+00:00",
+  "client": {
+    "hostname": "ip-172-31-20-232.ec2.internal",
+    "python": "3.11.17",
+    "aiohttp": "3.14.5",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.20",
+    "placement/region": "us-east-1",
+    "placement/availability-zone": "us-east-1c",
+    "instance-type": "c5.xlarge"
+  },
+  "not_run": [
+    "Prisma Postgres"
+  ],
+  "idle_minutes": 20.0,
+  "cold": {
+    "Cloudflare Workers": {
+      "first_request_ms": 159.9,
+      "fresh_connection_warm_ms": 104.2,
+      "wake_ms": 55.7
+    },
+    "Railway": {
+      "first_request_ms": 2616.4,
+      "fresh_connection_warm_ms": 49.6,
+      "wake_ms": 2566.8
+    },
+    "Render": {
+      "first_request_ms": 12371.2,
+      "fresh_connection_warm_ms": 102.9,
+      "wake_ms": 12268.3
+    },
+    "Vercel": {
+      "first_request_ms": 128.5,
+      "fresh_connection_warm_ms": 40.9,
+      "wake_ms": 87.6
+    },
+    "Modal": {
+      "first_request_ms": 4402.2,
+      "fresh_connection_warm_ms": 39.3,
+      "wake_ms": 4362.9
+    },
+    "Pixeltable Compute Route": {
+      "first_request_ms": 135.4,
+      "fresh_connection_warm_ms": 42.1,
+      "wake_ms": 93.3
+    },
+    "Neon Serverless PG": {
+      "first_request_ms": 1073.6,
+      "fresh_connection_warm_ms": 26.7,
+      "wake_ms": 1046.9
+    },
+    "Turso libSQL": {
+      "first_request_ms": 270.2,
+      "fresh_connection_warm_ms": 32.9,
+      "wake_ms": 237.3
+    },
+    "Supabase PostgREST": {
+      "first_request_ms": 888.0,
+      "fresh_connection_warm_ms": 176.3,
+      "wake_ms": 711.7
+    },
+    "Convex": {
+      "first_request_ms": 220.6,
+      "fresh_connection_warm_ms": 78.1,
+      "wake_ms": 142.5
+    },
+    "Railway Postgres": {
+      "first_request_ms": 49.7,
+      "fresh_connection_warm_ms": 34.7,
+      "wake_ms": 15.0
+    },
+    "Render Postgres": {
+      "first_request_ms": 361.1,
+      "fresh_connection_warm_ms": 616.1,
+      "wake_ms": -255.0
+    }
+  }
+}

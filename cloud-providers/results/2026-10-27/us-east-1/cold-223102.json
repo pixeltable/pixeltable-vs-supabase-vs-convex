@@ -1,0 +1,81 @@
+{
+  "started": "2026-10-27T22:30:30+00:00",
+  "finished": "2026-10-27T22:31:02+00:00",
+  "client": {
+    "hostname": "ip-172-31-20-232.ec2.internal",
+    "python": "3.11.17",
+    "aiohttp": "3.14.5",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.20",
+    "placement/region": "us-east-1",
+    "placement/availability-zone": "us-east-1c",
+    "instance-type": "c5.xlarge"
+  },
+  "not_run": [
+    "Prisma Postgres"
+  ],
+  "idle_minutes": 20.0,
+  "cold": {
+    "Cloudflare Workers": {
+      "first_request_ms": 115.0,
+      "fresh_connection_warm_ms": 83.0,
+      "wake_ms": 32.0
+    },
+    "Railway": {
+      "first_request_ms": 2618.0,
+      "fresh_connection_warm_ms": 38.9,
+      "wake_ms": 2579.1
+    },
+    "Render": {
+      "first_request_ms": 22187.0,
+      "fresh_connection_warm_ms": 42.6,
+      "wake_ms": 22144.4
+    },
+    "Vercel": {
+      "first_request_ms": 134.1,
+      "fresh_connection_warm_ms": 54.9,
+      "wake_ms": 79.2
+    },
+    "Modal": {
+      "first_request_ms": 3269.3,
+      "fresh_connection_warm_ms": 48.9,
+      "wake_ms": 3220.4
+    },
+    "Pixeltable Compute Route": {
+      "first_request_ms": 120.8,
+      "fresh_connection_warm_ms": 109.4,
+      "wake_ms": 11.4
+    },
+    "Neon Serverless PG": {
+      "first_request_ms": 561.3,
+      "fresh_connection_warm_ms": 25.4,
+      "wake_ms": 535.9
+    },
+    "Turso libSQL": {
+      "first_request_ms": 184.0,
+      "fresh_connection_warm_ms": 38.1,
+      "wake_ms": 145.9
+    },
+    "Supabase PostgREST": {
+      "first_request_ms": 907.1,
+      "fresh_connection_warm_ms": 85.5,
+      "wake_ms": 821.6
+    },
+    "Convex": {
+      "first_request_ms": 160.1,
+      "fresh_connection_warm_ms": 89.5,
+      "wake_ms": 70.6
+    },
+    "Railway Postgres": {
+      "first_request_ms": 47.2,
+      "fresh_connection_warm_ms": 27.5,
+      "wake_ms": 19.7
+    },
+    "Render Postgres": {
+      "first_request_ms": 460.1,
+      "fresh_connection_warm_ms": 194.0,
+      "wake_ms": 266.1
+    }
+  }
+}

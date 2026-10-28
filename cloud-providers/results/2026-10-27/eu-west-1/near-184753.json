@@ -1,0 +1,277 @@
+{
+  "started": "2026-10-27T18:32:30+00:00",
+  "client": {
+    "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+    "python": "3.11.17",
+    "aiohttp": "3.14.5",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.20",
+    "placement/region": "eu-west-1",
+    "placement/availability-zone": "eu-west-1b",
+    "instance-type": "c5.xlarge"
+  },
+  "not_run": [
+    "Prisma Postgres"
+  ],
+  "latency": {
+    "Cloudflare Workers": {
+      "count": 300,
+      "min_ms": 4.68,
+      "p50_ms": 5.77,
+      "mean_ms": 7.1,
+      "p95_ms": 10.81,
+      "p99_ms": 32.89,
+      "max_ms": 36.0,
+      "errors": 0,
+      "served_from": {
+        "DUB": 305
+      }
+    },
+    "Railway": {
+      "count": 300,
+      "min_ms": 85.79,
+      "p50_ms": 88.13,
+      "mean_ms": 89.28,
+      "p95_ms": 94.92,
+      "p99_ms": 106.02,
+      "max_ms": 169.46,
+      "errors": 0
+    },
+    "Render": {
+      "count": 300,
+      "min_ms": 95.34,
+      "p50_ms": 103.23,
+      "mean_ms": 105.4,
+      "p95_ms": 116.71,
+      "p99_ms": 130.64,
+      "max_ms": 252.55,
+      "errors": 0,
+      "served_from": {
+        "DUB": 305
+      }
+    },
+    "Vercel": {
+      "count": 300,
+      "min_ms": 87.37,
+      "p50_ms": 91.59,
+      "mean_ms": 94.41,
+      "p95_ms": 106.5,
+      "p99_ms": 145.46,
+      "max_ms": 250.0,
+      "errors": 0
+    },
+    "Modal": {
+      "count": 300,
+      "min_ms": 98.22,
+      "p50_ms": 261.21,
+      "mean_ms": 245.36,
+      "p95_ms": 274.37,
+      "p99_ms": 318.92,
+      "max_ms": 526.45,
+      "errors": 0
+    },
+    "Pixeltable Compute Route": {
+      "count": 300,
+      "min_ms": 98.32,
+      "p50_ms": 103.96,
+      "mean_ms": 107.05,
+      "p95_ms": 112.84,
+      "p99_ms": 130.45,
+      "max_ms": 458.25,
+      "errors": 0
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "count": 300,
+      "min_ms": 72.37,
+      "p50_ms": 73.24,
+      "mean_ms": 74.98,
+      "p95_ms": 81.52,
+      "p99_ms": 100.43,
+      "max_ms": 172.75,
+      "errors": 0
+    },
+    "Modal Async (.spawn)": {
+      "count": 300,
+      "min_ms": 155.16,
+      "p50_ms": 407.51,
+      "mean_ms": 525.01,
+      "p95_ms": 707.74,
+      "p99_ms": 926.51,
+      "max_ms": 1289.31,
+      "errors": 0
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 72.8,
+      "p50_ms": 74.27,
+      "mean_ms": 74.54,
+      "p95_ms": 75.83,
+      "p99_ms": 77.83,
+      "max_ms": 97.88,
+      "errors": 0
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 84.79,
+      "p50_ms": 95.02,
+      "mean_ms": 105.35,
+      "p95_ms": 120.1,
+      "p99_ms": 148.26,
+      "max_ms": 2012.64,
+      "errors": 0
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 99.96,
+      "p50_ms": 111.51,
+      "mean_ms": 138.41,
+      "p95_ms": 305.56,
+      "p99_ms": 318.71,
+      "max_ms": 348.9,
+      "errors": 0,
+      "served_from": {
+        "DUB": 305
+      }
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 104.72,
+      "p50_ms": 112.27,
+      "mean_ms": 117.53,
+      "p95_ms": 147.85,
+      "p99_ms": 188.02,
+      "max_ms": 230.39,
+      "errors": 0,
+      "served_from": {
+        "DUB": 305
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 133.03,
+      "p50_ms": 143.93,
+      "mean_ms": 159.81,
+      "p95_ms": 213.3,
+      "p99_ms": 551.47,
+      "max_ms": 774.27,
+      "errors": 0,
+      "served_from": {
+        "DUB": 305
+      }
+    },
+    "Pixeltable Insert Route": {
+      "count": 300,
+      "min_ms": 110.92,
+      "p50_ms": 119.18,
+      "mean_ms": 121.55,
+      "p95_ms": 130.66,
+      "p99_ms": 140.76,
+      "max_ms": 154.53,
+      "errors": 0
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "count": 300,
+      "min_ms": 72.96,
+      "p50_ms": 73.85,
+      "mean_ms": 75.89,
+      "p95_ms": 79.56,
+      "p99_ms": 98.84,
+      "max_ms": 361.91,
+      "errors": 0
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 105.72,
+      "p50_ms": 107.83,
+      "mean_ms": 111.24,
+      "p95_ms": 115.94,
+      "p99_ms": 201.03,
+      "max_ms": 279.99
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 71.73,
+      "p50_ms": 72.08,
+      "mean_ms": 73.38,
+      "p95_ms": 75.01,
+      "p99_ms": 107.57,
+      "max_ms": 142.93
+    }
+  },
+  "reads": {
+    "Pixeltable Query Route": {
+      "count": 300,
+      "min_ms": 83.78,
+      "p50_ms": 87.25,
+      "mean_ms": 87.98,
+      "p95_ms": 93.24,
+      "p99_ms": 101.42,
+      "max_ms": 112.93
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 71.2,
+      "p50_ms": 71.67,
+      "mean_ms": 72.17,
+      "p95_ms": 72.7,
+      "p99_ms": 74.09,
+      "max_ms": 181.0
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 69.68,
+      "p50_ms": 70.67,
+      "mean_ms": 73.39,
+      "p95_ms": 78.21,
+      "p99_ms": 108.58,
+      "max_ms": 289.56
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 97.78,
+      "p50_ms": 104.87,
+      "mean_ms": 119.78,
+      "p95_ms": 285.05,
+      "p99_ms": 298.71,
+      "max_ms": 322.48
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 96.54,
+      "p50_ms": 100.46,
+      "mean_ms": 102.78,
+      "p95_ms": 113.75,
+      "p99_ms": 154.69,
+      "max_ms": 186.94
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 109.16,
+      "p50_ms": 115.81,
+      "mean_ms": 119.03,
+      "p95_ms": 130.7,
+      "p99_ms": 194.91,
+      "max_ms": 306.51
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 98.15,
+      "p50_ms": 98.35,
+      "mean_ms": 98.79,
+      "p95_ms": 99.04,
+      "p99_ms": 100.35,
+      "max_ms": 198.22
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 69.85,
+      "p50_ms": 70.16,
+      "mean_ms": 70.73,
+      "p95_ms": 72.05,
+      "p99_ms": 76.5,
+      "max_ms": 139.72
+    }
+  },
+  "finished": "2026-10-27T18:47:53+00:00"
+}
