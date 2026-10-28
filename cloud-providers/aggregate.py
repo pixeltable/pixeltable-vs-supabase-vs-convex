@@ -65,7 +65,11 @@ def per_target(runs, section, getters, one_run_by=None):
                     out[name][field]['median'] = round(get(middle), 2)
         errors: dict[str, int] = {}
         for run in runs:
-            for kind, n in (run.get(section, {}).get(name, {}).get('errors') or {}).items():
+            found = run.get(section, {}).get(name, {}).get('errors') or {}
+            # the latency test counts its requests that answered >= 400, without their status
+            if isinstance(found, int):
+                found = {'http_error': found}
+            for kind, n in found.items():
                 errors[kind] = errors.get(kind, 0) + n
         if errors:
             out[name]['errors_all_runs'] = errors
@@ -77,8 +81,10 @@ def lat(key):
 
 
 def main(day: Path) -> None:
-    runs = [json.loads(p.read_text()) for p in sorted(day.glob('run-*.json')) or sorted(day.glob('near-*.json'))]
-    colds = [json.loads(p.read_text()) for p in sorted(day.glob('cold-*.json'))]
+    # by start time: a file name holds only the time of day, so a run after midnight sorts first by name
+    paths = sorted(day.glob('run-*.json')) or sorted(day.glob('near-*.json'))
+    runs = sorted((json.loads(p.read_text()) for p in paths), key=lambda run: run['started'])
+    colds = sorted((json.loads(p.read_text()) for p in day.glob('cold-*.json')), key=lambda run: run['started'])
     for run in runs:
         correct_load_window(run)
     for c in colds:

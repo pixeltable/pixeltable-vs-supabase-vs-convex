@@ -49,6 +49,24 @@ def test_a_database_the_runs_list_as_not_run_passes(day: Path) -> None:
     validate.main(day)
 
 
+def test_a_latency_row_whose_failed_requests_make_up_the_samples_passes_and_sums_them(day: Path) -> None:
+    def fail_195(d: dict) -> None:
+        d['latency']['Pixeltable Insert Route (background=True)'].update(count=105, errors=195)
+
+    runs = sorted(day.glob('us-east-1/run-*.json'))
+    for run in runs:
+        edit(run, fail_195)
+    validate.main(day)
+    aggregate.main(day / 'us-east-1')
+    rebuilt = json.loads((day / 'us-east-1' / 'aggregate.json').read_text())
+    row = rebuilt['latency']['Pixeltable Insert Route (background=True)']
+    assert row['errors_all_runs'] == {'http_error': 195 * len(runs)}
+
+    edit(runs[0], lambda d: d['latency']['Pixeltable Insert Route (background=True)'].update(errors=194))
+    with pytest.raises(SystemExit):
+        validate.main(day)
+
+
 def test_a_section_missing_from_every_run_fails(day: Path) -> None:
     for run in day.glob('us-east-1/run-*.json'):
         edit(run, lambda d: d.pop('resilience'))
