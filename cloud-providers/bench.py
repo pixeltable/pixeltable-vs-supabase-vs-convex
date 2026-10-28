@@ -195,11 +195,14 @@ HTTP_WRITES = {
     ),
 }
 
-SQL_WRITES = {
+SQL_DSNS = {
     'Railway Postgres': 'RAILWAY_PG_DSN',
     'Render Postgres': 'RENDER_PG_DSN',
     'Prisma Postgres': 'PRISMA_POSTGRES_DSN',
 }
+# a database whose DSN is left unset is not run; every result file names it under 'not_run'
+SQL_WRITES = {name: var for name, var in SQL_DSNS.items() if E.get(var)}
+NOT_RUN = sorted(SQL_DSNS.keys() - SQL_WRITES.keys())
 
 KIND = {
     **{name: 'http-compute' for name in COMPUTE},
@@ -740,12 +743,10 @@ async def media_background(n=MEDIA_VIDEOS, c=5):
                 if r.status != 200:
                     errors[f'http_{r.status}'] = errors.get(f'http_{r.status}', 0) + 1
                     return
-                job = (await r.json())['id']
+                job_url = (await r.json())['job_url']
                 ack.append(time.perf_counter() - t0)
             while time.perf_counter() - t0 < 120:
-                async with session.get(
-                    f'{PXT}/media/_pxt/jobs/{job}', headers={**UA, 'Authorization': f'Bearer {E["PXT_TOKEN"]}'}
-                ) as r:
+                async with session.get(job_url, headers={**UA, 'Authorization': f'Bearer {E["PXT_TOKEN"]}'}) as r:
                     if r.status == 200 and (await r.json()).get('status') == 'done':
                         total.append(time.perf_counter() - t0)
                         return
@@ -935,6 +936,7 @@ async def run():
     out = {
         'started': datetime.now(UTC).isoformat(timespec='seconds'),
         'client': client_info(),
+        'not_run': NOT_RUN,
         'load_seconds': LOAD_SECONDS,
     }
     targets = [*COMPUTE, *HTTP_WRITES, *SQL_WRITES]
@@ -966,7 +968,7 @@ async def run():
 
 async def near():
     """Latency and reads only: what a second-region client measures. No load is sent from there."""
-    out = {'started': datetime.now(UTC).isoformat(timespec='seconds'), 'client': client_info()}
+    out = {'started': datetime.now(UTC).isoformat(timespec='seconds'), 'client': client_info(), 'not_run': NOT_RUN}
     out['latency'] = {n: await guarded(latency(n)) for n in [*COMPUTE, *HTTP_WRITES, *SQL_WRITES]}
     out['reads'] = await reads()
     out['finished'] = datetime.now(UTC).isoformat(timespec='seconds')
@@ -1003,6 +1005,7 @@ if __name__ == '__main__':
                 'started': started,
                 'finished': datetime.now(UTC).isoformat(timespec='seconds'),
                 'client': client_info(),
+                'not_run': NOT_RUN,
                 'idle_minutes': COLD_IDLE_MINUTES,
                 'cold': measured,
             },

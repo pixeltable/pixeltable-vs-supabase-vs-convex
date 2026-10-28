@@ -23,8 +23,8 @@ by the same rules, and every failure is published. Numbers live in `results/`, n
 ## What makes two rows comparable
 
 - **One handler.** Every compute target serves the same function: read `{title, body}`, return
-  `title_upper` and `summary`, store nothing (`targets/fastapi/main.py` and its ports). Pixeltable's compute
-  route is the exception: it reads `title` and returns `title_upper` only (`targets/pixeltable/app.py`).
+  `title_upper` and `summary`, store nothing (`targets/fastapi/main.py` and its ports; Pixeltable's compute
+  route in `targets/pixeltable/app.py`).
 - **One row.** Every database stores `docs(id, title, body)` (`targets/sql/schema.sql`; Convex: `targets/convex`).
 - **Warm connections.** HTTP and SQL targets both start every load window with open connections.
 - **Three runs, four hours apart.** A published number is the median of three runs; the charts show the
@@ -43,7 +43,7 @@ provider's API or CLI before the run; Neon, Turso, Convex and Modal were confirm
 | Target | Plan | Note |
 |---|---|---|
 | Neon, Turso, Convex, Modal, Supabase, Render, Railway | Free (Modal: Starter) | Railway's services have Serverless on, so they sleep when idle |
-| Prisma Postgres | Free | Its monthly operations ran out during an earlier run; the harness records `planLimitReached` |
+| Prisma Postgres | Free | Its monthly operations ran out in the 2026-10-07 runs (`planLimitReached`); not run on 2026-10-27, listed under `not_run` |
 | Vercel | Pro | The deployment lives in a Pro team; no Hobby scope was available |
 | Cloudflare Workers and D1 | Workers Paid | |
 | Pixeltable | Community (free) | |
@@ -51,22 +51,34 @@ provider's API or CLI before the run; Neon, Turso, Convex and Modal were confirm
 ## What failed or was left out
 
 The harness records every failed request by kind. A load or media row whose median run failed more than 10%
-of its requests is left out of its chart and listed with its errors; the rest stay, with their success rate.
-A target that failed in every run is published as failed, with its error. Vercel's firewall answers 403 to a
-single client address under load, and Pixeltable's gateway limits one API key to about 100 requests a second
-per gateway pod: rows that hit either are labelled.
+of its requests, or a latency row whose runs together did, is left out of its chart and listed with its errors;
+the rest stay, with their success rate. A target that failed in every run is published as failed, with its error.
+Vercel's firewall answers 403 to a single client address under load, and Pixeltable's gateway limits one API key
+to about 100 requests a second per gateway pod: rows that hit either are labelled.
+
+From pixeltable 0.7.20, a background route answers 503 with `Retry-After` once the service instance holds 64
+unfinished jobs, and the request does not run. The harness counts that 503 as a failure and does not retry, so in
+the 2026-10-27 results both background routes are left out of the load charts, and the background insert route
+out of the latency chart too: sequential submits arrive faster than its inserts finish, about 15 a second.
 
 ## Known issues in the 2026-10-07 results
 
 - **Decode on Railway, Render and Modal used the first frame.** Their handlers call
   `container.seek(500000, stream=stream)`, which PyAV reads in the stream's time base (1/90,000 s for the
   fixture), so it seeks past the end of the 3.55 s clip and falls back to frame 0. Pixeltable decodes the frame at
-  0.5 s, which is more work. The deployed code is kept as it ran; convert 0.5 s through `stream.time_base` before
-  the next run.
+  0.5 s, which is more work. Later runs call `frame_at()`, which finds the frame the way Pixeltable's
+  `extract_frame()` does.
+- **Pixeltable's compute route returned `title_upper` only**, without the `summary` every other compute target
+  returns. Later runs return both.
 - **Older raw files overstate two things, and `aggregate.py` corrects both.** Vercel's c=50 rows divided their
   successes by the time to the last success (about 10 s), while failures went on to the 15 s deadline. And three
   cold rows (`Pixeltable Compute Route (background=True)`, `Pixeltable Insert Route`, `Cloudflare Workers (D1)`)
   share a deployment with an earlier target in the pass, which had already woken it; they are dropped.
+
+## Known issues in the 2026-10-27 results
+
+- **A failed latency or read request has no status.** Those tests count requests that answered 400 or above,
+  without the code, so they appear as `http_error`. The load tests record the status.
 
 ## Deploying the targets
 
@@ -83,7 +95,7 @@ ten days; paid tiers other than those in the table; cost per request.
 1. Deploy each target from `targets/` and apply `targets/sql/schema.sql` to every database.
 2. Fill `.env.example` into `~/shootout.env` on two runners (one in `us-east-1`, one in `eu-west-1`), with
    Python 3.11 and `pip install aiohttp asyncpg "psycopg[binary]" pixeltable==<the service's version>`: a client
-   on another version than the service skews the SDK batch test (0.7.14 for the published results).
+   on another version than the service skews the SDK batch test (0.7.14 for the 2026-10-07 results, 0.7.20 for 2026-10-27).
 3. Copy this folder to `~/shootout` on both, pick a start time, and run
    `ROLE=us START_EPOCH=<unix time> ./remote_loop.sh` and `ROLE=eu START_EPOCH=<same time> ./remote_loop.sh`.
 4. Copy `results/` back, run `python validate.py results/<day>`, which checks that every section is there, sample

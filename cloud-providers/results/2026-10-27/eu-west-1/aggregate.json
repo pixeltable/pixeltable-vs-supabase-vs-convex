@@ -1,0 +1,1175 @@
+{
+  "runs": [
+    {
+      "started": "2026-10-27T18:32:30+00:00",
+      "finished": "2026-10-27T18:47:53+00:00",
+      "client": {
+        "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+        "python": "3.11.17",
+        "aiohttp": "3.14.5",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.20",
+        "placement/region": "eu-west-1",
+        "placement/availability-zone": "eu-west-1b",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-27T22:32:30+00:00",
+      "finished": "2026-10-27T22:47:36+00:00",
+      "client": {
+        "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+        "python": "3.11.17",
+        "aiohttp": "3.14.5",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.20",
+        "placement/region": "eu-west-1",
+        "placement/availability-zone": "eu-west-1b",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-28T02:32:30+00:00",
+      "finished": "2026-10-28T02:46:41+00:00",
+      "client": {
+        "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+        "python": "3.11.17",
+        "aiohttp": "3.14.5",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.20",
+        "placement/region": "eu-west-1",
+        "placement/availability-zone": "eu-west-1b",
+        "instance-type": "c5.xlarge"
+      }
+    }
+  ],
+  "cold_runs": [
+    {
+      "started": "2026-10-27T19:07:54+00:00",
+      "idle_minutes": 20.0,
+      "client": {
+        "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+        "python": "3.11.17",
+        "aiohttp": "3.14.5",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.20",
+        "placement/region": "eu-west-1",
+        "placement/availability-zone": "eu-west-1b",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-27T23:07:36+00:00",
+      "idle_minutes": 20.0,
+      "client": {
+        "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+        "python": "3.11.17",
+        "aiohttp": "3.14.5",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.20",
+        "placement/region": "eu-west-1",
+        "placement/availability-zone": "eu-west-1b",
+        "instance-type": "c5.xlarge"
+      }
+    },
+    {
+      "started": "2026-10-28T03:06:42+00:00",
+      "idle_minutes": 20.0,
+      "client": {
+        "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+        "python": "3.11.17",
+        "aiohttp": "3.14.5",
+        "asyncpg": "0.32.0",
+        "psycopg": "3.3.6",
+        "pixeltable": "0.7.20",
+        "placement/region": "eu-west-1",
+        "placement/availability-zone": "eu-west-1b",
+        "instance-type": "c5.xlarge"
+      }
+    }
+  ],
+  "latency": {
+    "Cloudflare Workers": {
+      "min_ms": {
+        "median": 4.85,
+        "min": 4.68,
+        "max": 4.97,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 5.84,
+        "min": 5.77,
+        "max": 6.01,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 7.12,
+        "min": 7.1,
+        "max": 7.28,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 10.0,
+        "min": 8.08,
+        "max": 10.81,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 32.89,
+        "min": 29.41,
+        "max": 35.94,
+        "runs": 3
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "min_ms": {
+        "median": 133.03,
+        "min": 131.56,
+        "max": 136.73,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 143.93,
+        "min": 137.85,
+        "max": 149.25,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 166.2,
+        "min": 159.81,
+        "max": 174.99,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 213.3,
+        "min": 206.84,
+        "max": 253.99,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 551.47,
+        "min": 444.43,
+        "max": 1227.35,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "min_ms": {
+        "median": 104.72,
+        "min": 102.67,
+        "max": 109.88,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 112.27,
+        "min": 109.58,
+        "max": 116.59,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 117.53,
+        "min": 116.24,
+        "max": 121.99,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 146.42,
+        "min": 138.34,
+        "max": 147.85,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 216.61,
+        "min": 188.02,
+        "max": 227.0,
+        "runs": 3
+      }
+    },
+    "Modal": {
+      "min_ms": {
+        "median": 103.78,
+        "min": 98.22,
+        "max": 256.41,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 264.79,
+        "min": 261.21,
+        "max": 284.54,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 265.83,
+        "min": 245.36,
+        "max": 281.4,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 274.37,
+        "min": 271.31,
+        "max": 296.62,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 318.92,
+        "min": 281.39,
+        "max": 322.47,
+        "runs": 3
+      }
+    },
+    "Modal Async (.spawn)": {
+      "min_ms": {
+        "median": 173.93,
+        "min": 155.16,
+        "max": 400.32,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 407.51,
+        "min": 386.94,
+        "max": 421.26,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 424.24,
+        "min": 299.85,
+        "max": 525.01,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 443.44,
+        "min": 413.76,
+        "max": 707.74,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 504.92,
+        "min": 435.12,
+        "max": 926.51,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "min_ms": {
+        "median": 71.97,
+        "min": 71.22,
+        "max": 72.8,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 73.26,
+        "min": 72.48,
+        "max": 74.27,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 73.98,
+        "min": 73.85,
+        "max": 74.54,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 75.83,
+        "min": 74.14,
+        "max": 77.77,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 79.0,
+        "min": 77.83,
+        "max": 83.92,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route": {
+      "min_ms": {
+        "median": 99.99,
+        "min": 98.32,
+        "max": 102.26,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 106.67,
+        "min": 103.96,
+        "max": 111.56,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 107.66,
+        "min": 107.05,
+        "max": 111.83,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 112.84,
+        "min": 112.34,
+        "max": 124.98,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 130.45,
+        "min": 121.74,
+        "max": 139.54,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "min_ms": {
+        "median": 72.76,
+        "min": 72.37,
+        "max": 73.09,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 73.65,
+        "min": 73.24,
+        "max": 73.71,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 74.98,
+        "min": 73.94,
+        "max": 75.82,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 81.52,
+        "min": 74.87,
+        "max": 82.43,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 100.43,
+        "min": 78.3,
+        "max": 104.45,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route": {
+      "min_ms": {
+        "median": 114.73,
+        "min": 110.92,
+        "max": 114.84,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 120.45,
+        "min": 119.18,
+        "max": 127.32,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 122.09,
+        "min": 121.55,
+        "max": 130.11,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 130.66,
+        "min": 130.14,
+        "max": 146.04,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 145.01,
+        "min": 140.76,
+        "max": 161.89,
+        "runs": 3
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "min_ms": {
+        "median": 72.96,
+        "min": 72.8,
+        "max": 73.66,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 73.85,
+        "min": 73.73,
+        "max": 74.19,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 76.53,
+        "min": 75.89,
+        "max": 76.55,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 77.34,
+        "min": 76.32,
+        "max": 79.56,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 95.35,
+        "min": 89.43,
+        "max": 98.84,
+        "runs": 3
+      }
+    },
+    "Railway": {
+      "min_ms": {
+        "median": 86.68,
+        "min": 85.79,
+        "max": 88.2,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 89.03,
+        "min": 88.13,
+        "max": 89.8,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 91.16,
+        "min": 89.28,
+        "max": 91.23,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 95.94,
+        "min": 94.92,
+        "max": 97.18,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 106.02,
+        "min": 103.17,
+        "max": 106.59,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "min_ms": {
+        "median": 105.57,
+        "min": 101.25,
+        "max": 105.72,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 106.96,
+        "min": 103.21,
+        "max": 107.83,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 108.11,
+        "min": 107.88,
+        "max": 111.24,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 113.08,
+        "min": 111.62,
+        "max": 115.94,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 201.03,
+        "min": 117.11,
+        "max": 246.2,
+        "runs": 3
+      }
+    },
+    "Render": {
+      "min_ms": {
+        "median": 95.34,
+        "min": 94.42,
+        "max": 98.16,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 102.76,
+        "min": 99.48,
+        "max": 103.23,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 105.4,
+        "min": 100.39,
+        "max": 105.54,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 112.67,
+        "min": 108.63,
+        "max": 116.71,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 130.64,
+        "min": 114.66,
+        "max": 186.98,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "min_ms": {
+        "median": 71.73,
+        "min": 71.5,
+        "max": 72.43,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 72.08,
+        "min": 71.93,
+        "max": 72.77,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 73.38,
+        "min": 72.8,
+        "max": 73.84,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 74.4,
+        "min": 73.96,
+        "max": 75.01,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 107.57,
+        "min": 100.15,
+        "max": 108.25,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "min_ms": {
+        "median": 97.78,
+        "min": 96.4,
+        "max": 99.96,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 103.96,
+        "min": 103.16,
+        "max": 111.51,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 120.37,
+        "min": 110.63,
+        "max": 138.41,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 293.4,
+        "min": 124.04,
+        "max": 305.56,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 312.63,
+        "min": 303.77,
+        "max": 318.71,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "min_ms": {
+        "median": 84.79,
+        "min": 83.61,
+        "max": 84.86,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 92.73,
+        "min": 90.8,
+        "max": 95.02,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 96.54,
+        "min": 95.2,
+        "max": 105.35,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 113.8,
+        "min": 112.88,
+        "max": 120.1,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 146.84,
+        "min": 138.74,
+        "max": 148.26,
+        "runs": 3
+      }
+    },
+    "Vercel": {
+      "min_ms": {
+        "median": 86.63,
+        "min": 86.38,
+        "max": 87.37,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 91.9,
+        "min": 91.59,
+        "max": 92.43,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 94.41,
+        "min": 94.24,
+        "max": 94.54,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 103.39,
+        "min": 102.16,
+        "max": 106.5,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 145.46,
+        "min": 125.6,
+        "max": 146.25,
+        "runs": 3
+      }
+    }
+  },
+  "reads": {
+    "Cloudflare Workers (D1)": {
+      "min_ms": {
+        "median": 109.16,
+        "min": 109.13,
+        "max": 109.39,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 120.47,
+        "min": 115.81,
+        "max": 121.11,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 123.48,
+        "min": 119.03,
+        "max": 125.41,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 135.06,
+        "min": 130.7,
+        "max": 142.65,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 164.2,
+        "min": 148.31,
+        "max": 194.91,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "min_ms": {
+        "median": 94.95,
+        "min": 92.46,
+        "max": 96.54,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 100.12,
+        "min": 96.3,
+        "max": 100.46,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 100.38,
+        "min": 98.91,
+        "max": 102.78,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 106.25,
+        "min": 103.54,
+        "max": 113.75,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 125.02,
+        "min": 105.96,
+        "max": 154.69,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "min_ms": {
+        "median": 70.55,
+        "min": 69.68,
+        "max": 71.2,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 70.85,
+        "min": 69.94,
+        "max": 71.67,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 70.96,
+        "min": 70.17,
+        "max": 72.17,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 71.23,
+        "min": 70.86,
+        "max": 72.7,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 74.09,
+        "min": 73.54,
+        "max": 75.39,
+        "runs": 3
+      }
+    },
+    "Pixeltable Query Route": {
+      "min_ms": {
+        "median": 84.99,
+        "min": 83.78,
+        "max": 85.61,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 87.78,
+        "min": 87.25,
+        "max": 88.86,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 89.27,
+        "min": 87.98,
+        "max": 91.27,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 95.18,
+        "min": 93.24,
+        "max": 100.71,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 116.5,
+        "min": 101.42,
+        "max": 120.17,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "min_ms": {
+        "median": 98.19,
+        "min": 98.15,
+        "max": 103.59,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 98.53,
+        "min": 98.35,
+        "max": 106.88,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 99.28,
+        "min": 98.79,
+        "max": 106.57,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 100.8,
+        "min": 99.04,
+        "max": 107.5,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 104.32,
+        "min": 100.35,
+        "max": 109.58,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "min_ms": {
+        "median": 70.58,
+        "min": 69.85,
+        "max": 70.68,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 70.82,
+        "min": 70.16,
+        "max": 70.88,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 71.57,
+        "min": 70.73,
+        "max": 72.03,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 72.15,
+        "min": 72.05,
+        "max": 73.83,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 87.13,
+        "min": 76.5,
+        "max": 97.24,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "min_ms": {
+        "median": 97.51,
+        "min": 94.68,
+        "max": 97.78,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 104.2,
+        "min": 101.14,
+        "max": 104.87,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 119.78,
+        "min": 114.6,
+        "max": 134.13,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 285.18,
+        "min": 285.05,
+        "max": 304.14,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 305.8,
+        "min": 298.71,
+        "max": 312.87,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "min_ms": {
+        "median": 69.68,
+        "min": 69.56,
+        "max": 69.77,
+        "runs": 3
+      },
+      "p50_ms": {
+        "median": 70.24,
+        "min": 70.1,
+        "max": 70.67,
+        "runs": 3
+      },
+      "mean_ms": {
+        "median": 71.28,
+        "min": 71.17,
+        "max": 73.39,
+        "runs": 3
+      },
+      "p95_ms": {
+        "median": 76.23,
+        "min": 75.59,
+        "max": 78.21,
+        "runs": 3
+      },
+      "p99_ms": {
+        "median": 85.42,
+        "min": 83.05,
+        "max": 108.58,
+        "runs": 3
+      }
+    }
+  },
+  "batch": {},
+  "load_c50": {},
+  "load_c100": {},
+  "media_decode": {},
+  "media_persist": {},
+  "cold": {
+    "Cloudflare Workers": {
+      "first_request_ms": {
+        "median": 55.1,
+        "min": 41.8,
+        "max": 59.2,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 40.4,
+        "min": 36.3,
+        "max": 40.8,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 14.3,
+        "min": 5.5,
+        "max": 18.8,
+        "runs": 3
+      }
+    },
+    "Convex": {
+      "first_request_ms": {
+        "median": 333.4,
+        "min": 257.6,
+        "max": 418.8,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 311.7,
+        "min": 125.4,
+        "max": 342.0,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": -8.6,
+        "min": -54.1,
+        "max": 293.4,
+        "runs": 3
+      }
+    },
+    "Modal": {
+      "first_request_ms": {
+        "median": 3460.9,
+        "min": 2851.1,
+        "max": 3777.8,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 716.3,
+        "min": 246.2,
+        "max": 718.7,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 2742.2,
+        "min": 2604.9,
+        "max": 3061.5,
+        "runs": 3
+      }
+    },
+    "Neon Serverless PG": {
+      "first_request_ms": {
+        "median": 811.9,
+        "min": 797.1,
+        "max": 831.1,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 227.7,
+        "min": 225.2,
+        "max": 229.8,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 584.2,
+        "min": 571.9,
+        "max": 601.3,
+        "runs": 3
+      }
+    },
+    "Pixeltable Compute Route": {
+      "first_request_ms": {
+        "median": 327.6,
+        "min": 310.5,
+        "max": 347.5,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 249.9,
+        "min": 249.7,
+        "max": 250.1,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 77.7,
+        "min": 60.4,
+        "max": 97.8,
+        "runs": 3
+      }
+    },
+    "Railway": {
+      "first_request_ms": {
+        "median": 2739.6,
+        "min": 2724.5,
+        "max": 2774.3,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 151.4,
+        "min": 117.0,
+        "max": 161.6,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 2588.2,
+        "min": 2562.9,
+        "max": 2657.3,
+        "runs": 3
+      }
+    },
+    "Railway Postgres": {
+      "first_request_ms": {
+        "median": 895.8,
+        "min": 834.8,
+        "max": 931.3,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 827.0,
+        "min": 815.8,
+        "max": 865.1,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 66.2,
+        "min": 19.0,
+        "max": 68.8,
+        "runs": 3
+      }
+    },
+    "Render": {
+      "first_request_ms": {
+        "median": 22243.2,
+        "min": 22226.2,
+        "max": 22260.3,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 126.2,
+        "min": 123.4,
+        "max": 295.5,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 22102.8,
+        "min": 21947.7,
+        "max": 22134.1,
+        "runs": 3
+      }
+    },
+    "Render Postgres": {
+      "first_request_ms": {
+        "median": 698.4,
+        "min": 671.9,
+        "max": 710.4,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 1074.9,
+        "min": 669.9,
+        "max": 1082.7,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": -372.3,
+        "min": -376.5,
+        "max": 2.0,
+        "runs": 3
+      }
+    },
+    "Supabase PostgREST": {
+      "first_request_ms": {
+        "median": 825.5,
+        "min": 804.0,
+        "max": 866.3,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 306.9,
+        "min": 299.1,
+        "max": 310.6,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 514.9,
+        "min": 497.1,
+        "max": 567.2,
+        "runs": 3
+      }
+    },
+    "Turso libSQL": {
+      "first_request_ms": {
+        "median": 527.9,
+        "min": 477.6,
+        "max": 925.2,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 308.2,
+        "min": 301.6,
+        "max": 359.9,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 219.7,
+        "min": 176.0,
+        "max": 565.3,
+        "runs": 3
+      }
+    },
+    "Vercel": {
+      "first_request_ms": {
+        "median": 165.0,
+        "min": 162.1,
+        "max": 1754.1,
+        "runs": 3
+      },
+      "fresh_connection_warm_ms": {
+        "median": 106.0,
+        "min": 103.7,
+        "max": 108.4,
+        "runs": 3
+      },
+      "wake_ms": {
+        "median": 59.0,
+        "min": 53.7,
+        "max": 1650.4,
+        "runs": 3
+      }
+    }
+  },
+  "resilience": {
+    "microburst_c350": {
+      "rps": null,
+      "p50_ms": null,
+      "statuses_all_runs": {},
+      "requests_per_run": null,
+      "concurrency": null
+    },
+    "sync_insert_c250": {
+      "rps": null,
+      "p50_ms": null,
+      "statuses_all_runs": {},
+      "requests_per_run": null,
+      "concurrency": null
+    },
+    "async_insert_c200": {
+      "rps": null,
+      "p50_ms": null,
+      "statuses_all_runs": {},
+      "requests_per_run": null,
+      "concurrency": null
+    },
+    "decompression_bomb": {
+      "statuses": [],
+      "seconds": null,
+      "response": null
+    }
+  }
+}

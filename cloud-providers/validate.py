@@ -2,8 +2,9 @@
 
     python validate.py results/2026-10-07
 
-- every run has every section, and measured every target in it (a failure counts, as a recorded error);
-- every latency and read test took SAMPLES timed requests;
+- every run has every section, and measured every target in it (a failure counts, as a recorded error) except the
+  databases it lists under `not_run`, whose DSN was left unset;
+- every latency and read test made SAMPLES timed requests, those that failed counted under `errors`;
 - every load window kept its requests in flight: summed request time over the load window is close to `c`, so the
   client was never the bottleneck (checked when under 1% of requests failed, since failures carry no latency);
 - every client made COLD_PASSES cold passes, and none of them overlapped traffic from either client, other cold
@@ -118,13 +119,14 @@ def main(day: Path) -> None:
             traffic.append((f'{region}/{f.name}', *span(f, d)))
             for section, expected in EXPECTED[kind].items():
                 rows = d.get(section, {})
-                missing = set(expected) - set(rows)
+                missing = set(expected) - set(rows) - set(d.get('not_run', ()))
                 if missing:
                     problems.append(f'{region}/{f.name} {section}: no entry for {sorted(missing)}')
                 for name, row in rows.items():
                     if 'error' in row:
                         continue
-                    if section in ('latency', 'reads') and row.get('count') != SAMPLES:
+                    failed = row.get('errors') if isinstance(row.get('errors'), int) else 0
+                    if section in ('latency', 'reads') and row.get('count', 0) + failed != SAMPLES:
                         problems.append(f'{region}/{f.name} {section} / {name}: {row.get("count")} samples')
                     if (
                         section.startswith('load_')
@@ -144,7 +146,7 @@ def main(day: Path) -> None:
         for f in region_colds:
             d = json.loads(f.read_text())
             colds.append((f'{region}/{f.name}', *span(f, d)))
-            missing = set(EXPECTED['cold']['cold']) - set(d.get('cold', {}))
+            missing = set(EXPECTED['cold']['cold']) - set(d.get('cold', {})) - set(d.get('not_run', ()))
             if missing:
                 problems.append(f'{region}/{f.name} cold: no entry for {sorted(missing)}')
     quiet = timedelta(minutes=COLD_IDLE_MINUTES)

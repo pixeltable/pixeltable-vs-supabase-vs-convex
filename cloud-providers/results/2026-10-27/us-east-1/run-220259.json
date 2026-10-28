@@ -1,0 +1,1228 @@
+{
+  "started": "2026-10-27T21:40:30+00:00",
+  "client": {
+    "hostname": "ip-172-31-20-232.ec2.internal",
+    "python": "3.11.17",
+    "aiohttp": "3.14.5",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.20",
+    "placement/region": "us-east-1",
+    "placement/availability-zone": "us-east-1c",
+    "instance-type": "c5.xlarge"
+  },
+  "not_run": [
+    "Prisma Postgres"
+  ],
+  "load_seconds": 15.0,
+  "latency": {
+    "Cloudflare Workers": {
+      "count": 300,
+      "min_ms": 12.31,
+      "p50_ms": 19.79,
+      "mean_ms": 23.95,
+      "p95_ms": 46.85,
+      "p99_ms": 107.53,
+      "max_ms": 231.27,
+      "errors": 0,
+      "served_from": {
+        "IAD": 305
+      }
+    },
+    "Railway": {
+      "count": 300,
+      "min_ms": 14.93,
+      "p50_ms": 16.54,
+      "mean_ms": 16.76,
+      "p95_ms": 19.19,
+      "p99_ms": 21.12,
+      "max_ms": 22.74,
+      "errors": 0
+    },
+    "Render": {
+      "count": 300,
+      "min_ms": 23.13,
+      "p50_ms": 34.74,
+      "mean_ms": 37.38,
+      "p95_ms": 55.05,
+      "p99_ms": 74.62,
+      "max_ms": 88.28,
+      "errors": 0,
+      "served_from": {
+        "IAD": 305
+      }
+    },
+    "Vercel": {
+      "count": 300,
+      "min_ms": 18.46,
+      "p50_ms": 25.72,
+      "mean_ms": 31.7,
+      "p95_ms": 59.2,
+      "p99_ms": 129.76,
+      "max_ms": 358.06,
+      "errors": 0
+    },
+    "Modal": {
+      "count": 300,
+      "min_ms": 124.84,
+      "p50_ms": 201.9,
+      "mean_ms": 291.09,
+      "p95_ms": 570.67,
+      "p99_ms": 573.56,
+      "max_ms": 577.36,
+      "errors": 0
+    },
+    "Pixeltable Compute Route": {
+      "count": 300,
+      "min_ms": 33.35,
+      "p50_ms": 38.0,
+      "mean_ms": 38.77,
+      "p95_ms": 42.96,
+      "p99_ms": 44.78,
+      "max_ms": 127.57,
+      "errors": 0
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "count": 300,
+      "min_ms": 5.68,
+      "p50_ms": 10.42,
+      "mean_ms": 12.88,
+      "p95_ms": 30.05,
+      "p99_ms": 40.99,
+      "max_ms": 54.01,
+      "errors": 0
+    },
+    "Modal Async (.spawn)": {
+      "count": 300,
+      "min_ms": 231.92,
+      "p50_ms": 339.43,
+      "mean_ms": 434.63,
+      "p95_ms": 653.49,
+      "p99_ms": 673.52,
+      "max_ms": 815.36,
+      "errors": 0
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 4.31,
+      "p50_ms": 5.17,
+      "mean_ms": 5.63,
+      "p95_ms": 8.43,
+      "p99_ms": 15.23,
+      "max_ms": 18.86,
+      "errors": 0
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 17.74,
+      "p50_ms": 24.7,
+      "mean_ms": 28.56,
+      "p95_ms": 46.22,
+      "p99_ms": 62.56,
+      "max_ms": 209.86,
+      "errors": 0
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 19.08,
+      "p50_ms": 29.03,
+      "mean_ms": 35.17,
+      "p95_ms": 70.21,
+      "p99_ms": 99.03,
+      "max_ms": 189.17,
+      "errors": 0,
+      "served_from": {
+        "IAD": 305
+      }
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 23.86,
+      "p50_ms": 35.83,
+      "mean_ms": 40.84,
+      "p95_ms": 69.07,
+      "p99_ms": 140.58,
+      "max_ms": 212.67,
+      "errors": 0,
+      "served_from": {
+        "IAD": 305
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 70.18,
+      "p50_ms": 84.16,
+      "mean_ms": 106.65,
+      "p95_ms": 166.42,
+      "p99_ms": 669.97,
+      "max_ms": 1138.72,
+      "errors": 0,
+      "served_from": {
+        "IAD": 305
+      }
+    },
+    "Pixeltable Insert Route": {
+      "count": 300,
+      "min_ms": 44.98,
+      "p50_ms": 54.22,
+      "mean_ms": 54.46,
+      "p95_ms": 64.52,
+      "p99_ms": 86.05,
+      "max_ms": 115.09,
+      "errors": 0
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "count": 85,
+      "min_ms": 4.94,
+      "p50_ms": 5.78,
+      "mean_ms": 7.67,
+      "p95_ms": 12.55,
+      "p99_ms": 33.76,
+      "max_ms": 59.64,
+      "errors": 215
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 1.76,
+      "p50_ms": 3.01,
+      "mean_ms": 4.0,
+      "p95_ms": 8.17,
+      "p99_ms": 27.31,
+      "max_ms": 29.48
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 2.9,
+      "p50_ms": 3.39,
+      "mean_ms": 3.74,
+      "p95_ms": 5.48,
+      "p99_ms": 7.99,
+      "max_ms": 8.27
+    }
+  },
+  "reads": {
+    "Pixeltable Query Route": {
+      "count": 300,
+      "min_ms": 17.53,
+      "p50_ms": 23.86,
+      "mean_ms": 23.79,
+      "p95_ms": 32.55,
+      "p99_ms": 46.51,
+      "max_ms": 52.61
+    },
+    "Neon Serverless PG": {
+      "count": 300,
+      "min_ms": 2.27,
+      "p50_ms": 2.42,
+      "mean_ms": 2.45,
+      "p95_ms": 2.68,
+      "p99_ms": 3.19,
+      "max_ms": 4.06
+    },
+    "Turso libSQL": {
+      "count": 300,
+      "min_ms": 1.75,
+      "p50_ms": 1.93,
+      "mean_ms": 2.23,
+      "p95_ms": 3.43,
+      "p99_ms": 7.09,
+      "max_ms": 12.19
+    },
+    "Supabase PostgREST": {
+      "count": 300,
+      "min_ms": 15.07,
+      "p50_ms": 23.8,
+      "mean_ms": 28.97,
+      "p95_ms": 52.93,
+      "p99_ms": 65.8,
+      "max_ms": 261.43
+    },
+    "Convex": {
+      "count": 300,
+      "min_ms": 13.1,
+      "p50_ms": 20.14,
+      "mean_ms": 22.76,
+      "p95_ms": 38.87,
+      "p99_ms": 59.94,
+      "max_ms": 98.88
+    },
+    "Cloudflare Workers (D1)": {
+      "count": 300,
+      "min_ms": 41.4,
+      "p50_ms": 49.67,
+      "mean_ms": 51.51,
+      "p95_ms": 65.92,
+      "p99_ms": 85.43,
+      "max_ms": 133.43
+    },
+    "Railway Postgres": {
+      "count": 300,
+      "min_ms": 0.87,
+      "p50_ms": 1.03,
+      "mean_ms": 1.04,
+      "p95_ms": 1.17,
+      "p99_ms": 1.51,
+      "max_ms": 2.08
+    },
+    "Render Postgres": {
+      "count": 300,
+      "min_ms": 3.02,
+      "p50_ms": 3.17,
+      "mean_ms": 3.43,
+      "p95_ms": 3.92,
+      "p99_ms": 6.59,
+      "max_ms": 44.5
+    }
+  },
+  "batch": {
+    "Neon Serverless PG": {
+      "reps_rows_per_sec": [
+        1189.48,
+        1550.78,
+        1486.44,
+        1598.48,
+        1366.13
+      ],
+      "rows_per_sec": 1486.44
+    },
+    "Turso libSQL": {
+      "reps_rows_per_sec": [
+        364.39,
+        2412.46,
+        2678.8,
+        393.87,
+        2513.31
+      ],
+      "rows_per_sec": 2412.46
+    },
+    "Supabase PostgREST": {
+      "reps_rows_per_sec": [
+        421.87,
+        695.63,
+        1239.0,
+        1011.21,
+        1100.49
+      ],
+      "rows_per_sec": 1011.21
+    },
+    "Convex": {
+      "reps_rows_per_sec": [
+        172.68,
+        193.94,
+        156.81,
+        267.1,
+        227.95
+      ],
+      "rows_per_sec": 193.94
+    },
+    "Cloudflare Workers (D1)": {
+      "reps_rows_per_sec": [
+        504.33,
+        361.54,
+        363.25,
+        905.86,
+        756.97
+      ],
+      "rows_per_sec": 504.33
+    },
+    "Railway Postgres": {
+      "reps_rows_per_sec": [
+        813.01,
+        519.04,
+        885.81,
+        532.95,
+        832.13
+      ],
+      "rows_per_sec": 813.01
+    },
+    "Render Postgres": {
+      "reps_rows_per_sec": [
+        1179.3,
+        5710.4,
+        1222.67,
+        3675.17,
+        1387.76
+      ],
+      "rows_per_sec": 1387.76
+    },
+    "Pixeltable Python SDK": {
+      "reps_rows_per_sec": [
+        1391.59,
+        1597.45,
+        1594.2,
+        1547.2,
+        1541.99
+      ],
+      "rows_per_sec": 1547.2
+    }
+  },
+  "load_c50": {
+    "Cloudflare Workers": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.02,
+      "requests": 48972,
+      "successful_requests": 48972,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 3259.67,
+      "latency": {
+        "count": 48972,
+        "min_ms": 5.36,
+        "p50_ms": 13.67,
+        "mean_ms": 15.31,
+        "p95_ms": 25.04,
+        "p99_ms": 48.95,
+        "max_ms": 329.79
+      }
+    },
+    "Railway": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.04,
+      "requests": 30029,
+      "successful_requests": 30029,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 1996.15,
+      "latency": {
+        "count": 30029,
+        "min_ms": 13.49,
+        "p50_ms": 23.19,
+        "mean_ms": 25.03,
+        "p95_ms": 36.05,
+        "p99_ms": 79.06,
+        "max_ms": 176.2
+      }
+    },
+    "Render": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.3,
+      "requests": 2297,
+      "successful_requests": 2297,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 150.15,
+      "latency": {
+        "count": 2297,
+        "min_ms": 20.71,
+        "p50_ms": 304.19,
+        "mean_ms": 330.22,
+        "p95_ms": 408.08,
+        "p99_ms": 595.41,
+        "max_ms": 705.55
+      }
+    },
+    "Vercel": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.02,
+      "requests": 33730,
+      "successful_requests": 12385,
+      "error_rate": 0.6328,
+      "errors": {
+        "http_403": 15265,
+        "ServerDisconnectedError": 50,
+        "ClientConnectorError": 6030
+      },
+      "throughput_rps": 824.52,
+      "latency": {
+        "count": 12385,
+        "min_ms": 7.89,
+        "p50_ms": 23.69,
+        "mean_ms": 26.8,
+        "p95_ms": 43.96,
+        "p99_ms": 90.47,
+        "max_ms": 516.69
+      }
+    },
+    "Modal": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.83,
+      "requests": 5783,
+      "successful_requests": 5783,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 365.22,
+      "latency": {
+        "count": 5783,
+        "min_ms": 26.84,
+        "p50_ms": 62.85,
+        "mean_ms": 132.99,
+        "p95_ms": 413.02,
+        "p99_ms": 1070.81,
+        "max_ms": 1519.91
+      }
+    },
+    "Pixeltable Compute Route": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.37,
+      "requests": 1416,
+      "successful_requests": 1416,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 92.15,
+      "latency": {
+        "count": 1416,
+        "min_ms": 195.6,
+        "p50_ms": 487.87,
+        "mean_ms": 536.16,
+        "p95_ms": 975.12,
+        "p99_ms": 1267.88,
+        "max_ms": 2378.59
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.65,
+      "requests": 1722,
+      "successful_requests": 1409,
+      "error_rate": 0.1818,
+      "errors": {
+        "http_503": 313
+      },
+      "throughput_rps": 90.02,
+      "latency": {
+        "count": 1409,
+        "min_ms": 43.35,
+        "p50_ms": 447.14,
+        "mean_ms": 454.39,
+        "p95_ms": 708.57,
+        "p99_ms": 1004.22,
+        "max_ms": 1151.52
+      }
+    },
+    "Modal Async (.spawn)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.52,
+      "requests": 3991,
+      "successful_requests": 3991,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 257.12,
+      "latency": {
+        "count": 3991,
+        "min_ms": 77.39,
+        "p50_ms": 116.95,
+        "mean_ms": 189.49,
+        "p95_ms": 388.52,
+        "p99_ms": 783.92,
+        "max_ms": 7052.05
+      }
+    },
+    "Neon Serverless PG": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.0,
+      "requests": 62271,
+      "successful_requests": 62271,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 4150.03,
+      "latency": {
+        "count": 62271,
+        "min_ms": 3.73,
+        "p50_ms": 10.18,
+        "mean_ms": 12.04,
+        "p95_ms": 24.9,
+        "p99_ms": 36.0,
+        "max_ms": 181.79
+      }
+    },
+    "Turso libSQL": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 16.06,
+      "requests": 674,
+      "successful_requests": 674,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 41.96,
+      "latency": {
+        "count": 674,
+        "min_ms": 31.55,
+        "p50_ms": 1135.42,
+        "mean_ms": 1153.0,
+        "p95_ms": 1547.71,
+        "p99_ms": 1679.66,
+        "max_ms": 1686.98
+      }
+    },
+    "Supabase PostgREST": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.06,
+      "requests": 11982,
+      "successful_requests": 11982,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 795.54,
+      "latency": {
+        "count": 11982,
+        "min_ms": 17.55,
+        "p50_ms": 53.66,
+        "mean_ms": 62.73,
+        "p95_ms": 111.99,
+        "p99_ms": 245.78,
+        "max_ms": 689.39
+      }
+    },
+    "Convex": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.05,
+      "requests": 21832,
+      "successful_requests": 21832,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 1450.78,
+      "latency": {
+        "count": 21832,
+        "min_ms": 18.1,
+        "p50_ms": 30.19,
+        "mean_ms": 34.38,
+        "p95_ms": 59.35,
+        "p99_ms": 107.87,
+        "max_ms": 261.02
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.16,
+      "requests": 5076,
+      "successful_requests": 5076,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 334.9,
+      "latency": {
+        "count": 5076,
+        "min_ms": 68.75,
+        "p50_ms": 116.52,
+        "mean_ms": 148.17,
+        "p95_ms": 246.84,
+        "p99_ms": 1089.31,
+        "max_ms": 1183.07
+      }
+    },
+    "Pixeltable Insert Route": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 18.22,
+      "requests": 259,
+      "successful_requests": 259,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 14.21,
+      "latency": {
+        "count": 259,
+        "min_ms": 592.12,
+        "p50_ms": 2797.07,
+        "mean_ms": 3149.55,
+        "p95_ms": 6487.24,
+        "p99_ms": 7905.71,
+        "max_ms": 9315.03
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.24,
+      "requests": 3148,
+      "successful_requests": 221,
+      "error_rate": 0.9298,
+      "errors": {
+        "http_503": 2927
+      },
+      "throughput_rps": 14.5,
+      "latency": {
+        "count": 221,
+        "min_ms": 39.4,
+        "p50_ms": 249.65,
+        "mean_ms": 230.48,
+        "p95_ms": 252.97,
+        "p99_ms": 260.4,
+        "max_ms": 617.85
+      }
+    },
+    "Railway Postgres": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.02,
+      "requests": 34987,
+      "successful_requests": 34987,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2329.81,
+      "latency": {
+        "count": 34987,
+        "min_ms": 1.62,
+        "p50_ms": 5.18,
+        "mean_ms": 21.46,
+        "p95_ms": 83.93,
+        "p99_ms": 123.34,
+        "max_ms": 495.65
+      }
+    },
+    "Render Postgres": {
+      "concurrency": 50,
+      "effective_concurrency": 50,
+      "seconds": 15.1,
+      "requests": 5319,
+      "successful_requests": 5319,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 352.23,
+      "latency": {
+        "count": 5319,
+        "min_ms": 2.82,
+        "p50_ms": 103.36,
+        "mean_ms": 141.75,
+        "p95_ms": 299.24,
+        "p99_ms": 402.55,
+        "max_ms": 695.88
+      }
+    }
+  },
+  "load_c100": {
+    "Cloudflare Workers": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.11,
+      "requests": 76499,
+      "successful_requests": 76499,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 5063.11,
+      "latency": {
+        "count": 76499,
+        "min_ms": 8.11,
+        "p50_ms": 18.4,
+        "mean_ms": 19.61,
+        "p95_ms": 28.32,
+        "p99_ms": 45.9,
+        "max_ms": 279.38
+      }
+    },
+    "Railway": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.05,
+      "requests": 29150,
+      "successful_requests": 29150,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 1936.99,
+      "latency": {
+        "count": 29150,
+        "min_ms": 27.4,
+        "p50_ms": 48.09,
+        "mean_ms": 51.54,
+        "p95_ms": 85.75,
+        "p99_ms": 117.65,
+        "max_ms": 1262.03
+      }
+    },
+    "Render": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.49,
+      "requests": 2233,
+      "successful_requests": 2233,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 144.14,
+      "latency": {
+        "count": 2233,
+        "min_ms": 28.47,
+        "p50_ms": 696.49,
+        "mean_ms": 685.88,
+        "p95_ms": 908.26,
+        "p99_ms": 1000.45,
+        "max_ms": 1100.99
+      }
+    },
+    "Vercel": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.18,
+      "requests": 23030,
+      "successful_requests": 0,
+      "error_rate": 1.0,
+      "errors": {
+        "http_403": 9508,
+        "ClientOSError": 15,
+        "ServerDisconnectedError": 85,
+        "ClientConnectorError": 13422
+      },
+      "throughput_rps": 0.0,
+      "latency": {
+        "count": 0
+      }
+    },
+    "Modal": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 67.75,
+      "requests": 1878,
+      "successful_requests": 1877,
+      "error_rate": 0.0005,
+      "errors": {
+        "TimeoutError": 1
+      },
+      "throughput_rps": 27.71,
+      "latency": {
+        "count": 1877,
+        "min_ms": 46.58,
+        "p50_ms": 825.21,
+        "mean_ms": 816.35,
+        "p95_ms": 967.66,
+        "p99_ms": 1075.36,
+        "max_ms": 1793.92
+      }
+    },
+    "Pixeltable Compute Route": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.64,
+      "requests": 1439,
+      "successful_requests": 1439,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 92.02,
+      "latency": {
+        "count": 1439,
+        "min_ms": 207.93,
+        "p50_ms": 1019.3,
+        "mean_ms": 1068.35,
+        "p95_ms": 1514.17,
+        "p99_ms": 1846.42,
+        "max_ms": 2415.26
+      }
+    },
+    "Pixeltable Compute Route (background=True)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.96,
+      "requests": 1675,
+      "successful_requests": 1365,
+      "error_rate": 0.1851,
+      "errors": {
+        "http_503": 310
+      },
+      "throughput_rps": 85.53,
+      "latency": {
+        "count": 1365,
+        "min_ms": 116.07,
+        "p50_ms": 928.81,
+        "mean_ms": 930.12,
+        "p95_ms": 1337.58,
+        "p99_ms": 1372.88,
+        "max_ms": 1394.24
+      }
+    },
+    "Modal Async (.spawn)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 16.32,
+      "requests": 4929,
+      "successful_requests": 4929,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 302.07,
+      "latency": {
+        "count": 4929,
+        "min_ms": 68.02,
+        "p50_ms": 264.91,
+        "mean_ms": 307.01,
+        "p95_ms": 731.98,
+        "p99_ms": 923.82,
+        "max_ms": 4643.79
+      }
+    },
+    "Neon Serverless PG": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.01,
+      "requests": 80527,
+      "successful_requests": 77515,
+      "error_rate": 0.0374,
+      "errors": {
+        "http_500": 3012
+      },
+      "throughput_rps": 5165.81,
+      "latency": {
+        "count": 77515,
+        "min_ms": 4.97,
+        "p50_ms": 16.56,
+        "mean_ms": 18.91,
+        "p95_ms": 26.79,
+        "p99_ms": 85.94,
+        "max_ms": 258.73
+      }
+    },
+    "Turso libSQL": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 17.18,
+      "requests": 720,
+      "successful_requests": 720,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 41.91,
+      "latency": {
+        "count": 720,
+        "min_ms": 35.67,
+        "p50_ms": 2282.08,
+        "mean_ms": 2236.52,
+        "p95_ms": 2909.06,
+        "p99_ms": 3014.57,
+        "max_ms": 3036.03
+      }
+    },
+    "Supabase PostgREST": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.1,
+      "requests": 11900,
+      "successful_requests": 11900,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 788.0,
+      "latency": {
+        "count": 11900,
+        "min_ms": 19.4,
+        "p50_ms": 113.61,
+        "mean_ms": 126.45,
+        "p95_ms": 233.97,
+        "p99_ms": 428.66,
+        "max_ms": 798.78
+      }
+    },
+    "Convex": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.05,
+      "requests": 38034,
+      "successful_requests": 38034,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 2527.54,
+      "latency": {
+        "count": 38034,
+        "min_ms": 20.98,
+        "p50_ms": 36.09,
+        "mean_ms": 39.46,
+        "p95_ms": 63.42,
+        "p99_ms": 85.53,
+        "max_ms": 283.13
+      }
+    },
+    "Cloudflare Workers (D1)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.65,
+      "requests": 6709,
+      "successful_requests": 6709,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 428.75,
+      "latency": {
+        "count": 6709,
+        "min_ms": 75.8,
+        "p50_ms": 183.84,
+        "mean_ms": 232.53,
+        "p95_ms": 454.27,
+        "p99_ms": 1385.91,
+        "max_ms": 1586.19
+      }
+    },
+    "Pixeltable Insert Route": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 19.27,
+      "requests": 288,
+      "successful_requests": 288,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 14.94,
+      "latency": {
+        "count": 288,
+        "min_ms": 1332.83,
+        "p50_ms": 4345.99,
+        "mean_ms": 5859.13,
+        "p95_ms": 8489.9,
+        "p99_ms": 12419.87,
+        "max_ms": 16439.55
+      }
+    },
+    "Pixeltable Insert Route (background=True)": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.63,
+      "requests": 3486,
+      "successful_requests": 199,
+      "error_rate": 0.9429,
+      "errors": {
+        "http_503": 2998,
+        "http_429": 289
+      },
+      "throughput_rps": 12.74,
+      "latency": {
+        "count": 199,
+        "min_ms": 52.48,
+        "p50_ms": 499.13,
+        "mean_ms": 486.16,
+        "p95_ms": 507.96,
+        "p99_ms": 771.37,
+        "max_ms": 861.76
+      }
+    },
+    "Railway Postgres": {
+      "concurrency": 100,
+      "effective_concurrency": 100,
+      "seconds": 15.02,
+      "requests": 53121,
+      "successful_requests": 53121,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 3536.57,
+      "latency": {
+        "count": 53121,
+        "min_ms": 2.73,
+        "p50_ms": 10.1,
+        "mean_ms": 28.26,
+        "p95_ms": 84.18,
+        "p99_ms": 91.66,
+        "max_ms": 681.86
+      }
+    },
+    "Render Postgres": {
+      "concurrency": 100,
+      "effective_concurrency": 96,
+      "seconds": 15.2,
+      "requests": 5188,
+      "successful_requests": 5188,
+      "error_rate": 0.0,
+      "errors": {},
+      "throughput_rps": 341.25,
+      "latency": {
+        "count": 5188,
+        "min_ms": 3.05,
+        "p50_ms": 292.91,
+        "mean_ms": 280.55,
+        "p95_ms": 596.73,
+        "p99_ms": 789.45,
+        "max_ms": 1095.71
+      },
+      "connections_refused_at_slot": 96
+    }
+  },
+  "media_decode": {
+    "Railway": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 0.25,
+      "videos_per_sec": 81.62,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 36.41,
+        "p50_ms": 49.94,
+        "mean_ms": 56.53,
+        "p95_ms": 83.78,
+        "p99_ms": 91.84,
+        "max_ms": 91.84
+      }
+    },
+    "Render": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 0.86,
+      "videos_per_sec": 23.33,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 56.42,
+        "p50_ms": 194.62,
+        "mean_ms": 184.51,
+        "p95_ms": 304.54,
+        "p99_ms": 395.56,
+        "max_ms": 395.56
+      }
+    },
+    "Vercel": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 0.03,
+      "videos_per_sec": 0.0,
+      "errors": {
+        "http_403": 20
+      },
+      "latency": {
+        "count": 0
+      }
+    },
+    "Modal": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 4.44,
+      "videos_per_sec": 4.5,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 48.78,
+        "p50_ms": 517.41,
+        "mean_ms": 993.5,
+        "p95_ms": 2935.96,
+        "p99_ms": 3670.26,
+        "max_ms": 3670.26
+      }
+    }
+  },
+  "media_persist": {
+    "Pixeltable Media Route": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 11.64,
+      "videos_per_sec": 1.72,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 538.76,
+        "p50_ms": 2141.94,
+        "mean_ms": 2684.24,
+        "p95_ms": 7018.44,
+        "p99_ms": 8151.33,
+        "max_ms": 8151.33
+      }
+    },
+    "Railway + Postgres + object storage": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 1.66,
+      "videos_per_sec": 12.08,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 297.47,
+        "p50_ms": 368.95,
+        "mean_ms": 379.83,
+        "p95_ms": 491.94,
+        "p99_ms": 508.47,
+        "max_ms": 508.47
+      }
+    },
+    "Render + Postgres + object storage": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 2.16,
+      "videos_per_sec": 9.25,
+      "errors": {},
+      "latency": {
+        "count": 20,
+        "min_ms": 293.39,
+        "p50_ms": 472.3,
+        "mean_ms": 509.06,
+        "p95_ms": 747.01,
+        "p99_ms": 925.44,
+        "max_ms": 925.44
+      }
+    },
+    "Pixeltable Media Route (background=True)": {
+      "videos": 20,
+      "concurrency": 5,
+      "seconds": 10.43,
+      "videos_per_sec": 1.92,
+      "errors": {},
+      "ack": {
+        "count": 20,
+        "min_ms": 6.66,
+        "p50_ms": 8.46,
+        "mean_ms": 20.65,
+        "p95_ms": 56.41,
+        "p99_ms": 61.98,
+        "max_ms": 61.98
+      },
+      "latency": {
+        "count": 20,
+        "min_ms": 780.88,
+        "p50_ms": 2218.75,
+        "mean_ms": 2352.1,
+        "p95_ms": 4105.57,
+        "p99_ms": 4780.48,
+        "max_ms": 4780.48
+      }
+    }
+  },
+  "resilience": {
+    "microburst_c350": {
+      "requests": 500,
+      "concurrency": 350,
+      "seconds": 3.39,
+      "rps": 147.6,
+      "statuses": {
+        "429": 270,
+        "200": 230
+      },
+      "latency": {
+        "count": 500,
+        "min_ms": 6.17,
+        "p50_ms": 376.5,
+        "mean_ms": 1455.64,
+        "p95_ms": 3372.12,
+        "p99_ms": 3381.8,
+        "max_ms": 3386.53
+      }
+    },
+    "sync_insert_c250": {
+      "requests": 250,
+      "concurrency": 250,
+      "seconds": 13.89,
+      "rps": 18.0,
+      "statuses": {
+        "429": 48,
+        "200": 202
+      },
+      "latency": {
+        "count": 250,
+        "min_ms": 6.91,
+        "p50_ms": 10928.33,
+        "mean_ms": 8805.93,
+        "p95_ms": 12804.8,
+        "p99_ms": 13666.14,
+        "max_ms": 13882.68
+      }
+    },
+    "async_insert_c200": {
+      "requests": 400,
+      "concurrency": 200,
+      "seconds": 1.62,
+      "rps": 247.0,
+      "statuses": {
+        "200": 74,
+        "503": 326
+      },
+      "latency": {
+        "count": 400,
+        "min_ms": 89.75,
+        "p50_ms": 606.9,
+        "mean_ms": 707.14,
+        "p95_ms": 1249.11,
+        "p99_ms": 1273.29,
+        "max_ms": 1275.3
+      }
+    },
+    "decompression_bomb": {
+      "status": 400,
+      "seconds": 0.08,
+      "response": "{\"detail\":{\"error_code\":\"GENERIC_USER_ERROR\",\"message\":\"Exception in task: Image size (625000000 pixels) exceeds limit of 178956970 pixels, could be decompression bomb DOS attack.\",\"retryable\":false}}"
+    }
+  },
+  "finished": "2026-10-27T22:02:57+00:00"
+}

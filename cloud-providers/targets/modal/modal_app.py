@@ -13,6 +13,20 @@ class DocInput(BaseModel):
     body: str
 
 
+def frame_at(container, seconds: float = 0.5):
+    """The frame Pixeltable's extract_frame(timestamp=seconds) returns, found the same way: the first at or after
+    `seconds` from the stream's start, or here the first frame of a shorter clip. Given a stream, seek() counts in
+    that stream's time base, not in microseconds."""
+    stream = container.streams.video[0]
+    start = stream.start_time or 0
+    container.seek(int(seconds / stream.time_base) + start, backward=True, stream=stream)
+    for frame in container.decode(stream):
+        if frame.pts is not None and (frame.pts - start) * stream.time_base >= seconds:
+            return frame.to_image()
+    container.seek(0)
+    return next((frame.to_image() for frame in container.decode(stream)), None)
+
+
 @web_app.get("/")
 def health():
     return {"status": "ok", "platform": "modal"}
@@ -50,17 +64,7 @@ async def insert_clip(clip: UploadFile = File(...), title: str = Form(...)):
     content = await clip.read()
     container = av.open(io.BytesIO(content))
     duration = float(container.duration / av.time_base) if container.duration else 0.0
-    frame_image = None
-    stream = container.streams.video[0]
-    container.seek(500000, stream=stream)
-    for frame in container.decode(video=0):
-        frame_image = frame.to_image()
-        break
-    if frame_image is None:
-        container.seek(0)
-        for frame in container.decode(video=0):
-            frame_image = frame.to_image()
-            break
+    frame_image = frame_at(container)
     w, h = 320, 180
     if frame_image:
         frame_image.resize((w, h))

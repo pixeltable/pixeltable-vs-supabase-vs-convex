@@ -1,0 +1,81 @@
+{
+  "started": "2026-10-27T19:07:54+00:00",
+  "finished": "2026-10-27T19:08:32+00:00",
+  "client": {
+    "hostname": "ip-172-31-27-74.eu-west-1.compute.internal",
+    "python": "3.11.17",
+    "aiohttp": "3.14.5",
+    "asyncpg": "0.32.0",
+    "psycopg": "3.3.6",
+    "pixeltable": "0.7.20",
+    "placement/region": "eu-west-1",
+    "placement/availability-zone": "eu-west-1b",
+    "instance-type": "c5.xlarge"
+  },
+  "not_run": [
+    "Prisma Postgres"
+  ],
+  "idle_minutes": 20.0,
+  "cold": {
+    "Cloudflare Workers": {
+      "first_request_ms": 55.1,
+      "fresh_connection_warm_ms": 40.8,
+      "wake_ms": 14.3
+    },
+    "Railway": {
+      "first_request_ms": 2739.6,
+      "fresh_connection_warm_ms": 151.4,
+      "wake_ms": 2588.2
+    },
+    "Render": {
+      "first_request_ms": 22260.3,
+      "fresh_connection_warm_ms": 126.2,
+      "wake_ms": 22134.1
+    },
+    "Vercel": {
+      "first_request_ms": 1754.1,
+      "fresh_connection_warm_ms": 103.7,
+      "wake_ms": 1650.4
+    },
+    "Modal": {
+      "first_request_ms": 2851.1,
+      "fresh_connection_warm_ms": 246.2,
+      "wake_ms": 2604.9
+    },
+    "Pixeltable Compute Route": {
+      "first_request_ms": 310.5,
+      "fresh_connection_warm_ms": 250.1,
+      "wake_ms": 60.4
+    },
+    "Neon Serverless PG": {
+      "first_request_ms": 811.9,
+      "fresh_connection_warm_ms": 227.7,
+      "wake_ms": 584.2
+    },
+    "Turso libSQL": {
+      "first_request_ms": 925.2,
+      "fresh_connection_warm_ms": 359.9,
+      "wake_ms": 565.3
+    },
+    "Supabase PostgREST": {
+      "first_request_ms": 825.5,
+      "fresh_connection_warm_ms": 310.6,
+      "wake_ms": 514.9
+    },
+    "Convex": {
+      "first_request_ms": 333.4,
+      "fresh_connection_warm_ms": 342.0,
+      "wake_ms": -8.6
+    },
+    "Railway Postgres": {
+      "first_request_ms": 931.3,
+      "fresh_connection_warm_ms": 865.1,
+      "wake_ms": 66.2
+    },
+    "Render Postgres": {
+      "first_request_ms": 671.9,
+      "fresh_connection_warm_ms": 669.9,
+      "wake_ms": 2.0
+    }
+  }
+}
